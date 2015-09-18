@@ -1,6 +1,6 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Types and macros used for syscall issuing.
+   Copyright (C) 2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,16 +16,10 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include "pthreadP.h"
+#ifndef _SYSCALL_TYPES_H
+#define _SYSCALL_TYPES_H
 
-_Noreturn void
-__pthread_exit (void *value)
-{
-  __do_cancel (value);
-}
-weak_alias (__pthread_exit, pthread_exit)
-hidden_def (__pthread_exit)
+typedef long int __syscall_arg_t;
+#define __SSC(__x) ((__syscall_arg_t) (__x))
 
-/* After a thread terminates, __libc_start_main decrements
-   __nptl_nthreads defined in pthread_create.c.  */
-PTHREAD_STATIC_FN_REQUIRE (__pthread_create)
+#endif

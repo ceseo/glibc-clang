@@ -69,6 +69,7 @@ routines = \
   pthread_setschedparam \
   pthread_sigmask \
   register-atfork \
+  syscall_cancel
 
 shared-only-routines = forward
 static-only-routines = pthread_atfork
@@ -131,7 +132,7 @@ libpthread-routines = nptl-init nptlfreeres vars events version pt-interp \
 		      pthread_barrierattr_setpshared \
 		      pthread_key_create pthread_key_delete \
 		      pthread_getspecific pthread_setspecific \
-		      pthread_kill pthread_sigqueue \
+		      pthread_kill pthread_kill_internal pthread_sigqueue \
 		      pthread_cancel pthread_testcancel \
 		      pthread_setcancelstate pthread_setcanceltype \
 		      pthread_once \
@@ -145,7 +146,6 @@ libpthread-routines = nptl-init nptlfreeres vars events version pt-interp \
 		      cleanup cleanup_defer cleanup_compat \
 		      cleanup_defer_compat unwind \
 		      pt-longjmp pt-cleanup\
-		      cancellation \
 		      lowlevellock \
 		      lll_timedlock_wait \
 		      pt-fork pt-fcntl \
@@ -195,8 +195,7 @@ CFLAGS-pthread_setcanceltype.c += -fexceptions -fasynchronous-unwind-tables
 
 # These are internal functions which similar functionality as setcancelstate
 # and setcanceltype.
-CFLAGS-cancellation.c += -fasynchronous-unwind-tables
-CFLAGS-libc-cancellation.c += -fasynchronous-unwind-tables
+CFLAGS-libc-cancellation.c += -fexceptions -fasynchronous-unwind-tables
 
 # Calling pthread_exit() must cause the registered cancel handlers to
 # be executed.  Therefore exceptions have to be thrown through this
@@ -278,7 +277,7 @@ tests = tst-attr2 tst-attr3 tst-default-attr \
 	tst-sem17 \
 	tst-tsd3 tst-tsd4 \
 	tst-cancel4_1 tst-cancel4_2 \
-	tst-cancel7 tst-cancel17 tst-cancel24 \
+	tst-cancel7 tst-cancel17 tst-cancel24 tst-cancel29 \
 	tst-cleanup4 \
 	tst-signal3 \
 	tst-exec4 tst-exec5 \

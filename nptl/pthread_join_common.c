@@ -106,7 +106,7 @@ __pthread_clockjoin_ex (pthread_t threadid, void **thread_return,
   if ((pd == self
        || (self->joinid == pd
 	   && (pd->cancelhandling
-	       & (CANCELING_BITMASK | CANCELED_BITMASK | EXITING_BITMASK
+	       & (CANCELED_BITMASK | EXITING_BITMASK
 		  | TERMINATED_BITMASK)) == 0))
       && !(self->cancelstate == PTHREAD_CANCEL_ENABLE
 	   && (pd->cancelhandling & (CANCELED_BITMASK | EXITING_BITMASK
@@ -148,7 +148,7 @@ __pthread_clockjoin_ex (pthread_t threadid, void **thread_return,
 	  /* We need acquire MO here so that we synchronize with the
 	     kernel's store to 0 when the clone terminates. (see above)  */
 	  while ((tid = atomic_load_acquire (&pd->tid)) != 0)
-	    lll_futex_wait_cancel (&pd->tid, tid, LLL_SHARED);
+	    lll_futex_wait_cancel ((unsigned int *) &pd->tid, tid, LLL_SHARED);
 	}
 
       pthread_cleanup_pop (0);

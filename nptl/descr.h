@@ -276,9 +276,6 @@ struct pthread
 
   /* Flags determining processing of cancellation.  */
   int cancelhandling;
-  /* Bit set if canceling has been initiated.  */
-#define CANCELING_BIT		2
-#define CANCELING_BITMASK	(0x01 << CANCELING_BIT)
   /* Bit set if canceled.  */
 #define CANCELED_BIT		3
 #define CANCELED_BITMASK	(0x01 << CANCELED_BIT)

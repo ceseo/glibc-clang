@@ -39,6 +39,9 @@
 #include <libc-pointer-arith.h>
 #include <pthread-pids.h>
 #include <pthread_mutex_conf.h>
+#include <sigcontextinfo.h>
+#include <cancellation-sigmask.h>
+#include <cancellation-pc-check.h>
 
 #ifndef TLS_MULTIPLE_THREADS_IN_TCB
 /* Pointer to the corresponding variable in libc.  */
@@ -137,35 +140,23 @@ sigcancel_handler (int sig, siginfo_t *si, void *ctx)
 
   struct pthread *self = THREAD_SELF;
 
-  int oldval = THREAD_GETMEM (self, cancelhandling);
-  while (1)
-    {
-      /* We are canceled now.  When canceled by another thread this flag
-	 is already set but if the signal is directly send (internally or
-	 from another process) is has to be done here.  */
-      int newval = oldval | CANCELING_BITMASK | CANCELED_BITMASK;
+  if (!__pthread_self_cancelled ()
+      || self->cancelstate == PTHREAD_CANCEL_DISABLE)
+    return;
 
-      if (oldval == newval || (oldval & EXITING_BITMASK) != 0)
-	/* Already canceled or exiting.  */
-	break;
+  /* Add SIGCANCEL on ignored sigmask to avoid the handler to be called
+     again.  */
+  ucontext_block_sigcancel (ctx);
 
-      int curval = THREAD_ATOMIC_CMPXCHG_VAL (self, cancelhandling, newval,
-					      oldval);
-      if (curval == oldval)
-	{
-	  /* Set the return value.  */
-	  THREAD_SETMEM (self, result, PTHREAD_CANCELED);
-
-	  /* Make sure asynchronous cancellation is still enabled.  */
-	  if (self->canceltype == PTHREAD_CANCEL_ASYNCHRONOUS)
-	    /* Run the registered destructors and terminate the thread.  */
-	    __do_cancel ();
-
-	  break;
-	}
-
-      oldval = curval;
-    }
+  /* Check if asynchronous cancellation mode is set or if interrupted
+     instruction pointer falls within the cancellable syscall bridge.  For
+     interruptable syscalls that might generate external side-effects (partial
+     reads or writes, for instance), the kernel will set the IP to after
+     '__syscall_cancel_arch_end', thus disabling the cancellation and allowing
+     the process to handle such conditions.  */
+  if (self->canceltype == PTHREAD_CANCEL_ASYNCHRONOUS
+      || cancellation_pc_check (ctx))
+    __do_cancel (PTHREAD_CANCELED);
 }
 
 
@@ -260,28 +251,40 @@ __pthread_initialize_minimal_internal (void)
      had to set __nptl_initial_report_events.  Propagate its setting.  */
   THREAD_SETMEM (pd, report_events, __nptl_initial_report_events);
 
-  struct sigaction sa;
-  __sigemptyset (&sa.sa_mask);
-
   /* Install the cancellation signal handler.  If for some reason we
      cannot install the handler we do not abort.  Maybe we should, but
      it is only asynchronous cancellation which is affected.  */
-  sa.sa_sigaction = sigcancel_handler;
-  sa.sa_flags = SA_SIGINFO;
-  (void) __libc_sigaction (SIGCANCEL, &sa, NULL);
+  {
+    struct sigaction sa;
+    sa.sa_sigaction = sigcancel_handler;
+    /* The signal handle should be non-interruptible to avoid the risk of
+       spurious EINTR caused by SIGCANCEL sent to process or if pthread_cancel
+       is called while cancellation is disabled in the target thread.  */
+    sa.sa_flags = SA_SIGINFO | SA_RESTART;
+    sa.sa_mask = sigall_set;
+    __libc_sigaction (SIGCANCEL, &sa, NULL);
+  }
 
-  /* Install the handle to change the threads' uid/gid.  */
-  sa.sa_sigaction = sighandler_setxid;
-  sa.sa_flags = SA_SIGINFO | SA_RESTART;
-  (void) __libc_sigaction (SIGSETXID, &sa, NULL);
+  {
+    /* Install the handler to change the threads' uid/gid.  */
+    struct sigaction sa;
+    __sigemptyset (&sa.sa_mask);
+    sa.sa_sigaction = sighandler_setxid;
+    sa.sa_flags = SA_SIGINFO | SA_RESTART;
+    __libc_sigaction (SIGSETXID, &sa, NULL);
+  }
 
   /* The parent process might have left the signals blocked.  Just in
      case, unblock it.  We reuse the signal mask in the sigaction
      structure.  It is already cleared.  */
-  __sigaddset (&sa.sa_mask, SIGCANCEL);
-  __sigaddset (&sa.sa_mask, SIGSETXID);
-  INTERNAL_SYSCALL_CALL (rt_sigprocmask, SIG_UNBLOCK, &sa.sa_mask,
-			 NULL, __NSIG_BYTES);
+  {
+    struct sigaction sa;
+    __sigemptyset (&sa.sa_mask);
+    __sigaddset (&sa.sa_mask, SIGCANCEL);
+    __sigaddset (&sa.sa_mask, SIGSETXID);
+    INTERNAL_SYSCALL_CALL (rt_sigprocmask, SIG_UNBLOCK, &sa.sa_mask,
+			   NULL, __NSIG_BYTES);
+  }
 
   /* Get the size of the static and alignment requirements for the TLS
      block.  */
