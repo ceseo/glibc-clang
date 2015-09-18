@@ -41,6 +41,10 @@ libc {
     __libc_allocate_rtsig_private;
     # Used by the C11 threads implementation.
     __pthread_cond_destroy; __pthread_cond_init;
+    # Used by pthread cancellation.
+    __syscall_cancel;
+    __syscall_cancel_arch_start;
+    __syscall_cancel_arch_end;
   }
 }
 

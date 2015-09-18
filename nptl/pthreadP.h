@@ -286,20 +286,13 @@ extern void __nptl_unwind_freeres (void) attribute_hidden;
 #endif
 
 
-/* Called when a thread reacts on a cancellation request.  */
-static inline void
-__attribute ((noreturn, always_inline))
-__do_cancel (void)
-{
-  struct pthread *self = THREAD_SELF;
+extern long int __syscall_cancel_arch (volatile int *, __syscall_arg_t nr,
+     __syscall_arg_t arg1, __syscall_arg_t arg2, __syscall_arg_t arg3,
+     __syscall_arg_t arg4, __syscall_arg_t arg5, __syscall_arg_t arg6);
+libc_hidden_proto (__syscall_cancel_arch);
 
-  /* Make sure we get no more cancellations.  */
-  THREAD_ATOMIC_BIT_SET (self, cancelhandling, EXITING_BIT);
-
-  __pthread_unwind ((__pthread_unwind_buf_t *)
-		    THREAD_GETMEM (self, cleanup_jmp_buf));
-}
-
+extern _Noreturn void __syscall_do_cancel (void)
+     attribute_hidden;
 
 /* Internal prototypes.  */
 
@@ -461,12 +454,13 @@ extern int __pthread_equal (pthread_t thread1, pthread_t thread2);
 extern int __pthread_detach (pthread_t th);
 extern int __pthread_cancel (pthread_t th);
 extern int __pthread_kill (pthread_t threadid, int signo);
+extern int __pthread_kill_internal (pthread_t threadid, int signo)
+  attribute_hidden;
 extern void __pthread_exit (void *value) __attribute__ ((__noreturn__));
 extern int __pthread_join (pthread_t threadid, void **thread_return);
 extern int __pthread_setcanceltype (int type, int *oldtype);
-extern int __pthread_enable_asynccancel (void) attribute_hidden;
-extern void __pthread_disable_asynccancel (int oldtype) attribute_hidden;
 extern void __pthread_testcancel (void);
+extern void __pthread_exit (void *value);
 extern int __pthread_clockjoin_ex (pthread_t, void **, clockid_t,
 				   const struct timespec *, bool)
   attribute_hidden;
@@ -487,9 +481,40 @@ hidden_proto (__pthread_setspecific)
 hidden_proto (__pthread_once)
 hidden_proto (__pthread_setcancelstate)
 hidden_proto (__pthread_testcancel)
+hidden_proto (__pthread_exit)
 hidden_proto (__pthread_mutexattr_init)
 hidden_proto (__pthread_mutexattr_settype)
 #endif
+
+/* Called when a thread reacts on a cancellation request.  */
+_Noreturn static inline void
+__do_cancel (void *value)
+{
+  struct pthread *self = THREAD_SELF;
+
+  /* Make sure we get no more cancellations by clearing the cancel
+     state.  */
+  THREAD_SETMEM (self, cancelstate, PTHREAD_CANCEL_DISABLE);
+  THREAD_SETMEM (self, canceltype, PTHREAD_CANCEL_DEFERRED);
+
+  THREAD_SETMEM (self, result, value);
+
+  THREAD_ATOMIC_BIT_SET (self, cancelhandling, EXITING_BIT);
+
+  __pthread_unwind ((__pthread_unwind_buf_t *)
+		    THREAD_GETMEM (self, cleanup_jmp_buf));
+}
+
+static inline bool
+__pthread_self_cancelled (void)
+{
+  struct pthread *self = THREAD_SELF;
+  int cancelhandling = THREAD_GETMEM (self, cancelhandling);
+  return self->cancelstate == PTHREAD_CANCEL_ENABLE
+	  && (cancelhandling & (CANCELED_BITMASK | EXITING_BITMASK
+			        | TERMINATED_BITMASK))
+	      == CANCELED_BITMASK;
+}
 
 extern int __pthread_cond_broadcast_2_0 (pthread_cond_2_0_t *cond);
 extern int __pthread_cond_destroy_2_0 (pthread_cond_2_0_t *cond);

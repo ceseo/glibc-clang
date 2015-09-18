@@ -276,13 +276,13 @@ struct pthread
 #define CANCELED_BIT		3
 #define CANCELED_BITMASK	(0x01 << CANCELED_BIT)
   /* Bit set if thread is exiting.  */
-#define EXITING_BIT		4
+#define EXITING_BIT		3
 #define EXITING_BITMASK		(0x01 << EXITING_BIT)
   /* Bit set if thread terminated and TCB is freed.  */
-#define TERMINATED_BIT		5
+#define TERMINATED_BIT		4
 #define TERMINATED_BITMASK	(0x01 << TERMINATED_BIT)
   /* Bit set if thread is supposed to change XID.  */
-#define SETXID_BIT		6
+#define SETXID_BIT		5
 #define SETXID_BITMASK		(0x01 << SETXID_BIT)
 
   /* Flags.  Including those copied from the thread attribute.  */
