@@ -65,6 +65,10 @@ libc {
     __pthread_attr_copy;
     __pthread_getattr_default_np;
     __pthread_attr_setsigmask_internal;
+    # Used by pthread cancellation.
+    __syscall_cancel;
+    __syscall_cancel_arch_start;
+    __syscall_cancel_arch_end;
   }
 }
 

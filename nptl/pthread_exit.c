@@ -16,18 +16,15 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <stdlib.h>
 #include "pthreadP.h"
 
-
-void
+_Noreturn void
 __pthread_exit (void *value)
 {
-  THREAD_SETMEM (THREAD_SELF, result, value);
-
-  __do_cancel ();
+  __do_cancel (value);
 }
 weak_alias (__pthread_exit, pthread_exit)
+hidden_def (__pthread_exit)
 
 /* After a thread terminates, __libc_start_main decrements
    __nptl_nthreads defined in pthread_create.c.  */

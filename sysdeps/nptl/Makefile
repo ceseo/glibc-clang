@@ -22,8 +22,7 @@ CFLAGS-futex-internal.c += -fexceptions -fasynchronous-unwind-tables
 endif
 
 ifeq ($(subdir),rt)
-librt-sysdep_routines += timer_routines librt-cancellation
-CFLAGS-librt-cancellation.c += -fexceptions -fasynchronous-unwind-tables
+librt-sysdep_routines += timer_routines
 
 tests += tst-mqueue8x
 CFLAGS-tst-mqueue8x.c += -fexceptions

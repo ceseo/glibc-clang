@@ -131,21 +131,36 @@
 		     nr_wake, nr_move, mutex, val)
 
 /* Like lll_futex_wait, but acting as a cancellable entrypoint.  */
-# define lll_futex_wait_cancel(futexp, val, private) \
-  ({                                                                   \
-    int __oldtype = CANCEL_ASYNC ();				       \
-    long int __err = lll_futex_wait (futexp, val, LLL_SHARED);	       \
-    CANCEL_RESET (__oldtype);					       \
-    __err;							       \
-  })
+# define lll_futex_wait_cancel(futexp, val, private)			\
+  lll_futex_timed_wait_cancel (futexp, val, NULL, private)
 
 /* Like lll_futex_timed_wait, but acting as a cancellable entrypoint.  */
-# define lll_futex_timed_wait_cancel(futexp, val, timeout, private) \
-  ({									   \
-    int __oldtype = CANCEL_ASYNC ();				       	   \
-    long int __err = lll_futex_timed_wait (futexp, val, timeout, private); \
-    CANCEL_RESET (__oldtype);						   \
-    __err;								   \
+# define lll_futex_timed_wait_cancel(futexp, val, timeout, private) 	\
+  ({									\
+     int __op = __lll_private_flag (FUTEX_WAIT, private);		\
+     INTERNAL_SYSCALL_CANCEL (futex, futexp, __op, val, timeout);	\
+  })
+
+/* Like lll_futex_clock_wait_bitset, but acting as a cancellable
+   entrypoint.  */
+# define lll_futex_clock_wait_bitset_cancel(futexp, val, clockid, timeout, \
+					    private)			   \
+  ({									\
+    long int __ret;							\
+    if (lll_futex_supported_clockid (clockid))			  	\
+      {								 	\
+	const unsigned int __clockbit =				 	\
+	  (clockid == CLOCK_REALTIME) ? FUTEX_CLOCK_REALTIME : 0;       \
+	const int __op =						\
+	  __lll_private_flag (FUTEX_WAIT_BITSET | __clockbit, private); \
+									\
+	__ret = INTERNAL_SYSCALL_CANCEL (futex, futexp, __op, val,	\
+					 timeout, NULL,			\
+					 FUTEX_BITSET_MATCH_ANY);	\
+      }								 	\
+    else								\
+      __ret = -EINVAL;							\
+    __ret;								\
   })
 
 #endif  /* !__ASSEMBLER__  */

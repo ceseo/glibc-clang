@@ -57,7 +57,7 @@ __pthread_clockjoin_ex (pthread_t threadid, void **thread_return,
   if ((pd == self
        || (self->joinid == pd
 	   && (pd->cancelhandling
-	       & (CANCELING_BITMASK | CANCELED_BITMASK | EXITING_BITMASK
+	       & (CANCELED_BITMASK | EXITING_BITMASK
 		  | TERMINATED_BITMASK)) == 0))
       && !(self->cancelstate == PTHREAD_CANCEL_ENABLE
 	   && (pd->cancelhandling & (CANCELED_BITMASK | EXITING_BITMASK
