@@ -46,6 +46,7 @@
 #undef SYS_ify
 #define SYS_ify(syscall_name)	__NR_##syscall_name
 
+#if 0
 #if defined USE_DL_SYSINFO \
 	&& (IS_IN (libc) \
 	    || IS_IN (libpthread) || IS_IN (librt))
@@ -53,6 +54,8 @@
 #else
 # undef IA64_USE_NEW_STUB
 #endif
+#endif
+#undef IA64_USE_NEW_STUB
 
 #ifdef __ASSEMBLER__
 
