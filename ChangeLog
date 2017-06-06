@@ -1,3 +1,18 @@
+2018-02-02  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
+
+	* malloc/Makefile (test-internal): Add tst-char_array.
+	(routines): Add dynarray_overflow_failure and char_array-impl.
+	* malloc/Versions [GLIBC_PRIVATE] (libc): Add
+	__libc_dynarray_overflow_failure, __char_array_set_str_size,
+	__char_array_erase, __char_array_prepend_str_size, and
+	__char_array_replace_str_pos.
+	* malloc/char_array-impl.c: New file.
+	* malloc/char_array-skeleton.c: Likewise.
+	* malloc/char_array.h: Likewise.
+	* malloc/tst-char-array.c: Likewise.
+	* malloc/dynarray_overflow_failure.c: Likewise.
+	* malloc/malloc-internal.h (check_add_overflow_size_t): New function.
+
 2018-02-02  Sean McKean  <smckean83@gmail.com>
 
 	[BZ #22735]

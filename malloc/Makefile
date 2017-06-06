@@ -50,6 +50,7 @@ tests-internal += \
 	 tst-dynarray \
 	 tst-dynarray-fail \
 	 tst-dynarray-at-fail \
+	 tst-char_array
 
 ifneq (no,$(have-tunables))
 tests += tst-malloc-usable-tunables
@@ -62,7 +63,7 @@ test-srcs = tst-mtrace
 routines = malloc morecore mcheck mtrace obstack reallocarray \
   scratch_buffer_grow scratch_buffer_grow_preserve \
   scratch_buffer_set_array_size \
-  dynarray_at_failure \
+  dynarray_at_failure dynarray_overflow_failure \
   dynarray_emplace_enlarge \
   dynarray_finalize \
   dynarray_resize \
@@ -72,6 +73,7 @@ routines = malloc morecore mcheck mtrace obstack reallocarray \
   alloc_buffer_copy_bytes  \
   alloc_buffer_copy_string \
   alloc_buffer_create_failure \
+  char_array-impl
 
 install-lib := libmcheck.a
 non-lib.a := libmcheck.a
