@@ -126,15 +126,17 @@ do_test_bz20181 (void)
   if (fflush (fp) != 0)
     ERROR_RET1 ("fflush failed (errno = %d)\n", errno);
 
-  /* Avoid truncating the buffer on close.  */
+  /* fseek updates the internal buffer, but open_memstream should set the
+     size to smaller of the buffer size and number of bytes written.  Since
+     it was written just character ('z') final size should be 1.  */
   if (fseek (fp, 3, SEEK_SET) != 0)
     ERROR_RET1 ("fseek failed (errno = %d)\n", errno);
 
   if (fclose (fp) != 0)
     ERROR_RET1 ("fclose failed (errno = %d\n", errno);
 
-  if (size != 3)
-    ERROR_RET1 ("size != 3\n");
+  if (size != 1)
+    ERROR_RET1 ("size != 1 (got %zu)\n", size);
 
   if (buf[0] != W('z')
       || buf[1] != W('b')

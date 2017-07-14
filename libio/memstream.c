@@ -26,11 +26,15 @@ struct _IO_FILE_memstream
   _IO_strfile _sf;
   char **bufloc;
   size_t *sizeloc;
+  char *prevwriteptr;
+  char *seekwriteptr;
 };
 
 
 static int _IO_mem_sync (FILE* fp) __THROW;
 static void _IO_mem_finish (FILE* fp, int) __THROW;
+static off64_t _IO_mem_seekoff (FILE *fp, off64_t offset,
+				int dir, int mode) __THROW;
 
 
 static const struct _IO_jump_t _IO_mem_jumps libio_vtable =
@@ -43,7 +47,7 @@ static const struct _IO_jump_t _IO_mem_jumps libio_vtable =
   JUMP_INIT (pbackfail, _IO_str_pbackfail),
   JUMP_INIT (xsputn, _IO_default_xsputn),
   JUMP_INIT (xsgetn, _IO_default_xsgetn),
-  JUMP_INIT (seekoff, _IO_str_seekoff),
+  JUMP_INIT (seekoff, _IO_mem_seekoff),
   JUMP_INIT (seekpos, _IO_default_seekpos),
   JUMP_INIT (setbuf, _IO_default_setbuf),
   JUMP_INIT (sync, _IO_mem_sync),
@@ -96,6 +100,26 @@ __open_memstream (char **bufloc, size_t *sizeloc)
   new_f->fp.bufloc = bufloc;
   new_f->fp.sizeloc = sizeloc;
 
+  /* To correctly report the buffer size the implementation must track both
+     the buffer size and currently bytes are written.  However _IO_write_ptr
+     is updated on both write and seek operations (since some _IO_* function
+     access the pointer directly to optimize updates).  So to track current
+     written bytes two fields are used:
+
+     - prevwriteptr: track previous _IO_write_ptr before a seek operation on
+       the stream.
+     - seekwriteptr: track resulted _IO_write_ptr after a seek operation on
+       the stream.
+
+     Also, prevwriteptr is only updated iff _IO_write_ptr changed over calls
+     (meaning that a write operation happened).
+
+     So final buffer size is based on current _IO_write_ptr only if
+     its value is different than seekwriteptr.  Otherwise it uses the old
+     _IO_write_ptr value before seek operation (prevwriteptr).  */
+  new_f->fp.prevwriteptr = new_f->fp.seekwriteptr =
+    new_f->fp._sf._sbf._f._IO_write_ptr;
+
   /* Disable single thread optimization.  BZ 21735.  */
   new_f->fp._sf._sbf._f._flags2 |= _IO_FLAGS2_NEED_LOCK;
 
@@ -104,6 +128,21 @@ __open_memstream (char **bufloc, size_t *sizeloc)
 libc_hidden_def (__open_memstream)
 weak_alias (__open_memstream, open_memstream)
 
+/* Update FP with SIZE number of bytes written and return true if a write
+   operation has occurred.  */
+static bool
+update_bufsize (const FILE *fp, size_t *size)
+{
+  const struct _IO_FILE_memstream *mp =
+    (const struct _IO_FILE_memstream *) fp;
+  if (fp->_IO_write_ptr == mp->seekwriteptr)
+    {
+      *size = mp->prevwriteptr - fp->_IO_write_base;
+      return false;
+    }
+  *size = fp->_IO_write_ptr - fp->_IO_write_base;
+  return true;
+}
 
 static int
 _IO_mem_sync (FILE *fp)
@@ -117,7 +156,7 @@ _IO_mem_sync (FILE *fp)
     }
 
   *mp->bufloc = fp->_IO_write_base;
-  *mp->sizeloc = fp->_IO_write_ptr - fp->_IO_write_base;
+  update_bufsize (fp, mp->sizeloc);
 
   return 0;
 }
@@ -132,11 +171,23 @@ _IO_mem_finish (FILE *fp, int dummy)
 				  fp->_IO_write_ptr - fp->_IO_write_base + 1);
   if (*mp->bufloc != NULL)
     {
-      (*mp->bufloc)[fp->_IO_write_ptr - fp->_IO_write_base] = '\0';
-      *mp->sizeloc = fp->_IO_write_ptr - fp->_IO_write_base;
+      /* An '\0' should be appended iff a write operation ocurred.  */
+      if (update_bufsize (fp, mp->sizeloc))
+	(*mp->bufloc)[*mp->sizeloc] = '\0';
 
       fp->_IO_buf_base = NULL;
     }
 
   _IO_str_finish (fp, 0);
+}
+
+static off64_t
+_IO_mem_seekoff (FILE *fp, off64_t offset, int dir, int mode)
+{
+  struct _IO_FILE_memstream *mp = (struct _IO_FILE_memstream *) fp;
+  if (fp->_IO_write_ptr != mp->seekwriteptr)
+    mp->prevwriteptr = fp->_IO_write_ptr;
+  off64_t ret = _IO_str_seekoff (fp, offset, dir, mode);
+  mp->seekwriteptr = fp->_IO_write_ptr;
+  return ret;
 }

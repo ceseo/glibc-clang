@@ -60,7 +60,9 @@ tests = tst_swprintf tst_wprintf tst_swscanf tst_wscanf tst_getwc tst_putwc   \
 	tst-mmap2-eofsync tst-mmap-offend bug-fopena+ bug-wfflush \
 	bug-ungetc2 bug-ftell bug-ungetc3 bug-ungetc4 tst-fopenloc2 \
 	tst-memstream1 tst-memstream2 tst-memstream3 tst-memstream4 \
+	tst-memstream5 \
 	tst-wmemstream1 tst-wmemstream2 tst-wmemstream3 tst-wmemstream4 \
+	tst-wmemstream5 \
 	bug-memstream1 bug-wmemstream1 \
 	tst-setvbuf1 tst-popen1 tst-fgetwc bug-wsetpos tst-fseek \
 	tst-fwrite-error tst-ftell-partial-wide tst-ftell-active-handler \
