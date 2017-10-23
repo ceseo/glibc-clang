@@ -1189,6 +1189,21 @@ prefix_array (const char *dirname, char **array, size_t n)
   return 0;
 }
 
+struct globnames_result
+{
+  char **names;
+  size_t length;
+};
+
+/* Create a dynamic array for C string representing the glob name found.  */
+#define DYNARRAY_STRUCT            globnames_array
+#define DYNARRAY_ELEMENT_FREE(ptr) free (*ptr)
+#define DYNARRAY_ELEMENT           char *
+#define DYNARRAY_PREFIX            globnames_array_
+#define DYNARRAY_FINAL_TYPE        struct globnames_result
+#define DYNARRAY_INITIAL_SIZE      64
+#include <malloc/dynarray-skeleton.c>
+
 /* Like 'glob', but PATTERN is a final pathname component,
    and matches are searched for in DIRECTORY.
    The GLOB_NOSORT bit in FLAGS is ignored.  No sorting is ever done.
@@ -1199,25 +1214,13 @@ glob_in_dir (const char *pattern, const char *directory, int flags,
 	     glob_t *pglob, size_t alloca_used)
 {
   void *stream = NULL;
-# define GLOBNAMES_MEMBERS(nnames) \
-    struct globnames *next; size_t count; char *name[nnames];
-  struct globnames { GLOBNAMES_MEMBERS (FLEXIBLE_ARRAY_MEMBER) };
-  struct { GLOBNAMES_MEMBERS (64) } init_names_buf;
-  struct globnames *init_names = (struct globnames *) &init_names_buf;
-  struct globnames *names = init_names;
-  struct globnames *names_alloca = init_names;
+  struct globnames_array globnames;
   size_t nfound = 0;
-  size_t cur = 0;
   int meta;
   int save;
   int result;
 
-  alloca_used += sizeof init_names_buf;
-
-  init_names->next = NULL;
-  init_names->count = ((sizeof init_names_buf
-                        - offsetof (struct globnames, name))
-                       / sizeof init_names->name[0]);
+  globnames_array_init (&globnames);
 
   meta = __glob_pattern_type (pattern, !(flags & GLOB_NOESCAPE));
   if (meta == GLOBPAT_NONE && (flags & (GLOB_NOCHECK|GLOB_NOMAGIC)))
@@ -1294,34 +1297,10 @@ glob_in_dir (const char *pattern, const char *directory, int flags,
 
 	      if (fnmatch (pattern, d.name, fnm_flags) == 0)
 		{
-		  if (cur == names->count)
-		    {
-		      struct globnames *newnames;
-		      size_t count = names->count * 2;
-		      size_t nameoff = offsetof (struct globnames, name);
-		      size_t size = FLEXSIZEOF (struct globnames, name,
-						count * sizeof (char *));
-		      if ((SIZE_MAX - nameoff) / 2 / sizeof (char *)
-			  < names->count)
-			goto memory_error;
-		      if (glob_use_alloca (alloca_used, size))
-			newnames = names_alloca
-			  = alloca_account (size, alloca_used);
-		      else if ((newnames = malloc (size))
-			       == NULL)
-			goto memory_error;
-		      newnames->count = count;
-		      newnames->next = names;
-		      names = newnames;
-		      cur = 0;
-		    }
-		  names->name[cur] = strdup (d.name);
-		  if (names->name[cur] == NULL)
+		  globnames_array_add (&globnames, strdup (d.name));
+		  if (globnames_array_has_failed (&globnames))
 		    goto memory_error;
-		  ++cur;
-		  ++nfound;
-		  if (SIZE_MAX - pglob->gl_offs <= nfound)
-		    goto memory_error;
+		  nfound++;
 		}
 	    }
 	}
@@ -1331,10 +1310,13 @@ glob_in_dir (const char *pattern, const char *directory, int flags,
     {
       size_t len = strlen (pattern);
       nfound = 1;
-      names->name[cur] = malloc (len + 1);
-      if (names->name[cur] == NULL)
+      char *newp = malloc (len + 1);
+      if (newp == NULL)
 	goto memory_error;
-      *((char *) mempcpy (names->name[cur++], pattern, len)) = '\0';
+      *((char *) mempcpy (newp, pattern, len)) = '\0';
+      globnames_array_add (&globnames, newp);
+      if (globnames_array_has_failed (&globnames))
+	goto memory_error;
     }
 
   result = GLOB_NOMATCH;
@@ -1355,59 +1337,24 @@ glob_in_dir (const char *pattern, const char *directory, int flags,
       if (new_gl_pathv == NULL)
 	{
 	memory_error:
-	  while (1)
-	    {
-	      struct globnames *old = names;
-	      for (size_t i = 0; i < cur; ++i)
-		free (names->name[i]);
-	      names = names->next;
-	      /* NB: we will not leak memory here if we exit without
-		 freeing the current block assigned to OLD.  At least
-		 the very first block is always allocated on the stack
-		 and this is the block assigned to OLD here.  */
-	      if (names == NULL)
-		{
-		  assert (old == init_names);
-		  break;
-		}
-	      cur = names->count;
-	      if (old == names_alloca)
-		names_alloca = names;
-	      else
-		free (old);
-	    }
+	  globnames_array_free (&globnames);
 	  result = GLOB_NOSPACE;
 	}
       else
 	{
-	  while (1)
+	  struct globnames_result ret = { .names = 0, .length = -1 };
+	  if (!globnames_array_finalize (&globnames, &ret))
+	    result = GLOB_NOSPACE;
+	  else
 	    {
-	      struct globnames *old = names;
-	      for (size_t i = 0; i < cur; ++i)
+	      for (size_t i = 0; i < ret.length; ++i)
 		new_gl_pathv[pglob->gl_offs + pglob->gl_pathc++]
-		  = names->name[i];
-	      names = names->next;
-	      /* NB: we will not leak memory here if we exit without
-		 freeing the current block assigned to OLD.  At least
-		 the very first block is always allocated on the stack
-		 and this is the block assigned to OLD here.  */
-	      if (names == NULL)
-		{
-		  assert (old == init_names);
-		  break;
-		}
-	      cur = names->count;
-	      if (old == names_alloca)
-		names_alloca = names;
-	      else
-		free (old);
+		  = ret.names[i];
+	      pglob->gl_pathv = new_gl_pathv;
+	      pglob->gl_pathv[pglob->gl_offs + pglob->gl_pathc] = NULL;
+	      pglob->gl_flags = flags;
 	    }
-
-	  pglob->gl_pathv = new_gl_pathv;
-
-	  pglob->gl_pathv[pglob->gl_offs + pglob->gl_pathc] = NULL;
-
-	  pglob->gl_flags = flags;
+	  free (ret.names);
 	}
     }
 

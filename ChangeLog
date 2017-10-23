@@ -1,5 +1,7 @@
 2018-02-02  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
 
+	* posix/glob.c (glob_in_dir): Use dynarray for globnames.
+
 	* posix/glob.c (glob_in_dir): Remove alloca usage for fullname.
 
 	* posix/glob.c (glob): Remove alloca usage for onealt.
