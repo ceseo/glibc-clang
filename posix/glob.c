@@ -596,9 +596,14 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
 		  || char_array_pos (&dirname, 2) == '/')))
 	{
 	  /* Look up home directory.  */
-	  char *home_dir = getenv ("HOME");
-	  int malloc_home_dir = 0;
-	  if (home_dir == NULL || home_dir[0] == '\0')
+	  struct char_array home_dir;
+
+	  const char *home_env = getenv ("HOME");
+	  home_env = home_env == NULL ? "" : home_env;
+	  if (!char_array_init_str (&home_dir, home_env))
+	    goto err_nospace;
+
+	  if (char_array_is_empty (&home_dir))
 	    {
 #ifdef WINDOWS32
 	      /* Windows NT defines HOMEDRIVE and HOMEPATH.  But give
@@ -608,16 +613,21 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
 
 	      if (home_drive != NULL && home_path != NULL)
 		{
-		  size_t home_drive_len = strlen (home_drive);
-		  size_t home_path_len = strlen (home_path);
-		  char *mem = alloca (home_drive_len + home_path_len + 1);
-
-		  memcpy (mem, home_drive, home_drive_len);
-		  memcpy (mem + home_drive_len, home_path, home_path_len + 1);
-		  home_dir = mem;
+		  if (!char_array_set_str (&home_dir, home_drive)
+		      || !char_array_append_str (&home_dir, home_path))
+		   {
+		     char_array_free (&home_dir);
+		     goto err_nospace;
+		   }
 		}
 	      else
-		home_dir = "c:/users/default"; /* poor default */
+		{
+		  if (!char_array_set_str (&home_dir, "c:/users/default"))
+		    {
+		      char_array_free (&home_dir);
+		      goto err_nospace;
+		    }
+		}
 #else
 	      int err;
 	      struct passwd *p;
@@ -646,44 +656,48 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
 		  if (!scratch_buffer_grow (&s))
 		    goto err_nospace;
 		}
-	      if (err == 0)
-		{
-		  home_dir = strdup (p->pw_dir);
-		  malloc_home_dir = 1;
-		}
+	      bool e = (err == 0 && char_array_set_str (&home_dir, p->pw_dir));
 	      scratch_buffer_free (&s);
-	      if (err == 0 && home_dir == NULL)
+	      if (e == false)
 		goto err_nospace;
 #endif /* WINDOWS32 */
 	    }
-	  if (home_dir == NULL || home_dir[0] == '\0')
+	  if (char_array_is_empty (&home_dir))
 	    {
-	      if (__glibc_unlikely (malloc_home_dir))
-		free (home_dir);
 	      if (flags & GLOB_TILDE_CHECK)
 		{
+		  char_array_free (&home_dir);
 		  retval = GLOB_NOMATCH;
 		  goto out;
 		}
 	      else
 		{
-		  home_dir = (char *) "~"; /* No luck.  */
-		  malloc_home_dir = 0;
+		  if (!char_array_set_str (&home_dir, "~"))
+		    {
+		      char_array_free (&home_dir);
+		      goto err_nospace;
+		    }
 		}
 	    }
 	  /* Now construct the full directory.  */
+	  bool e = true;
 	  if (char_array_pos (&dirname, 1) == '\0')
 	    {
-	      if (!char_array_set_str (&dirname, home_dir))
-		goto err_nospace;
+	      e = char_array_set_str (&dirname, char_array_str (&home_dir));
 	      dirlen = char_array_size (&dirname) - 1;
 	    }
 	  else
 	    {
 	      /* Replaces '~' by the obtained HOME dir.  */
 	      char_array_erase (&dirname, 0);
-	      if (!char_array_prepend_str (&dirname, home_dir))
-		goto err_nospace;
+	      e = char_array_prepend_str (&dirname,
+					  char_array_str (&home_dir));
+	    }
+	  if (e == false)
+	    {
+	      char_array_free (&dirname);
+	      char_array_free (&home_dir);
+	      goto err_nospace;
 	    }
 	  dirname_modified = true;
 	}
