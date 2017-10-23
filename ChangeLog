@@ -1,5 +1,7 @@
 2018-02-02  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
 
+	* posix/glob.c (glob): Remove alloca usage for onealt.
+
 	* posix/globc.c (glob): Use char_array for dirname.
 
 	* malloc/Makefile (test-internal): Add tst-char_array.

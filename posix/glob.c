@@ -372,25 +372,23 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
 	  /* Allocate working buffer large enough for our work.  Note that
 	    we have at least an opening and closing brace.  */
 	  size_t firstc;
-	  char *alt_start;
 	  const char *p;
 	  const char *next;
 	  const char *rest;
 	  size_t rest_len;
-	  char *onealt;
-	  size_t pattern_len = strlen (pattern) - 1;
-	  int alloca_onealt = glob_use_alloca (alloca_used, pattern_len);
-	  if (alloca_onealt)
-	    onealt = alloca_account (pattern_len, alloca_used);
-	  else
-	    {
-	      onealt = malloc (pattern_len);
-	      if (onealt == NULL)
-		goto err_nospace;
-	    }
+	  struct char_array onealt;
 
 	  /* We know the prefix for all sub-patterns.  */
-	  alt_start = mempcpy (onealt, pattern, begin - pattern);
+	  ptrdiff_t onealtlen = begin - pattern;
+	  if (!char_array_init_str_size (&onealt, pattern, onealtlen))
+	    {
+	      if (!(flags & GLOB_APPEND))
+		{
+		  pglob->gl_pathc = 0;
+		  pglob->gl_pathv = NULL;
+		}
+	      goto err_nospace;
+	    }
 
 	  /* Find the first sub-pattern and at the same time find the
 	     rest after the closing brace.  */
@@ -398,9 +396,7 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
 	  if (next == NULL)
 	    {
 	      /* It is an invalid expression.  */
-	    illegal_brace:
-	      if (__glibc_unlikely (!alloca_onealt))
-		free (onealt);
+	      char_array_free (&onealt);
 	      flags &= ~GLOB_BRACE;
 	      goto no_brace;
 	    }
@@ -411,8 +407,12 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
 	    {
 	      rest = next_brace_sub (rest + 1, flags);
 	      if (rest == NULL)
-		/* It is an illegal expression.  */
-		goto illegal_brace;
+		{
+		  /* It is an illegal expression.  */
+		  char_array_free (&onealt);
+		  flags &= ~GLOB_BRACE;
+		  goto no_brace;
+		}
 	    }
 	  /* Please note that we now can be sure the brace expression
 	     is well-formed.  */
@@ -431,9 +431,16 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
 	      int result;
 
 	      /* Construct the new glob expression.  */
-	      mempcpy (mempcpy (alt_start, p, next - p), rest, rest_len);
+	      ptrdiff_t nextlen = next - p;
+	      if (!char_array_replace_str_pos (&onealt, onealtlen, p, nextlen)
+		  || !char_array_replace_str_pos (&onealt, onealtlen + nextlen,
+						  rest, rest_len))
+		{
+		  char_array_free (&onealt);
+		  goto err_nospace;
+		}
 
-	      result = __glob (onealt,
+	      result = __glob (char_array_str (&onealt),
 			       ((flags & ~(GLOB_NOCHECK | GLOB_NOMAGIC))
 				| GLOB_APPEND),
 			       errfunc, pglob);
@@ -441,8 +448,7 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
 	      /* If we got an error, return it.  */
 	      if (result && result != GLOB_NOMATCH)
 		{
-		  if (__glibc_unlikely (!alloca_onealt))
-		    free (onealt);
+		  char_array_free (&onealt);
 		  if (!(flags & GLOB_APPEND))
 		    {
 		      globfree (pglob);
@@ -461,8 +467,7 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
 	      assert (next != NULL);
 	    }
 
-	  if (__glibc_unlikely (!alloca_onealt))
-	    free (onealt);
+	  char_array_free (&onealt);
 
 	  if (pglob->gl_pathc != firstc)
 	    /* We found some entries.  */
