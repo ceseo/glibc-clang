@@ -1198,7 +1198,6 @@ glob_in_dir (const char *pattern, const char *directory, int flags,
 	     int (*errfunc) (const char *, int),
 	     glob_t *pglob, size_t alloca_used)
 {
-  size_t dirlen = strlen (directory);
   void *stream = NULL;
 # define GLOBNAMES_MEMBERS(nnames) \
     struct globnames *next; size_t count; char *name[nnames];
@@ -1230,32 +1229,23 @@ glob_in_dir (const char *pattern, const char *directory, int flags,
     }
   else if (meta == GLOBPAT_NONE)
     {
-      size_t patlen = strlen (pattern);
-      size_t fullsize;
-      bool alloca_fullname
-        = (! size_add_wrapv (dirlen + 1, patlen + 1, &fullsize)
-           && glob_use_alloca (alloca_used, fullsize));
-      char *fullname;
-      if (alloca_fullname)
-        fullname = alloca_account (fullsize, alloca_used);
-      else
+      struct char_array fullname;
+
+      if (!char_array_init_str (&fullname, directory)
+	  || !char_array_append_str (&fullname, "/")
+	  || !char_array_append_str (&fullname, pattern))
 	{
-	  fullname = malloc (fullsize);
-	  if (fullname == NULL)
-	    return GLOB_NOSPACE;
+	  char_array_free (&fullname);
+	  return GLOB_NOSPACE;
 	}
 
-      mempcpy (mempcpy (mempcpy (fullname, directory, dirlen),
-			"/", 1),
-	       pattern, patlen + 1);
-      if (glob_lstat (pglob, flags, fullname) == 0
+      if (glob_lstat (pglob, flags, char_array_str (&fullname)) == 0
 	  || errno == EOVERFLOW)
 	/* We found this file to be existing.  Now tell the rest
 	   of the function to copy this name into the result.  */
 	flags |= GLOB_NOCHECK;
 
-      if (__glibc_unlikely (!alloca_fullname))
-	free (fullname);
+      char_array_free (&fullname);
     }
   else
     {
