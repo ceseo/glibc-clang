@@ -32,7 +32,6 @@
 
 #ifndef WINDOWS32
 # include <pwd.h>
-# include <alloca.h>
 #endif
 
 #include <errno.h>
@@ -65,9 +64,6 @@
 # define __stat64(fname, buf)   stat (fname, buf)
 # define __fxstatat64(_, d, f, st, flag) fstatat (d, f, st, flag)
 # define struct_stat64          struct stat
-# ifndef __MVS__
-#  define __alloca              alloca
-# endif
 # define __readdir              readdir
 # define COMPILE_GLOB64
 #endif /* _LIBC */
@@ -174,12 +170,6 @@ convert_dirent64 (const struct dirent64 *source)
 # ifdef GNULIB_defined_closedir
 #  undef closedir
 # endif
-
-/* Just use malloc.  */
-# define __libc_use_alloca(n) false
-# define alloca_account(len, avar) ((void) (len), (void) (avar), (void *) 0)
-# define extend_alloca_account(buf, len, newlen, avar) \
-    ((void) (buf), (void) (len), (void) (newlen), (void) (avar), (void *) 0)
 #endif
 
 static int
@@ -207,7 +197,7 @@ glob_lstat (glob_t *pglob, int flags, const char *fullname)
 
 static int glob_in_dir (const char *pattern, const char *directory,
 			int flags, int (*errfunc) (const char *, int),
-			glob_t *pglob, size_t alloca_used);
+			glob_t *pglob);
 static int prefix_array (const char *prefix, char **array, size_t n) __THROWNL;
 static int collated_compare (const void *, const void *) __THROWNL;
 
@@ -273,7 +263,6 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
   bool dirname_modified;
   glob_t dirs;
   int retval = 0;
-  size_t alloca_used = 0;
   struct char_array dirname;
 
   if (pattern == NULL || pglob == NULL || (flags & ~__GLOB_FLAGS) != 0)
@@ -520,11 +509,13 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
 	  char *drive_spec;
 
 	  ++dirlen;
-	  drive_spec = __alloca (dirlen + 1);
+	  drive_spec = malloc (dirlen + 1);
 	  *((char *) mempcpy (drive_spec, pattern, dirlen)) = '\0';
 	  /* For now, disallow wildcards in the drive spec, to
 	     prevent infinite recursion in glob.  */
-	  if (__glob_pattern_p (drive_spec, !(flags & GLOB_NOESCAPE)))
+	  int r = __glob_pattern_p (drive_spec, !(flags & GLOB_NOESCAPE));
+	  free (drive_spec);
+	  if (r != 0)
 	    {
 	      retval = GLOB_NOMATCH;
 	      goto out;
@@ -921,7 +912,7 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
 	  status = glob_in_dir (filename, dirs.gl_pathv[i],
 				((flags | GLOB_APPEND)
 				 & ~(GLOB_NOCHECK | GLOB_NOMAGIC)),
-				errfunc, pglob, alloca_used);
+				errfunc, pglob);
 	  if (status == GLOB_NOMATCH)
 	    /* No matches in this directory.  Try the next.  */
 	    continue;
@@ -1026,7 +1017,7 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
       if (dirname_modified)
 	flags &= ~(GLOB_NOCHECK | GLOB_NOMAGIC);
       status = glob_in_dir (filename, char_array_str (&dirname), flags,
-			    errfunc, pglob, alloca_used);
+			    errfunc, pglob);
       if (status != 0)
 	{
 	  if (status == GLOB_NOMATCH && flags != orig_flags
@@ -1191,7 +1182,7 @@ struct globnames_result
 static int
 glob_in_dir (const char *pattern, const char *directory, int flags,
 	     int (*errfunc) (const char *, int),
-	     glob_t *pglob, size_t alloca_used)
+	     glob_t *pglob)
 {
   void *stream = NULL;
   struct globnames_array globnames;

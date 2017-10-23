@@ -1,5 +1,7 @@
 2018-02-02  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
 
+	* posix/glob.c (glob_in_dir, glob): Remove alloca_used argument.
+
 	* posix/glob.c (__glob): Use char_array for home directory.
 
 	* posix/glob.c (size_add_wrapv, glob_use_alloca): Remove.
