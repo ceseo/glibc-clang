@@ -1,5 +1,8 @@
 2018-02-02  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
 
+	* posix/glob.c (size_add_wrapv, glob_use_alloca): Remove.
+	(__glob): Use char_array for user name.
+
 	* posix/glob.c (glob_in_dir): Use dynarray for globnames.
 
 	* posix/glob.c (glob_in_dir): Remove alloca usage for fullname.

@@ -32,13 +32,13 @@
 
 #ifndef WINDOWS32
 # include <pwd.h>
+# include <alloca.h>
 #endif
 
 #include <errno.h>
 #include <dirent.h>
 #include <stdlib.h>
 #include <string.h>
-#include <alloca.h>
 
 #ifdef _LIBC
 # undef strdup
@@ -203,29 +203,6 @@ glob_lstat (glob_t *pglob, int flags, const char *fullname)
   return (__glibc_unlikely (flags & GLOB_ALTDIRFUNC)
           ? pglob->GL_LSTAT (fullname, &ust.st)
           : LSTAT64 (fullname, &ust.st64));
-}
-
-/* Set *R = A + B.  Return true if the answer is mathematically
-   incorrect due to overflow; in this case, *R is the low order
-   bits of the correct answer.  */
-
-static bool
-size_add_wrapv (size_t a, size_t b, size_t *r)
-{
-#if 5 <= __GNUC__ && !defined __ICC
-  return __builtin_add_overflow (a, b, r);
-#else
-  *r = a + b;
-  return *r < a;
-#endif
-}
-
-static bool
-glob_use_alloca (size_t alloca_used, size_t len)
-{
-  size_t size;
-  return (!size_add_wrapv (alloca_used, len, &size)
-          && __libc_use_alloca (size));
 }
 
 static int glob_in_dir (const char *pattern, const char *directory,
@@ -713,11 +690,10 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
       else
 	{
 #ifndef WINDOWS32
-	  char *dirnamestr = char_array_at (&dirname, 0);
-	  char *end_name = strchr (dirnamestr, '/');
-	  char *user_name;
-	  int malloc_user_name = 0;
-	  char *unescape = NULL;
+	  const char *dirnamestr = char_array_str (&dirname);
+	  const char *end_name = strchr (dirnamestr, '/');
+	  struct char_array user_name;
+	  const char *unescape = NULL;
 
 	  if (!(flags & GLOB_NOESCAPE))
 	    {
@@ -731,27 +707,19 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
 		unescape = memchr (dirnamestr, '\\', end_name - dirnamestr);
 	    }
 	  if (end_name == NULL)
-	    user_name = dirnamestr + 1;
+	    {
+	      if (!char_array_init_str (&user_name, dirnamestr + 1))
+		goto err_nospace;
+	    }
 	  else
 	    {
-	      char *newp;
-	      if (glob_use_alloca (alloca_used, end_name - dirnamestr))
-		newp = alloca_account (end_name - dirnamestr, alloca_used);
-	      else
-		{
-		  newp = malloc (end_name - dirnamestr);
-		  if (newp == NULL)
-		    {
-		      retval = GLOB_NOSPACE;
-		      goto out;
-		    }
-		  malloc_user_name = 1;
-		}
 	      if (unescape != NULL)
 		{
-		  char *p = mempcpy (newp, dirnamestr + 1,
-				     unescape - dirnamestr - 1);
-		  char *q = unescape;
+		  ptrdiff_t name_len = unescape - dirnamestr - 1;
+		  if (!char_array_init_str_size (&user_name, dirnamestr + 1,
+						 name_len))
+		    goto err_nospace;
+		  const char *q = unescape;
 		  while (q != end_name)
 		    {
 		      if (*q == '\\')
@@ -762,20 +730,21 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
 				 but "~fo\\o\\/" unescape to user_name
 				 "foo".  */
 			      if (filename == NULL)
-				*p++ = '\\';
+				char_array_append_char (&user_name, '\\');
 			      break;
 			    }
 			  ++q;
 			}
-		      *p++ = *q++;
+		      char_array_append_char (&user_name, *q++);
 		    }
-		  *p = '\0';
 		}
 	      else
-		*((char *) mempcpy (newp, dirnamestr + 1,
-				    end_name - dirnamestr - 1))
-		  = '\0';
-	      user_name = newp;
+		{
+		  ptrdiff_t name_len = end_name - dirnamestr - 1;
+		  if (!char_array_init_str_size (&user_name, dirnamestr + 1,
+						 name_len))
+		    goto err_nospace;
+		}
 	    }
 
 	  /* Look up specific user's home directory.  */
@@ -787,7 +756,7 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
 #  if defined HAVE_GETPWNAM_R || defined _LIBC
 	    struct passwd pwbuf;
 
-	    while (getpwnam_r (user_name, &pwbuf,
+	    while (getpwnam_r (char_array_str (&user_name), &pwbuf,
 			       pwtmpbuf.data, pwtmpbuf.length, &p)
 		   == ERANGE)
 	      {
@@ -798,11 +767,10 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
 		  }
 	      }
 #  else
-	    p = getpwnam (user_name);
+	    p = getpwnam (char_array_str (&user_name));
 #  endif
 
-	    if (__glibc_unlikely (malloc_user_name))
-	      free (user_name);
+	    char_array_free (&user_name);
 
 	    /* If we found a home directory use this.  */
 	    if (p != NULL)
@@ -1025,9 +993,7 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
       if (meta & GLOBPAT_BACKSLASH)
 	{
 	  char *p = strchr (char_array_str (&dirname), '\\'), *q;
-	  /* We need to unescape the dirname string.  It is certainly
-	     allocated by alloca, as otherwise filename would be NULL
-	     or dirname wouldn't contain backslashes.  */
+	  /* We need to unescape the dirname string.  */
 	  q = p;
 	  do
 	    {
