@@ -27,12 +27,27 @@
 int
 sem_unlink (const char *name)
 {
-  /* Construct the filename.  */
-  SHM_GET_NAME (ENOENT, -1, SEM_SHM_PREFIX);
+  struct char_array sem_name;
+  if (!char_array_init_empty (&sem_name))
+    {
+      __set_errno (ENOMEM);
+      return -1;
+    }
+  int err = __shm_get_name (SEM_SHM_PREFIX, name, &sem_name);
+  switch (err)
+    {
+    case __SHM_NO_DIR:       __set_errno (ENOSYS); return -1;
+    case __SHM_INVALID_NAME: __set_errno (ENOENT); return -1;
+    case __SHM_MEM_ERROR:    __set_errno (ENOMEM); return -1;
+    case __SHM_OK:	     break;
+    }
 
   /* Now try removing it.  */
-  int ret = unlink (shm_name);
+  int ret = unlink (char_array_str (&sem_name));
   if (ret < 0 && errno == EPERM)
     __set_errno (EACCES);
+
+  char_array_free (&sem_name);
+
   return ret;
 }

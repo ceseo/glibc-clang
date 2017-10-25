@@ -125,10 +125,7 @@ __shm_directory (size_t *len)
 
   /* If we don't know the mount points there is nothing we can do.  Ever.  */
   if (__glibc_unlikely (mountpoint.dir == NULL))
-    {
-      __set_errno (ENOSYS);
-      return NULL;
-    }
+    return NULL;
 
   *len = mountpoint.dirlen;
   return mountpoint.dir;

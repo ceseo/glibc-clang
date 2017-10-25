@@ -20,47 +20,61 @@
 
 #include <errno.h>
 #include <limits.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <malloc/char_array-skeleton.c>
 
 extern const char *__shm_directory (size_t *len);
 
-/* This defines local variables SHM_DIR and SHM_DIRLEN, giving the
-   directory prefix (with trailing slash) and length (not including '\0'
-   terminator) of the directory used for shm files.  If that cannot be
-   determined, it sets errno to ENOSYS and returns RETVAL_FOR_INVALID.
+enum
+{
+  __SHM_OK,
+  __SHM_NO_DIR,
+  __SHM_INVALID_NAME,
+  __SHM_MEM_ERROR
+};
 
-   This uses the local variable NAME as an lvalue, and increments it past
-   any leading slashes.  It then defines the local variable NAMELEN, giving
-   strlen (NAME) + 1.  If NAME is invalid, it sets errno to
-   ERRNO_FOR_INVALID and returns RETVAL_FOR_INVALID.  Finally, it defines
-   the local variable SHM_NAME, giving the absolute file name of the shm
-   file corresponding to NAME.  PREFIX is a string constant used as a
-   prefix on NAME.  */
+static inline int
+__shm_get_name (const char *prefix, const char *name,
+		struct char_array *shm_name)
+{
+  size_t dirlen;
+  const char *dir = __shm_directory (&dirlen);
+  if (__glibc_unlikely (dir == NULL))
+    return __SHM_NO_DIR;
 
-#define SHM_GET_NAME(errno_for_invalid, retval_for_invalid, prefix)           \
-  size_t shm_dirlen;							      \
-  const char *shm_dir = __shm_directory (&shm_dirlen);			      \
-  /* If we don't know what directory to use, there is nothing we can do.  */  \
-  if (__glibc_unlikely (shm_dir == NULL))				      \
-    {									      \
-      __set_errno (ENOSYS);						      \
-      return retval_for_invalid;					      \
-    }									      \
-  /* Construct the filename.  */					      \
-  while (name[0] == '/')						      \
-    ++name;								      \
-  size_t namelen = strlen (name) + 1;					      \
-  /* Validate the filename.  */						      \
-  if (namelen == 1 || namelen >= NAME_MAX || strchr (name, '/') != NULL)      \
-    {									      \
-      __set_errno (errno_for_invalid);					      \
-      return retval_for_invalid;					      \
-    }									      \
-  char *shm_name = __alloca (shm_dirlen + sizeof prefix - 1 + namelen);	      \
-  __mempcpy (__mempcpy (__mempcpy (shm_name, shm_dir, shm_dirlen),	      \
-                        prefix, sizeof prefix - 1),			      \
-             name, namelen)
+  /* Construct the filename.  */
+  while (name[0] == '/')
+    ++name;
+  size_t namelen = strlen (name) + 1;
+  /* Validate the filename.  */
+  if (namelen == 1 || namelen >= NAME_MAX || strchr (name, '/') != NULL)
+    return __SHM_INVALID_NAME;
+
+  if (!char_array_set_str (shm_name, dir)
+      || !char_array_append_str (shm_name, prefix)
+      || !char_array_append_str (shm_name, name))
+    return __SHM_MEM_ERROR;
+
+  return __SHM_OK;
+}
+
+/* Sets the shared memory directory on SHM_DIR char array and the shared
+   memory filename on SHM_NAME using PREFIX and NAME as base.  */
+static inline int
+__shm_get_name_and_dir (const char *prefix, const char *name,
+			struct char_array *shm_dir,
+			struct char_array *shm_name)
+{
+  int ret =__shm_get_name (prefix, name, shm_name);
+  if (ret != __SHM_OK)
+    return ret;
+
+  size_t dirlen;
+  if (!char_array_set_str (shm_dir, __shm_directory (&dirlen)))
+    return __SHM_MEM_ERROR;
+
+  return __SHM_OK;
+}
 
 #endif	/* shm-directory.h */

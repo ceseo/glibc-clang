@@ -32,11 +32,27 @@
 int
 shm_unlink (const char *name)
 {
-  SHM_GET_NAME (ENOENT, -1, "");
+  struct char_array shm_name;
+  if (!char_array_init_empty (&shm_name))
+    {
+      __set_errno (ENOMEM);
+      return -1;
+    }
+  int err = __shm_get_name ("", name, &shm_name);
+  switch (err)
+    {
+    case __SHM_NO_DIR:       __set_errno (ENOSYS); return -1;
+    case __SHM_INVALID_NAME: __set_errno (ENOENT); return -1;
+    case __SHM_MEM_ERROR:    __set_errno (ENOMEM); return -1;
+    case __SHM_OK:	     break;
+    }
 
-  int result = unlink (shm_name);
+  int result = unlink (char_array_str (&shm_name));
   if (result < 0 && errno == EPERM)
     __set_errno (EACCES);
+
+  char_array_free (&shm_name);
+
   return result;
 }
 

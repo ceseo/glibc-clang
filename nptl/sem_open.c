@@ -62,7 +62,7 @@ int __sem_mappings_lock attribute_hidden = LLL_LOCK_INITIALIZER;
 
 /* Search for existing mapping and if possible add the one provided.  */
 static sem_t *
-check_add_mapping (const char *name, size_t namelen, int fd, sem_t *existing)
+check_add_mapping (const char *name, int fd, sem_t *existing)
 {
   sem_t *result = SEM_FAILED;
 
@@ -75,8 +75,9 @@ check_add_mapping (const char *name, size_t namelen, int fd, sem_t *existing)
 
       /* Search for an existing mapping given the information we have.  */
       struct inuse_sem *fake;
-      fake = (struct inuse_sem *) alloca (sizeof (*fake) + namelen);
-      memcpy (fake->name, name, namelen);
+      size_t namelen = strlen (name) + 1;
+      fake = (struct inuse_sem *) malloc (sizeof (*fake) + namelen);
+      strcpy (fake->name, name);
       fake->dev = st.st_dev;
       fake->ino = st.st_ino;
 
@@ -118,6 +119,9 @@ check_add_mapping (const char *name, size_t namelen, int fd, sem_t *existing)
 		   value.  We fail completely.  */
 		free (newp);
 	    }
+
+	  free (fake);
+
 	}
 
       /* Release the lock.  */
@@ -151,7 +155,22 @@ sem_open (const char *name, int oflag, ...)
     }
 
   /* Create the name of the final file in local variable SHM_NAME.  */
-  SHM_GET_NAME (EINVAL, SEM_FAILED, SEM_SHM_PREFIX);
+  struct char_array sem_name, sem_dir;
+  if (!char_array_init_empty (&sem_name)
+      || !char_array_init_empty (&sem_dir))
+    {
+      __set_errno (ENOMEM);
+      return SEM_FAILED;
+    }
+
+  err = __shm_get_name_and_dir (SEM_SHM_PREFIX, name, &sem_dir, &sem_name);
+  switch (err)
+    {
+    case __SHM_NO_DIR:       __set_errno (ENOSYS); return SEM_FAILED;
+    case __SHM_INVALID_NAME: __set_errno (EINVAL); return SEM_FAILED;
+    case __SHM_MEM_ERROR:    __set_errno (ENOMEM); return SEM_FAILED;
+    case __SHM_OK:	     break;
+    }
 
   /* Disable asynchronous cancellation.  */
 #ifdef __libc_ptf_call
@@ -164,7 +183,7 @@ sem_open (const char *name, int oflag, ...)
   if ((oflag & O_CREAT) == 0 || (oflag & O_EXCL) == 0)
     {
     try_again:
-      fd = __libc_open (shm_name,
+      fd = __libc_open (char_array_str (&sem_name),
 			(oflag & ~(O_CREAT|O_ACCMODE)) | O_NOFOLLOW | O_RDWR);
 
       if (fd == -1)
@@ -178,7 +197,7 @@ sem_open (const char *name, int oflag, ...)
       else
 	/* Check whether we already have this semaphore mapped and
 	   create one if necessary.  */
-	result = check_add_mapping (name, namelen, fd, SEM_FAILED);
+	result = check_add_mapping (name, fd, SEM_FAILED);
     }
   else
     {
@@ -226,8 +245,11 @@ sem_open (const char *name, int oflag, ...)
       memset ((char *) &sem.initsem + sizeof (struct new_sem), '\0',
 	      sizeof (sem_t) - sizeof (struct new_sem));
 
-      tmpfname = __alloca (shm_dirlen + sizeof SEM_SHM_PREFIX + 6);
-      char *xxxxxx = __mempcpy (tmpfname, shm_dir, shm_dirlen);
+      size_t sem_dirlen = char_array_length (&sem_dir);
+      tmpfname = malloc (sem_dirlen + sizeof SEM_SHM_PREFIX
+			 + sizeof ("XXXXXX") + 1);
+      char *xxxxxx = __mempcpy (tmpfname, char_array_str (&sem_dir),
+				sem_dirlen);
 
       int retries = 0;
 #define NRETRIES 50
@@ -242,6 +264,7 @@ sem_open (const char *name, int oflag, ...)
 	     file create mask.  */
 	  if (__mktemp (tmpfname) == NULL)
 	    {
+	      free (tmpfname);
 	      result = SEM_FAILED;
 	      goto out;
 	    }
@@ -258,6 +281,7 @@ sem_open (const char *name, int oflag, ...)
 		  __set_errno (EAGAIN);
 		}
 
+	      free (tmpfname);
 	      result = SEM_FAILED;
 	      goto out;
 	    }
@@ -274,7 +298,7 @@ sem_open (const char *name, int oflag, ...)
 				       fd, 0)) != MAP_FAILED)
 	{
 	  /* Create the file.  Don't overwrite an existing file.  */
-	  if (link (tmpfname, shm_name) != 0)
+	  if (link (tmpfname, char_array_str (&sem_name)) != 0)
 	    {
 	      /* Undo the mapping.  */
 	      (void) munmap (result, sizeof (sem_t));
@@ -299,12 +323,13 @@ sem_open (const char *name, int oflag, ...)
 	    /* Insert the mapping into the search tree.  This also
 	       determines whether another thread sneaked by and already
 	       added such a mapping despite the fact that we created it.  */
-	    result = check_add_mapping (name, namelen, fd, result);
+	    result = check_add_mapping (name, fd, result);
 	}
 
       /* Now remove the temporary name.  This should never fail.  If
 	 it fails we leak a file name.  Better fix the kernel.  */
       (void) unlink (tmpfname);
+      free (tmpfname);
     }
 
   /* Map the mmap error to the error we need.  */
@@ -324,6 +349,9 @@ out:
 #ifdef __libc_ptf_call
   __libc_ptf_call (__pthread_setcancelstate, (state, NULL), 0);
 #endif
+
+   char_array_free (&sem_name);
+   char_array_free (&sem_dir);
 
   return result;
 }
