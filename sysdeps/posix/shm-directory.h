@@ -22,6 +22,9 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+/* Since shm directory is usually mounted on /dev/shm it gives 56 bytes
+   of slack for filename on default stack allocation.  */
+#define CHAR_ARRAY_INITIAL_SIZE 64
 #include <malloc/char_array-skeleton.c>
 
 extern const char *__shm_directory (size_t *len);

@@ -21,28 +21,6 @@
 
 #define SEM_SHM_PREFIX  "sem."
 
-/* Keeping track of currently used mappings.  */
-struct inuse_sem
-{
-  dev_t dev;
-  ino_t ino;
-  int refcnt;
-  sem_t *sem;
-  char name[0];
-};
-
-
-/* The search tree for existing mappings.  */
-extern void *__sem_mappings attribute_hidden;
-
-/* Lock to protect the search tree.  */
-extern int __sem_mappings_lock attribute_hidden;
-
-
-/* Comparison function for search in tree with existing mappings.  */
-extern int __sem_search (const void *a, const void *b) attribute_hidden;
-
-
 /* Prototypes of functions with multiple interfaces.  */
 extern int __new_sem_init (sem_t *sem, int pshared, unsigned int value);
 extern int __old_sem_init (sem_t *sem, int pshared, unsigned int value);
