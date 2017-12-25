@@ -66,6 +66,7 @@ libsupport-routines = \
   support_quote_blob \
   support_quote_string \
   support_record_failure \
+  support_random \
   support_run_diff \
   support_set_small_thread_stack_size \
   support_shared_allocate \
