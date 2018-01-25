@@ -35,6 +35,7 @@
 #endif
 
 #include <scratch_buffer.h>
+#include <malloc/char_array-skeleton.c>
 
 /* For platform which support the ISO C amendement 1 functionality we
    support user defined character classes.  */

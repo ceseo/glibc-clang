@@ -493,26 +493,20 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 			  {
 			    int32_t table_size;
 			    const int32_t *symb_table;
-# if WIDE_CHAR_VERSION
-			    char str[c1];
-			    unsigned int strcnt;
-# else
-#  define str (startp + 1)
-# endif
+			    struct char_array str;
+			    char_array_init_empty (&str);
 			    const unsigned char *extra;
 			    int32_t idx;
 			    int32_t elem;
 			    int32_t second;
 			    int32_t hash;
 
-# if WIDE_CHAR_VERSION
 			    /* We have to convert the name to a single-byte
 			       string.  This is possible since the names
 			       consist of ASCII characters and the internal
 			       representation is UCS4.  */
-			    for (strcnt = 0; strcnt < c1; ++strcnt)
-			      str[strcnt] = startp[1 + strcnt];
-#endif
+			    for (size_t strcnt = 0; strcnt < c1; ++strcnt)
+			      char_array_append_char (&str, startp[1 + strcnt]);
 
 			    table_size =
 			      _NL_CURRENT_WORD (LC_COLLATE,
@@ -525,7 +519,7 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 					   _NL_COLLATE_SYMB_EXTRAMB);
 
 			    /* Locate the character in the hashing table.  */
-			    hash = elem_hash (str, c1);
+			    hash = elem_hash (char_array_str (&str), c1);
 
 			    idx = 0;
 			    elem = hash % table_size;
@@ -539,7 +533,7 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 				    if (symb_table[2 * elem] == hash
 					&& (c1
 					    == extra[symb_table[2 * elem + 1]])
-					&& memcmp (str,
+					&& memcmp (char_array_str (&str),
 						   &extra[symb_table[2 * elem
 								     + 1]
 							  + 1], c1) == 0)
@@ -580,14 +574,20 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 					break;
 
 				    if ((int32_t) c1 == wextra[idx])
-				      goto matched;
+				      {
+					char_array_free (&str);
+				        goto matched;
+				      }
 # else
 				    for (c1 = 0; c1 < extra[idx]; ++c1)
 				      if (n[c1] != extra[1 + c1])
 					break;
 
 				    if (c1 == extra[idx])
-				      goto matched;
+				      {
+					char_array_free (&str);
+				        goto matched;
+				      }
 # endif
 				  }
 
@@ -608,18 +608,21 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 			      {
 				/* No valid character.  Match it as a
 				   single byte.  */
-				if (!is_range && *n == str[0])
-				  goto matched;
+				char str0 = *char_array_at (&str, 0);
+				if (!is_range && *n == str0)
+				  {
+				    char_array_free (&str);
+				    goto matched;
+				  }
 
-				cold = str[0];
+				cold = str0;
 				c = *p++;
 			      }
-			    else
-			      return FNM_NOMATCH;
+			    char_array_free (&str);
+			    return FNM_NOMATCH;
 			  }
 		      }
 		    else
-# undef str
 #endif
 		      {
 			c = FOLD (c);
@@ -711,26 +714,20 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 			      {
 				int32_t table_size;
 				const int32_t *symb_table;
-# if WIDE_CHAR_VERSION
-				char str[c1];
-				unsigned int strcnt;
-# else
-#  define str (startp + 1)
-# endif
+				struct char_array str;
+				char_array_init_empty (&str);
 				const unsigned char *extra;
 				int32_t idx;
 				int32_t elem;
 				int32_t second;
 				int32_t hash;
 
-# if WIDE_CHAR_VERSION
 				/* We have to convert the name to a single-byte
 				   string.  This is possible since the names
 				   consist of ASCII characters and the internal
 				   representation is UCS4.  */
-				for (strcnt = 0; strcnt < c1; ++strcnt)
-				  str[strcnt] = startp[1 + strcnt];
-# endif
+				for (size_t strcnt = 0; strcnt < c1; ++strcnt)
+				  char_array_append_char (&str, startp[1 + strcnt]);
 
 				table_size =
 				  _NL_CURRENT_WORD (LC_COLLATE,
@@ -744,7 +741,7 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 
 				/* Locate the character in the hashing
 				   table.  */
-				hash = elem_hash (str, c1);
+				hash = elem_hash (char_array_str (&str), c1);
 
 				idx = 0;
 				elem = hash % table_size;
@@ -758,7 +755,7 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 					if (symb_table[2 * elem] == hash
 					    && (c1
 						== extra[symb_table[2 * elem + 1]])
-					    && memcmp (str,
+					    && memcmp (char_array_str (&str),
 						       &extra[symb_table[2 * elem + 1]
 							      + 1], c1) == 0)
 					  {
@@ -800,13 +797,12 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 				  }
 				else if (symb_table[2 * elem] != 0 && c1 == 1)
 				  {
-				    cend = str[0];
+				    cend = *char_array_at (&str, 0);
 				    c = *p++;
 				  }
-				else
-				  return FNM_NOMATCH;
+				char_array_free (&str);
+				return FNM_NOMATCH;
 			      }
-# undef str
 			  }
 			else
 			  {
