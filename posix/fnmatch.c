@@ -34,11 +34,7 @@
 # include <stdlib.h>
 #endif
 
-#ifdef _LIBC
-# include <alloca.h>
-#else
-# define alloca_account(size., var) alloca (size)
-#endif
+#include <scratch_buffer.h>
 
 /* For platform which support the ISO C amendement 1 functionality we
    support user defined character classes.  */
@@ -320,130 +316,55 @@ int
 fnmatch (const char *pattern, const char *string, int flags)
 {
 # if HANDLE_MULTIBYTE
-  if (__builtin_expect (MB_CUR_MAX, 1) != 1)
+  if (__glibc_unlikely (MB_CUR_MAX != 1))
     {
       mbstate_t ps;
-      size_t n;
-      const char *p;
-      wchar_t *wpattern_malloc = NULL;
+      size_t patsize;
+      size_t strsize;
+      size_t totsize;
       wchar_t *wpattern;
-      wchar_t *wstring_malloc = NULL;
       wchar_t *wstring;
-      size_t alloca_used = 0;
+      int res;
+      struct scratch_buffer buffer;
+      scratch_buffer_init (&buffer);
 
-      /* Convert the strings into wide characters.  */
+      /* Calculate the size needed to convert the strings to wide
+	 characters.  */
       memset (&ps, '\0', sizeof (ps));
-      p = pattern;
-#ifdef _LIBC
-      n = __strnlen (pattern, 1024);
-#else
-      n = strlen (pattern);
-#endif
-      if (__glibc_likely (n < 1024))
+      patsize = mbsrtowcs (NULL, &pattern, 0, &ps) + 1;
+      if (__glibc_likely (patsize != 0))
 	{
-	  wpattern = (wchar_t *) alloca_account ((n + 1) * sizeof (wchar_t),
-						 alloca_used);
-	  n = mbsrtowcs (wpattern, &p, n + 1, &ps);
-	  if (__glibc_unlikely (n == (size_t) -1))
-	    /* Something wrong.
-	       XXX Do we have to set `errno' to something which mbsrtows hasn't
-	       already done?  */
-	    return -1;
-	  if (p)
+	  strsize = mbsrtowcs (NULL, &string, 0, &ps) + 1;
+	  if (__glibc_likely (strsize != 0))
 	    {
-	      memset (&ps, '\0', sizeof (ps));
-	      goto prepare_wpattern;
+	      totsize = patsize + strsize;
+	      if (!scratch_buffer_set_array_size (&buffer, totsize,
+						  sizeof (wchar_t)))
+		{
+		  errno = ENOMEM;
+		  return -1;
+		}
+	      wpattern = buffer.data;
+
+	      wstring = wpattern + patsize;
+
+	      /* Convert the strings into wide characters.  */
+	      mbsrtowcs (wpattern, &pattern, patsize, &ps);
+	      mbsrtowcs (wstring, &string, strsize, &ps);
+
+	      res = internal_fnwmatch (wpattern, wstring, wstring + strsize - 1,
+				       flags & FNM_PERIOD, flags, NULL);
+
+	      scratch_buffer_free (&buffer);
+
+	      return res;
 	    }
 	}
-      else
-	{
-	prepare_wpattern:
-	  n = mbsrtowcs (NULL, &pattern, 0, &ps);
-	  if (__glibc_unlikely (n == (size_t) -1))
-	    /* Something wrong.
-	       XXX Do we have to set `errno' to something which mbsrtows hasn't
-	       already done?  */
-	    return -1;
-	  if (__glibc_unlikely (n >= (size_t) -1 / sizeof (wchar_t)))
-	    {
-	      __set_errno (ENOMEM);
-	      return -2;
-	    }
-	  wpattern_malloc = wpattern
-	    = (wchar_t *) malloc ((n + 1) * sizeof (wchar_t));
-	  assert (mbsinit (&ps));
-	  if (wpattern == NULL)
-	    return -2;
-	  (void) mbsrtowcs (wpattern, &pattern, n + 1, &ps);
-	}
-
-      assert (mbsinit (&ps));
-#ifdef _LIBC
-      n = __strnlen (string, 1024);
-#else
-      n = strlen (string);
-#endif
-      p = string;
-      if (__glibc_likely (n < 1024))
-	{
-	  wstring = (wchar_t *) alloca_account ((n + 1) * sizeof (wchar_t),
-						alloca_used);
-	  n = mbsrtowcs (wstring, &p, n + 1, &ps);
-	  if (__glibc_unlikely (n == (size_t) -1))
-	    {
-	      /* Something wrong.
-		 XXX Do we have to set `errno' to something which
-		 mbsrtows hasn't already done?  */
-	    free_return:
-	      free (wpattern_malloc);
-	      return -1;
-	    }
-	  if (p)
-	    {
-	      memset (&ps, '\0', sizeof (ps));
-	      goto prepare_wstring;
-	    }
-	}
-      else
-	{
-	prepare_wstring:
-	  n = mbsrtowcs (NULL, &string, 0, &ps);
-	  if (__glibc_unlikely (n == (size_t) -1))
-	    /* Something wrong.
-	       XXX Do we have to set `errno' to something which mbsrtows hasn't
-	       already done?  */
-	    goto free_return;
-	  if (__glibc_unlikely (n >= (size_t) -1 / sizeof (wchar_t)))
-	    {
-	      free (wpattern_malloc);
-	      __set_errno (ENOMEM);
-	      return -2;
-	    }
-
-	  wstring_malloc = wstring
-	    = (wchar_t *) malloc ((n + 1) * sizeof (wchar_t));
-	  if (wstring == NULL)
-	    {
-	      free (wpattern_malloc);
-	      return -2;
-	    }
-	  assert (mbsinit (&ps));
-	  (void) mbsrtowcs (wstring, &string, n + 1, &ps);
-	}
-
-      int res = internal_fnwmatch (wpattern, wstring, wstring + n,
-				   flags & FNM_PERIOD, flags, NULL,
-				   alloca_used);
-
-      free (wstring_malloc);
-      free (wpattern_malloc);
-
-      return res;
     }
 # endif  /* mbstate_t and mbsrtowcs or _LIBC.  */
 
   return internal_fnmatch (pattern, string, string + strlen (string),
-			   flags & FNM_PERIOD, flags, NULL, 0);
+			   flags & FNM_PERIOD, flags, NULL);
 }
 
 # ifdef _LIBC

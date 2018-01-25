@@ -28,15 +28,14 @@ struct STRUCT
    it matches, nonzero if not.  */
 static int FCT (const CHAR *pattern, const CHAR *string,
 		const CHAR *string_end, int no_leading_period, int flags,
-		struct STRUCT *ends, size_t alloca_used);
+		struct STRUCT *ends);
 static int EXT (INT opt, const CHAR *pattern, const CHAR *string,
-		const CHAR *string_end, int no_leading_period, int flags,
-		size_t alloca_used);
+		const CHAR *string_end, int no_leading_period, int flags);
 static const CHAR *END (const CHAR *patternp);
 
 static int
 FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
-     int no_leading_period, int flags, struct STRUCT *ends, size_t alloca_used)
+     int no_leading_period, int flags, struct STRUCT *ends)
 {
   const CHAR *p = pattern, *n = string;
   UCHAR c;
@@ -61,7 +60,7 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 	  if (__builtin_expect (flags & FNM_EXTMATCH, 0) && *p == '(')
 	    {
 	      int res = EXT (c, p, n, string_end, no_leading_period,
-			     flags, alloca_used);
+			     flags);
 	      if (res != -1)
 		return res;
 	    }
@@ -91,7 +90,7 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 	  if (__builtin_expect (flags & FNM_EXTMATCH, 0) && *p == '(')
 	    {
 	      int res = EXT (c, p, n, string_end, no_leading_period,
-			     flags, alloca_used);
+			     flags);
 	      if (res != -1)
 		return res;
 	    }
@@ -180,7 +179,7 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 
 		  for (--p; n < endp; ++n, no_leading_period = 0)
 		    if (FCT (p, n, string_end, no_leading_period, flags2,
-			     &end, alloca_used) == 0)
+			     &end) == 0)
 		      goto found;
 		}
 	      else if (c == L('/') && (flags & FNM_FILE_NAME))
@@ -189,7 +188,7 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 		    ++n;
 		  if (n < string_end && *n == L('/')
 		      && (FCT (p, n + 1, string_end, flags & FNM_PERIOD, flags,
-			       NULL, alloca_used) == 0))
+			       NULL) == 0))
 		    return 0;
 		}
 	      else
@@ -203,7 +202,7 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 		  for (--p; n < endp; ++n, no_leading_period = 0)
 		    if (FOLD ((UCHAR) *n) == c
 			&& (FCT (p, n, string_end, no_leading_period, flags2,
-				 &end, alloca_used) == 0))
+				 &end) == 0))
 		      {
 		      found:
 			if (end.pattern == NULL)
@@ -958,8 +957,7 @@ FCT (const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 	case L('!'):
 	  if (__builtin_expect (flags & FNM_EXTMATCH, 0) && *p == '(')
 	    {
-	      int res = EXT (c, p, n, string_end, no_leading_period, flags,
-			     alloca_used);
+	      int res = EXT (c, p, n, string_end, no_leading_period, flags);
 	      if (res != -1)
 		return res;
 	    }
@@ -1038,25 +1036,36 @@ END (const CHAR *pattern)
   return p + 1;
 }
 
+#if WIDE_CHAR_VERSION
+# define PATTERN_PREFIX pattern_list
+#else
+# define PATTERN_PREFIX wpattern_list
+#endif
+
+#define PASTE(a,b)                 PASTE1(a,b)
+#define PASTE1(a,b)                a##b
+
+#define DYNARRAY_STRUCT            PATTERN_PREFIX
+#define DYNARRAY_ELEMENT_FREE(ptr) free (*ptr)
+#define DYNARRAY_ELEMENT           CHAR *
+#define DYNARRAY_PREFIX            PASTE(PATTERN_PREFIX,_)
+#define DYNARRAY_INITIAL_SIZE      8
+#include <malloc/dynarray-skeleton.c>
 
 static int
 EXT (INT opt, const CHAR *pattern, const CHAR *string, const CHAR *string_end,
-     int no_leading_period, int flags, size_t alloca_used)
+     int no_leading_period, int flags)
 {
   const CHAR *startp;
   int level;
-  struct patternlist
-  {
-    struct patternlist *next;
-    CHAR malloced;
-    CHAR str[0];
-  } *list = NULL;
-  struct patternlist **lastp = &list;
+  struct PATTERN_PREFIX list;
   size_t pattern_len = STRLEN (pattern);
-  int any_malloced = 0;
+  size_t pattern_i = 0;
   const CHAR *p;
   const CHAR *rs;
   int retval = 0;
+
+  PASTE (PATTERN_PREFIX, _init) (&list);
 
   /* Parse the pattern.  Store the individual parts in the list.  */
   level = 0;
@@ -1099,28 +1108,20 @@ EXT (INT opt, const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 	  {
 	    /* This means we found the end of the pattern.  */
 #define NEW_PATTERN \
-	    struct patternlist *newp;					      \
-	    size_t slen = (opt == L('?') || opt == L('@')		      \
-			   ? pattern_len : (p - startp + 1));		      \
-	    slen = sizeof (struct patternlist) + (slen * sizeof (CHAR));      \
-	    int malloced = ! __libc_use_alloca (alloca_used + slen);	      \
-	    if (__builtin_expect (malloced, 0))				      \
-	      {								      \
-		newp = malloc (slen);					      \
-		if (newp == NULL)					      \
-		  {							      \
-		    retval = -2;					      \
-		    goto out;						      \
-		  }							      \
-		any_malloced = 1;					      \
-	      }								      \
-	    else							      \
-	      newp = alloca_account (slen, alloca_used);		      \
-	    newp->next = NULL;						      \
-	    newp->malloced = malloced;					      \
-	    *((CHAR *) MEMPCPY (newp->str, startp, p - startp)) = L('\0');    \
-	    *lastp = newp;						      \
-	    lastp = &newp->next
+	    size_t slen = (opt == L('?') || opt == L('@')		     \
+			   ? pattern_len : (p - startp + 1));		     \
+	    CHAR *newp = __libc_reallocarray (NULL, slen, sizeof (CHAR));    \
+	    if (newp != NULL)						     \
+	      {								     \
+	        *((CHAR *) MEMPCPY (newp, startp, p - startp)) = L('\0');    \
+	        PASTE (PATTERN_PREFIX,_add) (&list, newp);		     \
+	      }								     \
+	    if (newp == NULL || PASTE (PATTERN_PREFIX, _has_failed) (&list)) \
+	      {								     \
+		retval = -2;						     \
+		goto out;						     \
+	      }								     \
+
 	    NEW_PATTERN;
 	  }
       }
@@ -1132,27 +1133,26 @@ EXT (INT opt, const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 	    startp = p + 1;
 	  }
       }
-  assert (list != NULL);
   assert (p[-1] == L(')'));
 #undef NEW_PATTERN
 
   switch (opt)
     {
     case L('*'):
-      if (FCT (p, string, string_end, no_leading_period, flags, NULL,
-	       alloca_used) == 0)
+      if (FCT (p, string, string_end, no_leading_period, flags, NULL) == 0)
 	goto success;
       /* FALLTHROUGH */
 
     case L('+'):
-      do
+      for (; pattern_i < PASTE (PATTERN_PREFIX, _size)(&list); pattern_i++)
 	{
 	  for (rs = string; rs <= string_end; ++rs)
 	    /* First match the prefix with the current pattern with the
 	       current pattern.  */
-	    if (FCT (list->str, string, rs, no_leading_period,
+	    if (FCT (*PASTE (PATTERN_PREFIX, _at) (&list, pattern_i), string,
+		     rs, no_leading_period,
 		     flags & FNM_FILE_NAME ? flags : flags & ~FNM_PERIOD,
-		     NULL, alloca_used) == 0
+		     NULL) == 0
 		/* This was successful.  Now match the rest with the rest
 		   of the pattern.  */
 		&& (FCT (p, rs, string_end,
@@ -1160,7 +1160,7 @@ EXT (INT opt, const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 			 ? no_leading_period
 			 : rs[-1] == '/' && NO_LEADING_PERIOD (flags) ? 1 : 0,
 			 flags & FNM_FILE_NAME
-			 ? flags : flags & ~FNM_PERIOD, NULL, alloca_used) == 0
+			 ? flags : flags & ~FNM_PERIOD, NULL) == 0
 		    /* This didn't work.  Try the whole pattern.  */
 		    || (rs != string
 			&& FCT (pattern - 1, rs, string_end,
@@ -1169,36 +1169,34 @@ EXT (INT opt, const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 				: (rs[-1] == '/' && NO_LEADING_PERIOD (flags)
 				   ? 1 : 0),
 				flags & FNM_FILE_NAME
-				? flags : flags & ~FNM_PERIOD, NULL,
-				alloca_used) == 0)))
+				? flags : flags & ~FNM_PERIOD, NULL) == 0)))
 	      /* It worked.  Signal success.  */
 	      goto success;
 	}
-      while ((list = list->next) != NULL);
 
       /* None of the patterns lead to a match.  */
       retval = FNM_NOMATCH;
       break;
 
     case L('?'):
-      if (FCT (p, string, string_end, no_leading_period, flags, NULL,
-	       alloca_used) == 0)
+      if (FCT (p, string, string_end, no_leading_period, flags, NULL) == 0)
 	goto success;
       /* FALLTHROUGH */
 
     case L('@'):
-      do
-	/* I cannot believe it but `strcat' is actually acceptable
-	   here.  Match the entire string with the prefix from the
-	   pattern list and the rest of the pattern following the
-	   pattern list.  */
-	if (FCT (STRCAT (list->str, p), string, string_end,
-		 no_leading_period,
-		 flags & FNM_FILE_NAME ? flags : flags & ~FNM_PERIOD,
-		 NULL, alloca_used) == 0)
-	  /* It worked.  Signal success.  */
-	  goto success;
-      while ((list = list->next) != NULL);
+      for (; pattern_i < PASTE (PATTERN_PREFIX, _size) (&list); pattern_i++)
+	{
+	  /* I cannot believe it but `strcat' is actually acceptable
+	     here.  Match the entire string with the prefix from the
+	     pattern list and the rest of the pattern following the
+	     pattern list.  */
+	  if (FCT (STRCAT (*PASTE (PATTERN_PREFIX, _at) (&list, pattern_i), p),
+		   string, string_end, no_leading_period,
+		   flags & FNM_FILE_NAME ? flags : flags & ~FNM_PERIOD,
+		   NULL) == 0)
+	    /* It worked.  Signal success.  */
+	    goto success;
+	}
 
       /* None of the patterns lead to a match.  */
       retval = FNM_NOMATCH;
@@ -1207,22 +1205,27 @@ EXT (INT opt, const CHAR *pattern, const CHAR *string, const CHAR *string_end,
     case L('!'):
       for (rs = string; rs <= string_end; ++rs)
 	{
-	  struct patternlist *runp;
+	  size_t runp_i;
 
-	  for (runp = list; runp != NULL; runp = runp->next)
-	    if (FCT (runp->str, string, rs,  no_leading_period,
-		     flags & FNM_FILE_NAME ? flags : flags & ~FNM_PERIOD,
-		     NULL, alloca_used) == 0)
+	  for (runp_i = pattern_i;
+	       runp_i != PASTE (PATTERN_PREFIX, _size) (&list);
+	       runp_i++)
+	    {
+	      if (FCT (*PASTE (PATTERN_PREFIX, _at) (&list, runp_i), string, rs,
+		       no_leading_period,
+		       flags & FNM_FILE_NAME ? flags : flags & ~FNM_PERIOD,
+		       NULL) == 0)
 	      break;
+	    }
 
 	  /* If none of the patterns matched see whether the rest does.  */
-	  if (runp == NULL
+	  if (runp_i == PASTE (PATTERN_PREFIX, _size) (&list)
 	      && (FCT (p, rs, string_end,
 		       rs == string
 		       ? no_leading_period
 		       : rs[-1] == '/' && NO_LEADING_PERIOD (flags) ? 1 : 0,
 		       flags & FNM_FILE_NAME ? flags : flags & ~FNM_PERIOD,
-		       NULL, alloca_used) == 0))
+		       NULL) == 0))
 	    /* This is successful.  */
 	    goto success;
 	}
@@ -1240,17 +1243,14 @@ EXT (INT opt, const CHAR *pattern, const CHAR *string, const CHAR *string_end,
 
  success:
  out:
-  if (any_malloced)
-    while (list != NULL)
-      {
-	struct patternlist *old = list;
-	list = list->next;
-	if (old->malloced)
-	  free (old);
-      }
+  PASTE (PATTERN_PREFIX, _free) (&list);
 
   return retval;
 }
+
+#undef PATTERN_PREFIX
+#undef PASTE
+#undef PASTE1
 
 
 #undef FOLD
