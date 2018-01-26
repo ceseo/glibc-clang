@@ -55,13 +55,6 @@ before_abort (int do_abort __attribute__ ((unused)),
 }
 #endif
 
-struct str_list
-{
-  const char *str;
-  size_t len;
-  struct str_list *next;
-};
-
 /* Abort with an error message.  */
 void
 __libc_message (enum __libc_message_action action, const char *fmt, ...)
@@ -89,8 +82,16 @@ __libc_message (enum __libc_message_action action, const char *fmt, ...)
   if (fd == -1)
     fd = STDERR_FILENO;
 
-  struct str_list *list = NULL;
-  int nlist = 0;
+  enum {
+    list_max_size = 64
+  };
+  struct str_list
+  {
+    const char *str;
+    size_t len;
+  } list[list_max_size];
+
+  size_t nlist = 0;
 
   const char *cp = fmt;
   while (*cp != '\0')
@@ -121,26 +122,22 @@ __libc_message (enum __libc_message_action action, const char *fmt, ...)
 	  cp = next;
 	}
 
-      struct str_list *newp = alloca (sizeof (struct str_list));
-      newp->str = str;
-      newp->len = len;
-      newp->next = list;
-      list = newp;
-      ++nlist;
+      list[nlist] = (struct str_list) { str, len };
+      if (++nlist == list_max_size)
+	break;
     }
 
   bool written = false;
   if (nlist > 0)
     {
-      struct iovec *iov = alloca (nlist * sizeof (struct iovec));
+      struct iovec iov[list_max_size];
       ssize_t total = 0;
 
-      for (int cnt = nlist - 1; cnt >= 0; --cnt)
+      for (size_t cnt = 0; cnt < nlist; cnt++)
 	{
-	  iov[cnt].iov_base = (char *) list->str;
-	  iov[cnt].iov_len = list->len;
-	  total += list->len;
-	  list = list->next;
+	  iov[cnt].iov_base = (void*)list[cnt].str;
+	  iov[cnt].iov_len = list[cnt].len;
+	  total += list[cnt].len;
 	}
 
       written = WRITEV_FOR_FATAL (fd, iov, nlist, total);
