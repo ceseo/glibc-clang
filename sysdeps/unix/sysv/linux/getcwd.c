@@ -27,109 +27,19 @@
 #include <sysdep.h>
 #include <sys/syscall.h>
 
-
-/* If we compile the file for use in ld.so we don't need the feature
-   that getcwd() allocates the buffers itself.  */
-#if IS_IN (rtld)
-# define NO_ALLOCATION	1
-#endif
-
-
-/* The "proc" filesystem provides an easy method to retrieve the value.
-   For each process, the corresponding directory contains a symbolic link
-   named `cwd'.  Reading the content of this link immediate gives us the
-   information.  But we have to take care for systems which do not have
-   the proc filesystem mounted.  Use the POSIX implementation in this case.  */
-static char *generic_getcwd (char *buf, size_t size);
-
-char *
-__getcwd (char *buf, size_t size)
+static char *
+system_getcwd (char *path, size_t size)
 {
-  char *path;
-  char *result;
-
-#ifndef NO_ALLOCATION
-  size_t alloc_size = size;
-  if (size == 0)
-    {
-      if (buf != NULL)
-	{
-	  __set_errno (EINVAL);
-	  return NULL;
-	}
-
-      alloc_size = MAX (PATH_MAX, __getpagesize ());
-    }
-
-  if (buf == NULL)
-    {
-      path = malloc (alloc_size);
-      if (path == NULL)
-	return NULL;
-    }
-  else
-#else
-# define alloc_size size
-#endif
-    path = buf;
-
-  int retval;
-
-  retval = INLINE_SYSCALL (getcwd, 2, path, alloc_size);
+  int retval = INLINE_SYSCALL_CALL (getcwd, path, size);
   if (retval > 0 && path[0] == '/')
-    {
-#ifndef NO_ALLOCATION
-      if (buf == NULL && size == 0)
-	/* Ensure that the buffer is only as large as necessary.  */
-	buf = realloc (path, (size_t) retval);
-
-      if (buf == NULL)
-	/* Either buf was NULL all along, or `realloc' failed but
-	   we still have the original string.  */
-	buf = path;
-#endif
-
-      return buf;
-    }
-
-  /* The system call either cannot handle paths longer than a page
-     or can succeed without returning an absolute path.  Just use the
-     generic implementation right away.  */
-  if (retval >= 0 || errno == ENAMETOOLONG)
-    {
-#ifndef NO_ALLOCATION
-      if (buf == NULL && size == 0)
-	{
-	  free (path);
-	  path = NULL;
-	}
-#endif
-
-      result = generic_getcwd (path, size);
-
-#ifndef NO_ALLOCATION
-      if (result == NULL && buf == NULL && size != 0)
-	free (path);
-#endif
-
-      return result;
-    }
-
-  /* It should never happen that the `getcwd' syscall failed because
-     the buffer is too small if we allocated the buffer ourselves
-     large enough.  */
-  assert (errno != ERANGE || buf != NULL || size != 0);
-
-#ifndef NO_ALLOCATION
-  if (buf == NULL)
-    free (path);
-#endif
+    return path;
 
   return NULL;
 }
-weak_alias (__getcwd, getcwd)
 
 /* Get the code for the generic version.  */
-#define GETCWD_RETURN_TYPE	static char *
-#define __getcwd		generic_getcwd
+#define HAVE_OPENAT			1
+#define HAVE_MINIMALLY_WORKING_GETCWD	0
+#define D_INO_IN_DIRENT			1
+#define HAVE_SYSTEM_GETCWD		1
 #include <sysdeps/posix/getcwd.c>
