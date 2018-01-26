@@ -16,7 +16,6 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <alloca.h>
 #include <assert.h>
 #include <errno.h>
 #include <ifaddrs.h>
@@ -131,26 +130,8 @@ __netlink_request (struct netlink_handle *h, int type)
   ssize_t read_len;
   bool done = false;
 
-#ifdef PAGE_SIZE
-  /* Help the compiler optimize out the malloc call if PAGE_SIZE
-     is constant and smaller or equal to PTHREAD_STACK_MIN/4.  */
-  const size_t buf_size = PAGE_SIZE;
-#else
   const size_t buf_size = __getpagesize ();
-#endif
-  bool use_malloc = false;
-  char *buf;
-
-  if (__libc_use_alloca (buf_size))
-    buf = alloca (buf_size);
-  else
-    {
-      buf = malloc (buf_size);
-      if (buf != NULL)
-	use_malloc = true;
-      else
-	goto out_fail;
-    }
+  char *buf = malloc (buf_size);
 
   struct iovec iov = { buf, buf_size };
 
@@ -229,13 +210,11 @@ __netlink_request (struct netlink_handle *h, int type)
       h->end_ptr = nlm_next;
     }
 
-  if (use_malloc)
-    free (buf);
+  free (buf);
   return 0;
 
 out_fail:
-  if (use_malloc)
-    free (buf);
+  free (buf);
   return -1;
 }
 
@@ -320,7 +299,7 @@ getifaddrs_internal (struct ifaddrs **ifap)
   struct netlink_res *nlp;
   struct ifaddrs_storage *ifas;
   unsigned int i, newlink, newaddr, newaddr_idx;
-  int *map_newlink_data;
+  int *map_newlink_data = NULL;
   size_t ifa_data_size = 0;  /* Size to allocate for all ifa_data.  */
   char *ifa_data_ptr;	/* Pointer to the unused part of memory for
 				ifa_data.  */
@@ -418,7 +397,12 @@ getifaddrs_internal (struct ifaddrs **ifap)
     }
 
   /* Table for mapping kernel index to entry in our list.  */
-  map_newlink_data = alloca (newlink * sizeof (int));
+  map_newlink_data = malloc (newlink * sizeof (int));
+  if (map_newlink_data == NULL)
+    {
+      result = -1;
+      goto exit_free;
+    }
   memset (map_newlink_data, '\xff', newlink * sizeof (int));
 
   ifa_data_ptr = (char *) &ifas[newlink + newaddr];
@@ -813,6 +797,7 @@ getifaddrs_internal (struct ifaddrs **ifap)
  exit_free:
   __netlink_free_handle (&nh);
   __netlink_close (&nh);
+  free (map_newlink_data);
 
   return result;
 }

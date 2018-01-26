@@ -17,7 +17,6 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <alloca.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,6 +25,7 @@
 #include <sys/param.h>
 #include <sys/socket.h>
 
+#include <scratch_buffer.h>
 
 int
 getipv4sourcefilter (int s, struct in_addr interface, struct in_addr group,
@@ -34,17 +34,13 @@ getipv4sourcefilter (int s, struct in_addr interface, struct in_addr group,
   /* We have to create an struct ip_msfilter object which we can pass
      to the kernel.  */
   socklen_t needed = IP_MSFILTER_SIZE (*numsrc);
-  int use_alloca = __libc_use_alloca (needed);
 
-  struct ip_msfilter *imsf;
-  if (use_alloca)
-    imsf = (struct ip_msfilter *) alloca (needed);
-  else
-    {
-      imsf = (struct ip_msfilter *) malloc (needed);
-      if (imsf == NULL)
-	return -1;
-    }
+  struct scratch_buffer buf;
+  scratch_buffer_init (&buf);
+  if (!scratch_buffer_set_array_size (&buf, needed, sizeof (char)))
+    return -1;
+
+  struct ip_msfilter *imsf = buf.data;
 
   imsf->imsf_multiaddr = group;
   imsf->imsf_interface = interface;
@@ -62,12 +58,9 @@ getipv4sourcefilter (int s, struct in_addr interface, struct in_addr group,
       *numsrc = imsf->imsf_numsrc;
     }
 
-  if (! use_alloca)
-    {
-      int save_errno = errno;
-      free (imsf);
-      __set_errno (save_errno);
-    }
+  int save_errno = errno;
+  scratch_buffer_free (&buf);
+  __set_errno (save_errno);
 
   return result;
 }

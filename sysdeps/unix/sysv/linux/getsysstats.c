@@ -17,7 +17,6 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <alloca.h>
 #include <assert.h>
 #include <ctype.h>
 #include <dirent.h>
@@ -136,8 +135,8 @@ __get_nprocs (void)
 
   /* XXX Here will come a test for the new system call.  */
 
-  const size_t buffer_size = __libc_use_alloca (8192) ? 8192 : 512;
-  char *buffer = alloca (buffer_size);
+  const size_t buffer_size = 8192;
+  char buffer[8192];
   char *buffer_end = buffer + buffer_size;
   char *cp = buffer_end;
   char *re = buffer_end;
