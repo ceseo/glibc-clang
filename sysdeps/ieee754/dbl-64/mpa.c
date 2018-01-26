@@ -39,11 +39,10 @@
 /* Relative errors are bounded                                          */
 /************************************************************************/
 
-
 #include "endian.h"
 #include "mpa.h"
 #include <sys/param.h>
-#include <alloca.h>
+#include <assert.h>
 
 #ifndef SECTION
 # define SECTION
@@ -617,7 +616,6 @@ __mul (const mp_no *x, const mp_no *y, mp_no *z, int p)
   long p2 = p;
   mantissa_store_t zk;
   const mp_no *a;
-  mantissa_store_t *diag;
 
   /* Is z=0?  */
   if (__glibc_unlikely (X[0] * Y[0] == 0))
@@ -672,9 +670,13 @@ __mul (const mp_no *x, const mp_no *y, mp_no *z, int p)
 
   zk = 0;
 
+  /* Current maximum precision __mul is called is with p equal to 32,
+     which turns diag to have maximum size of 35 (p2 + 3).  */
+  mantissa_store_t diag[35];
+  assert (k <= sizeof (diag)/sizeof(diag[0]));
+
   /* Precompute sums of diagonal elements so that we can directly use them
      later.  See the next comment to know we why need them.  */
-  diag = alloca (k * sizeof (mantissa_store_t));
   mantissa_store_t d = 0;
   for (i = 1; i <= ip; i++)
     {
