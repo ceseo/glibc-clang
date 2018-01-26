@@ -17,20 +17,9 @@
 
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
-#include <limits.h>
-#include <stdbool.h>
-#include <sys/param.h>
 #include <sys/uio.h>
+#include <sys/mman.h>
 #include <errno.h>
-
-
-static void
-ifree (char **ptrp)
-{
-  free (*ptrp);
-}
-
 
 /* Write data pointed by the buffers described by VECTOR, which
    is a vector of COUNT 'struct iovec's, to file descriptor FD.
@@ -53,22 +42,13 @@ __writev (int fd, const struct iovec *vector, int count)
       bytes += vector[i].iov_len;
     }
 
-  /* Allocate a temporary buffer to hold the data.  We should normally
-     use alloca since it's faster and does not require synchronization
-     with other threads.  But we cannot if the amount of memory
-     required is too large.  */
-  char *buffer;
-  char *malloced_buffer __attribute__ ((__cleanup__ (ifree))) = NULL;
-  if (__libc_use_alloca (bytes))
-    buffer = (char *) __alloca (bytes);
-  else
-    {
-      malloced_buffer = buffer = (char *) malloc (bytes);
-      if (buffer == NULL)
-	/* XXX I don't know whether it is acceptable to try writing
-	   the data in chunks.  Probably not so we just fail here.  */
-	return -1;
-    }
+  /* Allocate a temporary buffer to hold the data.  It could be done with a
+     stack allocation, but due limitations on some system (Linux with
+     O_DIRECT) it aligns the buffer to pagesize.  */
+  void *buffer = __mmap (NULL, bytes, PROT_READ | PROT_WRITE,
+		         MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  if (__glibc_unlikely (buffer == MAP_FAILED))
+    return -1;
 
   /* Copy the data into BUFFER.  */
   size_t to_copy = bytes;
@@ -85,6 +65,8 @@ __writev (int fd, const struct iovec *vector, int count)
     }
 
   ssize_t bytes_written = __write (fd, buffer, bytes);
+
+  __munmap (buffer, bytes);
 
   return bytes_written;
 }

@@ -17,19 +17,9 @@
 
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
-#include <limits.h>
-#include <stdbool.h>
-#include <sys/param.h>
 #include <sys/uio.h>
+#include <sys/mman.h>
 #include <errno.h>
-
-
-static void
-ifree (char **ptrp)
-{
-  free (*ptrp);
-}
 
 /* Read data from file descriptor FD, and put the result in the
    buffers described by VECTOR, which is a vector of COUNT 'struct iovec's.
@@ -52,25 +42,18 @@ __readv (int fd, const struct iovec *vector, int count)
       bytes += vector[i].iov_len;
     }
 
-  /* Allocate a temporary buffer to hold the data.  We should normally
-     use alloca since it's faster and does not require synchronization
-     with other threads.  But we cannot if the amount of memory
-     required is too large.  */
-  char *buffer;
-  char *malloced_buffer __attribute__ ((__cleanup__ (ifree))) = NULL;
-  if (__libc_use_alloca (bytes))
-    buffer = (char *) __alloca (bytes);
-  else
-    {
-      malloced_buffer = buffer = (char *) malloc (bytes);
-      if (buffer == NULL)
-	return -1;
-    }
+  /* Allocate a temporary buffer to hold the data.  It could be done with a
+     stack allocation, but due limitations on some system (Linux with
+     O_DIRECT) it aligns the buffer to pagesize.  */
+  void *buffer = __mmap (NULL, bytes, PROT_READ | PROT_WRITE,
+		         MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  if (__glibc_unlikely (buffer == MAP_FAILED))
+    return -1;
 
   /* Read the data.  */
   ssize_t bytes_read = __read (fd, buffer, bytes);
   if (bytes_read < 0)
-    return -1;
+    goto end;
 
   /* Copy the data from BUFFER into the memory specified by VECTOR.  */
   bytes = bytes_read;
@@ -78,7 +61,7 @@ __readv (int fd, const struct iovec *vector, int count)
     {
       size_t copy = MIN (vector[i].iov_len, bytes);
 
-      (void) memcpy ((void *) vector[i].iov_base, (void *) buffer, copy);
+      memcpy (vector[i].iov_base, buffer, copy);
 
       buffer += copy;
       bytes -= copy;
@@ -86,6 +69,8 @@ __readv (int fd, const struct iovec *vector, int count)
 	break;
     }
 
+end:
+  __munmap (buffer, bytes);
   return bytes_read;
 }
 libc_hidden_def (__readv)
