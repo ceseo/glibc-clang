@@ -94,11 +94,12 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
 
   /* We must put `__LDD_ARGV0=<program-name>' in the environment.  */
   filename_len = strlen (filename);
-  buf = (char *) alloca (sizeof "__LDD_ARGV0=" + filename_len);
+  buf = malloc (sizeof "__LDD_ARGV0=" + filename_len);
   mempcpy (mempcpy (buf, "__LDD_ARGV0=", sizeof "__LDD_ARGV0=" - 1),
 	   filename, filename_len + 1);
   /* ...and put the value in the environment.  */
   putenv (buf);
+  free (buf);
 
   /* Now we can execute the binary.  */
   return execv (filename, &argv[argc]) ? 4 : 0;
