@@ -23,7 +23,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <alloca.h>
 #include <sysdep.h>
 
 int
