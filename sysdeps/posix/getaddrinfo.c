@@ -97,14 +97,16 @@ struct gaih_service
 
 struct gaih_servtuple
   {
-    struct gaih_servtuple *next;
     int socktype;
     int protocol;
     int port;
   };
 
-static const struct gaih_servtuple nullserv;
-
+#define DYNARRAY_STRUCT        gaih_servarray
+#define DYNARRAY_ELEMENT       struct gaih_servtuple
+#define DYNARRAY_PREFIX        gaih_servarray_
+#define DYNARRAY_INITIAL_SIZE  64
+#include <malloc/dynarray-skeleton.c>
 
 struct gaih_typeproto
   {
@@ -177,7 +179,6 @@ gaih_inet_serv (const char *servicename, const struct gaih_typeproto *tp,
     }
   while (r);
 
-  st->next = NULL;
   st->socktype = tp->socktype;
   st->protocol = ((tp->protoflag & GAI_PROTO_PROTOANY)
 		  ? req->ai_protocol : tp->protocol);
@@ -340,15 +341,14 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	   unsigned int *naddrs, struct scratch_buffer *tmpbuf)
 {
   const struct gaih_typeproto *tp = gaih_inet_typeproto;
-  struct gaih_servtuple *st = (struct gaih_servtuple *) &nullserv;
   struct gaih_addrtuple *at = NULL;
   bool got_ipv6 = false;
   const char *canon = NULL;
   const char *orig_name = name;
+  int result = 0;
 
-  /* Reserve stack memory for the scratch buffer in the getaddrinfo
-     function.  */
-  size_t alloca_used = sizeof (struct scratch_buffer);
+  struct gaih_servarray st;
+  gaih_servarray_init (&st);
 
   if (req->ai_protocol || req->ai_socktype)
     {
@@ -380,20 +380,21 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	{
 	  if (tp->name[0])
 	    {
-	      st = (struct gaih_servtuple *)
-		alloca_account (sizeof (struct gaih_servtuple), alloca_used);
+	      /* ST is guarantee to not be null because TP have a minimum
+		 stack allocated size.  */
+	      struct gaih_servtuple *newp = gaih_servarray_emplace (&st);
 
-	      int rc = gaih_inet_serv (service->name, tp, req, st, tmpbuf);
+	      int rc = gaih_inet_serv (service->name, tp, req, newp, tmpbuf);
 	      if (__glibc_unlikely (rc != 0))
-		return rc;
+		{
+		  result = rc;
+		  goto out_error;
+		}
 	    }
 	  else
 	    {
-	      struct gaih_servtuple **pst = &st;
 	      for (tp++; tp->name[0]; tp++)
 		{
-		  struct gaih_servtuple *newp;
-
 		  if ((tp->protoflag & GAI_PROTO_NOSERVICE) != 0)
 		    continue;
 
@@ -405,19 +406,23 @@ gaih_inet (const char *name, const struct gaih_service *service,
 		      && req->ai_protocol != tp->protocol)
 		    continue;
 
-		  newp = (struct gaih_servtuple *)
-		    alloca_account (sizeof (struct gaih_servtuple),
-				    alloca_used);
-
+		  struct gaih_servtuple newp;
 		  if (gaih_inet_serv (service->name,
-				      tp, req, newp, tmpbuf) != 0)
+				      tp, req, &newp, tmpbuf) != 0)
 		    continue;
 
-		  *pst = newp;
-		  pst = &(newp->next);
+		  gaih_servarray_add (&st, newp);
+		  if (gaih_servarray_has_failed (&st))
+		    {
+		      result = -EAI_MEMORY;
+		      goto out_error;
+		    }
 		}
-	      if (st == (struct gaih_servtuple *) &nullserv)
-		return -EAI_SERVICE;
+	      if (gaih_servarray_size (&st) == 0)
+		{
+		  result = -EAI_SERVICE;
+		  goto out_error;
+		}
 	    }
 	}
       else
@@ -432,44 +437,42 @@ gaih_inet (const char *name, const struct gaih_service *service,
 
       if (req->ai_socktype || req->ai_protocol)
 	{
-	  st = alloca_account (sizeof (struct gaih_servtuple), alloca_used);
-	  st->next = NULL;
-	  st->socktype = tp->socktype;
-	  st->protocol = ((tp->protoflag & GAI_PROTO_PROTOANY)
-			  ? req->ai_protocol : tp->protocol);
-	  st->port = port;
+	  struct gaih_servtuple *newp = gaih_servarray_emplace (&st);
+	  newp->socktype = tp->socktype;
+	  newp->protocol = ((tp->protoflag & GAI_PROTO_PROTOANY)
+			   ? req->ai_protocol : tp->protocol);
+	  newp->port = port;
 	}
       else
 	{
 	  /* Neither socket type nor protocol is set.  Return all socket types
 	     we know about.  */
-	  struct gaih_servtuple **lastp = &st;
 	  for (++tp; tp->name[0]; ++tp)
 	    if (tp->defaultflag)
 	      {
 		struct gaih_servtuple *newp;
 
-		newp = alloca_account (sizeof (struct gaih_servtuple),
-				       alloca_used);
-		newp->next = NULL;
+		newp = gaih_servarray_emplace (&st);
+		if (newp == NULL)
+		  {
+		    result = -EAI_MEMORY;
+		    goto out_error;
+		  }
 		newp->socktype = tp->socktype;
 		newp->protocol = tp->protocol;
 		newp->port = port;
-
-		*lastp = newp;
-		lastp = &newp->next;
 	      }
 	}
     }
 
   bool malloc_name = false;
   struct gaih_addrtuple *addrmem = NULL;
+  struct gaih_addrtuple attmp[2];
   char *canonbuf = NULL;
-  int result = 0;
 
   if (name != NULL)
     {
-      at = alloca_account (sizeof (struct gaih_addrtuple), alloca_used);
+      at = &attmp[0];
       at->family = AF_UNSPEC;
       at->scopeid = 0;
       at->next = NULL;
@@ -984,12 +987,12 @@ gaih_inet (const char *name, const struct gaih_service *service,
   else
     {
       struct gaih_addrtuple *atr;
-      atr = at = alloca_account (sizeof (struct gaih_addrtuple), alloca_used);
+      atr = at = &attmp[0];
       memset (at, '\0', sizeof (struct gaih_addrtuple));
 
       if (req->ai_family == AF_UNSPEC)
 	{
-	  at->next = __alloca (sizeof (struct gaih_addrtuple));
+	  at->next = &attmp[1];
 	  memset (at->next, '\0', sizeof (struct gaih_addrtuple));
 	}
 
@@ -1094,8 +1097,10 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	else
 	  socklen = sizeof (struct sockaddr_in);
 
-	for (st2 = st; st2 != NULL; st2 = st2->next)
+	//for (st2 = st; st2 != NULL; st2 = st2->next)
+	for (size_t i = 0; i < gaih_servarray_size (&st); i++)
 	  {
+	    st2 = gaih_servarray_at (&st, i);
 	    struct addrinfo *ai;
 	    ai = *pai = malloc (sizeof (struct addrinfo) + socklen);
 	    if (ai == NULL)
@@ -1157,11 +1162,16 @@ gaih_inet (const char *name, const struct gaih_service *service,
   }
 
  free_and_return:
+  gaih_servarray_free (&st);
   if (malloc_name)
     free ((char *) name);
   free (addrmem);
   free (canonbuf);
 
+  return result;
+
+ out_error:
+  gaih_servarray_free (&st);
   return result;
 }
 
@@ -2331,22 +2341,16 @@ getaddrinfo (const char *name, const char *service,
       struct addrinfo *q;
       struct addrinfo *last = NULL;
       char *canonname = NULL;
-      bool malloc_results;
-      size_t alloc_size = nresults * (sizeof (*results) + sizeof (size_t));
+      struct scratch_buffer tmpbuf;
+      scratch_buffer_init (&tmpbuf);
 
-      malloc_results
-	= !__libc_use_alloca (alloc_size);
-      if (malloc_results)
+      if (!scratch_buffer_set_array_size (&tmpbuf, nresults,
+					  sizeof (*results) + sizeof (size_t)))
 	{
-	  results = malloc (alloc_size);
-	  if (results == NULL)
-	    {
-	      __free_in6ai (in6ai);
-	      return EAI_MEMORY;
-	    }
+	  __free_in6ai (in6ai);
+	  return EAI_MEMORY;
 	}
-      else
-	results = alloca (alloc_size);
+      results = tmpbuf.data;
       order = (size_t *) (results + nresults);
 
       /* Now we definitely need the interface information.  */
@@ -2526,8 +2530,7 @@ getaddrinfo (const char *name, const char *service,
       /* Fill in the canonical name into the new first entry.  */
       p->ai_canonname = canonname;
 
-      if (malloc_results)
-	free (results);
+      scratch_buffer_free (&tmpbuf);
     }
 
   __free_in6ai (in6ai);
