@@ -257,8 +257,6 @@ _nss_nis_initgroups_dyn (const char *user, gid_t group, long int *start,
     }
 
   struct group grpbuf, *g;
-  size_t buflen = sysconf (_SC_GETPW_R_SIZE_MAX);
-  char *tmpbuf;
   enum nss_status status;
   intern_t intern = { NULL, NULL, 0 };
   gid_t *groups = *groupsp;
@@ -267,15 +265,23 @@ _nss_nis_initgroups_dyn (const char *user, gid_t group, long int *start,
   if (status != NSS_STATUS_SUCCESS)
     return status;
 
-  tmpbuf = __alloca (buflen);
+  struct scratch_buffer s;
+  scratch_buffer_init (&s);
 
-  while (1)
+  while (true)
     {
-      while ((status =
-	      internal_getgrent_r (&grpbuf, tmpbuf, buflen, errnop,
-				   &intern)) == NSS_STATUS_TRYAGAIN
-             && *errnop == ERANGE)
-	tmpbuf = extend_alloca (tmpbuf, buflen, 2 * buflen);
+      while ((status
+	      = internal_getgrent_r (&grpbuf, s.data, s.length, errnop,
+				     &intern)) == NSS_STATUS_TRYAGAIN
+	     && *errnop == ERANGE)
+	{
+	  if (!scratch_buffer_grow (&s))
+	    {
+	      status = nss_status_tryagain;
+	      *errnop = errno;
+	      goto done;
+	    }
+	}
 
       if (status != NSS_STATUS_SUCCESS)
 	{
@@ -311,7 +317,7 @@ _nss_nis_initgroups_dyn (const char *user, gid_t group, long int *start,
 		    newgroups = realloc (groups, newsize * sizeof (*groups));
 		    if (newgroups == NULL)
 		      {
-			status = NSS_STATUS_TRYAGAIN;
+			status = nss_status_tryagain;
 			*errnop = errno;
 			goto done;
 		      }
@@ -328,6 +334,7 @@ _nss_nis_initgroups_dyn (const char *user, gid_t group, long int *start,
     }
 
 done:
+  scratch_buffer_free (&s);
   while (intern.start != NULL)
     {
       intern.next = intern.start;
