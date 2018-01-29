@@ -27,6 +27,7 @@
 #include <rpcsvc/yp.h>
 #include <rpcsvc/ypclnt.h>
 #include <sys/param.h>
+#include <scratch_buffer.h>
 
 #include "nss-nis.h"
 #include <libnsl.h>
@@ -120,28 +121,30 @@ internal_getgrent_r (struct group *grp, char *buffer, size_t buflen,
 static int
 get_uid (const char *user, uid_t *uidp)
 {
-  size_t buflen = sysconf (_SC_GETPW_R_SIZE_MAX);
-  char *buf = (char *) alloca (buflen);
+  struct scratch_buffer s;
+  scratch_buffer_init (&s);
+  int ret = 1;
 
-  while (1)
+  while (true)
     {
       struct passwd result;
       struct passwd *resp;
 
-      int r = getpwnam_r (user, &result, buf, buflen, &resp);
+      int r = getpwnam_r (user, &result, s.data, s.length, &resp);
       if (r == 0 && resp != NULL)
 	{
 	  *uidp = resp->pw_uid;
-	  return 0;
+	  ret = 0;
+	  break;
 	}
 
-      if (r != ERANGE)
+      if (r != ERANGE || !scratch_buffer_grow (&s))
 	break;
-
-      buf = extend_alloca (buf, buflen, 2 * buflen);
     }
 
-  return 1;
+  scratch_buffer_free (&s);
+
+  return ret;
 }
 
 
