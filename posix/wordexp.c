@@ -17,7 +17,6 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <alloca.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -42,6 +41,7 @@
 #include <wordexp.h>
 #include <kernel-features.h>
 
+#include <scratch_buffer.h>
 #include <libc-lock.h>
 #include <_itoa.h>
 
@@ -296,14 +296,15 @@ parse_tilde (char **word, size_t *word_length, size_t *max_length,
 	}
     }
 
+  struct scratch_buffer s;
+  scratch_buffer_init (&s);
+
   if (i == 1 + *offset)
     {
       /* Tilde appears on its own */
       uid_t uid;
       struct passwd pwd, *tpwd;
-      int buflen = 1000;
       char* home;
-      char* buffer;
       int result;
 
       /* POSIX.2 says ~ expands to $HOME and if HOME is unset the
@@ -320,38 +321,51 @@ parse_tilde (char **word, size_t *word_length, size_t *max_length,
       else
 	{
 	  uid = __getuid ();
-	  buffer = __alloca (buflen);
 
-	  while ((result = __getpwuid_r (uid, &pwd, buffer, buflen, &tpwd)) != 0
-		 && errno == ERANGE)
-	    buffer = extend_alloca (buffer, buflen, buflen + 1000);
+	  while (true)
+	    {
+	      result = __getpwuid_r (uid, &pwd, s.data, s.length, &tpwd);
+	      if (result != ERANGE)
+		break;
+	      if (!scratch_buffer_grow (&s))
+		goto no_space;
+	    }
 
 	  if (result == 0 && tpwd != NULL && pwd.pw_dir != NULL)
 	    {
 	      *word = w_addstr (*word, word_length, max_length, pwd.pw_dir);
 	      if (*word == NULL)
-		return WRDE_NOSPACE;
+		goto no_space;
 	    }
 	  else
 	    {
 	      *word = w_addchar (*word, word_length, max_length, '~');
 	      if (*word == NULL)
-		return WRDE_NOSPACE;
+		goto no_space;
 	    }
 	}
     }
   else
     {
       /* Look up user name in database to get home directory */
-      char *user = strndupa (&words[1 + *offset], i - (1 + *offset));
+      size_t userlen = i - (1 + *offset) + 1;
+      if (!scratch_buffer_set_array_size (&s, userlen, sizeof (char)))
+	goto no_space;
+      *((char *) mempcpy (s.data, &words[1 + *offset], userlen - 1)) = '\0';
+      char *user = s.data;
+
       struct passwd pwd, *tpwd;
-      int buflen = 1000;
-      char* buffer = __alloca (buflen);
       int result;
 
-      while ((result = __getpwnam_r (user, &pwd, buffer, buflen, &tpwd)) != 0
-	     && errno == ERANGE)
-	buffer = extend_alloca (buffer, buflen, buflen + 1000);
+      while (true)
+	{
+	  result = __getpwnam_r (user, &pwd, s.data + userlen,
+				 s.length - userlen, &tpwd);
+	  if (result != ERANGE)
+	    break;
+	  if (!scratch_buffer_grow_preserve (&s))
+	    goto no_space;
+	}
 
       if (result == 0 && tpwd != NULL && pwd.pw_dir)
 	*word = w_addstr (*word, word_length, max_length, pwd.pw_dir);
@@ -365,7 +379,12 @@ parse_tilde (char **word, size_t *word_length, size_t *max_length,
 
       *offset = i - 1;
     }
+  scratch_buffer_free (&s);
   return *word ? 0 : WRDE_NOSPACE;
+
+no_space:
+  scratch_buffer_free (&s);
+  return WRDE_NOSPACE;
 }
 
 
