@@ -218,7 +218,7 @@ check_and_add_group (const char *user, gid_t group, long int *start,
 /* Get the next group from NSS  (+ entry). If the NSS module supports
    initgroups_dyn, get all entries at once.  */
 static enum nss_status
-getgrent_next_nss (ent_t *ent, char *buffer, size_t buflen, const char *user,
+getgrent_next_nss (ent_t *ent, struct scratch_buffer *buffer, const char *user,
 		   gid_t group, long int *start, long int *size,
 		   gid_t **groupsp, long int limit, int *errnop)
 {
@@ -256,49 +256,30 @@ getgrent_next_nss (ent_t *ent, char *buffer, size_t buflen, const char *user,
 	      add_group (start, size, groupsp, limit, mygroups[i]);
 	  else
 	    {
-	      /* A temporary buffer. We use the normal buffer, until we find
-		 an entry, for which this buffer is to small.  In this case, we
-		 overwrite the pointer with one to a bigger buffer.  */
-	      char *tmpbuf = buffer;
-	      size_t tmplen = buflen;
-	      bool use_malloc = false;
-
 	      for (int i = 0; i < mystart; i++)
 		{
-		  while ((status = nss_getgrgid_r (mygroups[i], &grpbuf,
-						   tmpbuf, tmplen, errnop))
-			 == NSS_STATUS_TRYAGAIN
-			 && *errnop == ERANGE)
-                    {
-                      if (__libc_use_alloca (tmplen * 2))
-                        {
-                          if (tmpbuf == buffer)
-                            {
-                              tmplen *= 2;
-                              tmpbuf = __alloca (tmplen);
-                            }
-                          else
-                            tmpbuf = extend_alloca (tmpbuf, tmplen, tmplen * 2);
-                        }
-                      else
-                        {
-                          tmplen *= 2;
-                          char *newbuf = realloc (use_malloc ? tmpbuf : NULL, tmplen);
-
-                          if (newbuf == NULL)
-                            {
-                              status = NSS_STATUS_TRYAGAIN;
-			      goto done;
-                            }
-                          use_malloc = true;
-                          tmpbuf = newbuf;
-                        }
-                    }
-
-		  if (__builtin_expect  (status != NSS_STATUS_NOTFOUND, 1))
+		  while (true)
 		    {
-		      if (__builtin_expect  (status != NSS_STATUS_SUCCESS, 0))
-		        goto done;
+		      status = nss_getgrgid_r (mygroups[i], &grpbuf,
+					      buffer->data, buffer->length,
+					      errnop);
+		      if (status != NSS_STATUS_TRYAGAIN || *errnop != ERANGE)
+			break;
+
+		      if (!scratch_buffer_grow (buffer))
+			{
+			  free (mygroups);
+			  return NSS_STATUS_TRYAGAIN;
+			}
+		    }
+
+		  if (__glibc_likely (status != NSS_STATUS_NOTFOUND))
+		    {
+		      if (__glibc_unlikely (status != NSS_STATUS_SUCCESS))
+			{
+			  free (mygroups);
+			  return status;
+			}
 
 		      if (!in_blacklist (grpbuf.gr_name,
 					 strlen (grpbuf.gr_name), ent)
@@ -319,9 +300,6 @@ getgrent_next_nss (ent_t *ent, char *buffer, size_t buflen, const char *user,
 
 	      status = NSS_STATUS_NOTFOUND;
 
- done:
-	      if (use_malloc)
-	        free (tmpbuf);
 	    }
 
 	  free (mygroups);
@@ -338,7 +316,8 @@ getgrent_next_nss (ent_t *ent, char *buffer, size_t buflen, const char *user,
  iter:
   do
     {
-      if ((status = nss_getgrent_r (&grpbuf, buffer, buflen, errnop)) !=
+      if ((status = nss_getgrent_r (&grpbuf, buffer->data, buffer->length,
+				    errnop)) !=
 	  NSS_STATUS_SUCCESS)
 	break;
     }
@@ -351,15 +330,17 @@ getgrent_next_nss (ent_t *ent, char *buffer, size_t buflen, const char *user,
 }
 
 static enum nss_status
-internal_getgrent_r (ent_t *ent, char *buffer, size_t buflen, const char *user,
+internal_getgrent_r (ent_t *ent, struct scratch_buffer *tmpbuf, const char *user,
 		     gid_t group, long int *start, long int *size,
 		     gid_t **groupsp, long int limit, int *errnop)
 {
-  struct parser_data *data = (void *) buffer;
+  char *buffer = tmpbuf->data;
+  size_t buflen = tmpbuf->length;
+  struct parser_data *data = tmpbuf->data;
   struct group grpbuf;
 
   if (!ent->files)
-    return getgrent_next_nss (ent, buffer, buflen, user, group,
+    return getgrent_next_nss (ent, tmpbuf, user, group,
 			      start, size, groupsp, limit, errnop);
 
   while (1)
@@ -370,25 +351,17 @@ internal_getgrent_r (ent_t *ent, char *buffer, size_t buflen, const char *user,
 
       do
 	{
-	  /* We need at least 3 characters for one line.  */
-	  if (__glibc_unlikely (buflen < 3))
-	    {
-	    erange:
-	      *errnop = ERANGE;
-	      return NSS_STATUS_TRYAGAIN;
-	    }
-
 	  fgetpos (ent->stream, &pos);
 	  buffer[buflen - 1] = '\xff';
 	  p = fgets_unlocked (buffer, buflen, ent->stream);
 	  if (p == NULL && feof_unlocked (ent->stream))
 	    return NSS_STATUS_NOTFOUND;
 
-	  if (p == NULL || __builtin_expect (buffer[buflen - 1] != '\xff', 0))
+	  if (p == NULL || __glibc_unlikely (buffer[buflen - 1] != '\xff'))
 	    {
-	    erange_reset:
 	      fsetpos (ent->stream, &pos);
-	      goto erange;
+	      *errnop = ERANGE;
+	      return NSS_STATUS_TRYAGAIN;
 	    }
 
 	  /* Terminate the line for any case.  */
@@ -405,8 +378,11 @@ internal_getgrent_r (ent_t *ent, char *buffer, size_t buflen, const char *user,
 						   errnop)));
 
       if (__glibc_unlikely (parse_res == -1))
-	/* The parser ran out of space.  */
-	goto erange_reset;
+	{
+	  /* The parser ran out of space.  */
+	  *errnop = ERANGE;
+	  return NSS_STATUS_TRYAGAIN;
+	}
 
       if (grpbuf.gr_name[0] != '+' && grpbuf.gr_name[0] != '-')
 	/* This is a real entry.  */
@@ -463,7 +439,7 @@ internal_getgrent_r (ent_t *ent, char *buffer, size_t buflen, const char *user,
 
 	  ent->files = false;
 
-	  return getgrent_next_nss (ent, buffer, buflen, user, group,
+	  return getgrent_next_nss (ent, tmpbuf, user, group,
 				    start, size, groupsp, limit, errnop);
 	}
     }
@@ -491,7 +467,7 @@ _nss_compat_initgroups_dyn (const char *user, gid_t group, long int *start,
 
   do
     {
-      while ((status = internal_getgrent_r (&intern, tmpbuf.data, tmpbuf.length,
+      while ((status = internal_getgrent_r (&intern, &tmpbuf,
 					    user, group, start, size,
 					    groupsp, limit, errnop))
 	     == NSS_STATUS_TRYAGAIN && *errnop == ERANGE)
