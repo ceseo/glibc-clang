@@ -26,6 +26,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <scratch_buffer.h>
+
 enum nss_status
 _nss_files_initgroups_dyn (const char *user, gid_t group, long int *start,
 			   long int *size, gid_t **groupsp, long int limit,
@@ -46,14 +48,13 @@ _nss_files_initgroups_dyn (const char *user, gid_t group, long int *start,
   enum nss_status status = NSS_STATUS_SUCCESS;
   bool any = false;
 
-  size_t buflen = 1024;
-  void *buffer = alloca (buflen);
-  bool buffer_use_malloc = false;
+  struct scratch_buffer buffer;
+  scratch_buffer_init (&buffer);
 
   gid_t *groups = *groupsp;
 
   /* We have to iterate over the entire file.  */
-  while (1)
+  while (true)
     {
       fpos_t pos;
       fgetpos (stream, &pos);
@@ -67,26 +68,16 @@ _nss_files_initgroups_dyn (const char *user, gid_t group, long int *start,
 	}
 
       struct group grp;
-      int res = _nss_files_parse_grent (line, &grp, buffer, buflen, errnop);
+      int res = _nss_files_parse_grent (line, &grp, buffer.data,
+					buffer.length, errnop);
       if (res == -1)
 	{
-	  size_t newbuflen = 2 * buflen;
-	  if (buffer_use_malloc || ! __libc_use_alloca (buflen + newbuflen))
+	  if (!scratch_buffer_grow (&buffer))
 	    {
-	      void *newbuf = realloc (buffer_use_malloc ? buffer : NULL,
-				      newbuflen);
-	      if (newbuf == NULL)
-		{
-		  *errnop = ENOMEM;
-		  status = NSS_STATUS_TRYAGAIN;
-		  goto out;
-		}
-	      buffer = newbuf;
-	      buflen = newbuflen;
-	      buffer_use_malloc = true;
+	      *errnop = ENOMEM;
+	      status = NSS_STATUS_TRYAGAIN;
+	      goto out;
 	    }
-	  else
-	    buffer = extend_alloca (buffer, buflen, newbuflen);
 	  /* Reread current line, the parser has clobbered it.  */
 	  fsetpos (stream, &pos);
 	  continue;
@@ -132,8 +123,7 @@ _nss_files_initgroups_dyn (const char *user, gid_t group, long int *start,
 
  out:
   /* Free memory.  */
-  if (buffer_use_malloc)
-    free (buffer);
+  scratch_buffer_free (&buffer);
   free (line);
 
   fclose (stream);
