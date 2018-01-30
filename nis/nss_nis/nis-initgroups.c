@@ -277,7 +277,7 @@ _nss_nis_initgroups_dyn (const char *user, gid_t group, long int *start,
 	{
 	  if (!scratch_buffer_grow (&s))
 	    {
-	      status = nss_status_tryagain;
+	      status = NSS_STATUS_TRYAGAIN;
 	      *errnop = errno;
 	      goto done;
 	    }
@@ -317,7 +317,7 @@ _nss_nis_initgroups_dyn (const char *user, gid_t group, long int *start,
 		    newgroups = realloc (groups, newsize * sizeof (*groups));
 		    if (newgroups == NULL)
 		      {
-			status = nss_status_tryagain;
+			status = NSS_STATUS_TRYAGAIN;
 			*errnop = errno;
 			goto done;
 		      }
