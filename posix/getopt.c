@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #ifdef _LIBC
 /* When used as part of glibc, error printing must be done differently
@@ -49,10 +50,6 @@
 #  define flockfile(fp) /* nop */
 #  define funlockfile(fp) /* nop */
 # endif
-/* When used standalone, do not attempt to use alloca.  */
-# define __libc_use_alloca(size) 0
-# undef alloca
-# define alloca(size) (abort (), (void *)0)
 #endif
 
 /* This implementation of 'getopt' has three modes for handling
@@ -222,8 +219,7 @@ process_long_option (int argc, char **argv, const char *optstring,
     {
       /* Didn't find an exact match, so look for abbreviations.  */
       unsigned char *ambig_set = NULL;
-      int ambig_malloced = 0;
-      int ambig_fallback = 0;
+      bool ambig_fallback = false;
       int indfound = -1;
 
       for (p = longopts, option_index = 0; p->name; p++, option_index++)
@@ -249,15 +245,12 @@ process_long_option (int argc, char **argv, const char *optstring,
 		      ambig_fallback = 1;
 		    else if (!ambig_set)
 		      {
-			if (__libc_use_alloca (n_options))
-			  ambig_set = alloca (n_options);
-			else if ((ambig_set = malloc (n_options)) == NULL)
-			  /* Fall back to simpler error message.  */
-			  ambig_fallback = 1;
+			if ((ambig_set = malloc (n_options)) == NULL)
+			  {
+			    /* Fall back to simpler error message.  */
+			    ambig_fallback = true;
+			  }
 			else
-			  ambig_malloced = 1;
-
-			if (ambig_set)
 			  {
 			    memset (ambig_set, 0, n_options);
 			    ambig_set[indfound] = 1;
@@ -269,7 +262,7 @@ process_long_option (int argc, char **argv, const char *optstring,
 	      }
 	  }
 
-      if (ambig_set || ambig_fallback)
+      if (ambig_set != NULL || ambig_fallback)
 	{
 	  if (print_errors)
 	    {
@@ -295,8 +288,7 @@ process_long_option (int argc, char **argv, const char *optstring,
 		  funlockfile (stderr);
 		}
 	    }
-	  if (ambig_malloced)
-	    free (ambig_set);
+	  free (ambig_set);
 	  d->__nextchar += strlen (d->__nextchar);
 	  d->optind++;
 	  d->optopt = 0;
