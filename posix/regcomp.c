@@ -317,9 +317,10 @@ re_compile_fastmap_iter (regex_t *bufp, const re_dfastate_t *init_state,
 #ifdef RE_ENABLE_I18N
 	  if ((bufp->syntax & RE_ICASE) && dfa->mb_cur_max > 1)
 	    {
-	      unsigned char *buf = alloca (dfa->mb_cur_max), *p;
+	      assert (MB_LEN_MAX >= dfa->mb_cur_max);
+	      unsigned char buf[MB_LEN_MAX], *p;
 	      wchar_t wc;
-	      mbstate_t state;
+	      mbstate_t state = { 0 };
 
 	      p = buf;
 	      *p++ = dfa->nodes[node].opr.c;
@@ -327,7 +328,6 @@ re_compile_fastmap_iter (regex_t *bufp, const re_dfastate_t *init_state,
 		     &&	dfa->nodes[node].type == CHARACTER
 		     && dfa->nodes[node].mb_partial)
 		*p++ = dfa->nodes[node].opr.c;
-	      memset (&state, '\0', sizeof (state));
 	      if (__mbrtowc (&wc, (const char *) buf, p - buf,
 			     &state) == p - buf
 		  && (__wcrtomb ((char *) buf, __towlower (wc), &state)
