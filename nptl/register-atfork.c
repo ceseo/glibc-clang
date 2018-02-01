@@ -22,123 +22,97 @@
 #include <fork.h>
 #include <atomic.h>
 
+#define DYNARRAY_ELEMENT           struct fork_handler
+#define DYNARRAY_STRUCT            fork_handler_list
+#define DYNARRAY_PREFIX            fork_handler_list_
+#define DYNARRAY_INITIAL_SIZE      48
+#include <malloc/dynarray-skeleton.c>
 
-struct fork_handler *__fork_handlers;
+static struct fork_handler_list fork_handlers;
+static bool fork_handler_init = false;
 
-/* Lock to protect allocation and deallocation of fork handlers.  */
-int __fork_lock = LLL_LOCK_INITIALIZER;
-
-
-/* Number of pre-allocated handler entries.  */
-#define NHANDLER 48
-
-/* Memory pool for fork handler structures.  */
-static struct fork_handler_pool
-{
-  struct fork_handler_pool *next;
-  struct fork_handler mem[NHANDLER];
-} fork_handler_pool;
-
-
-static struct fork_handler *
-fork_handler_alloc (void)
-{
-  struct fork_handler_pool *runp = &fork_handler_pool;
-  struct fork_handler *result = NULL;
-  unsigned int i;
-
-  do
-    {
-      /* Search for an empty entry.  */
-      for (i = 0; i < NHANDLER; ++i)
-	if (runp->mem[i].refcntr == 0)
-	  goto found;
-    }
-  while ((runp = runp->next) != NULL);
-
-  /* We have to allocate a new entry.  */
-  runp = (struct fork_handler_pool *) calloc (1, sizeof (*runp));
-  if (runp != NULL)
-    {
-      /* Enqueue the new memory pool into the list.  */
-      runp->next = fork_handler_pool.next;
-      fork_handler_pool.next = runp;
-
-      /* We use the last entry on the page.  This means when we start
-	 searching from the front the next time we will find the first
-	 entry unused.  */
-      i = NHANDLER - 1;
-
-    found:
-      result = &runp->mem[i];
-      result->refcntr = 1;
-      result->need_signal = 0;
-    }
-
-  return result;
-}
-
+static int atfork_lock = LLL_LOCK_INITIALIZER;
 
 int
 __register_atfork (void (*prepare) (void), void (*parent) (void),
 		   void (*child) (void), void *dso_handle)
 {
-  /* Get the lock to not conflict with other allocations.  */
-  lll_lock (__fork_lock, LLL_PRIVATE);
+  lll_lock (atfork_lock, LLL_PRIVATE);
 
-  struct fork_handler *newp = fork_handler_alloc ();
+  if (!fork_handler_init)
+    {
+      fork_handler_list_init (&fork_handlers);
+      fork_handler_init = true;
+    }
 
+  struct fork_handler *newp = fork_handler_list_emplace (&fork_handlers);
   if (newp != NULL)
     {
-      /* Initialize the new record.  */
       newp->prepare_handler = prepare;
       newp->parent_handler = parent;
       newp->child_handler = child;
       newp->dso_handle = dso_handle;
-
-      __linkin_atfork (newp);
     }
 
   /* Release the lock.  */
-  lll_unlock (__fork_lock, LLL_PRIVATE);
+  lll_unlock (atfork_lock, LLL_PRIVATE);
 
   return newp == NULL ? ENOMEM : 0;
 }
 libc_hidden_def (__register_atfork)
 
+void
+__unregister_atfork (void *dso_handle)
+{
+  lll_lock (atfork_lock, LLL_PRIVATE);
+
+  for (size_t i = 0; i < fork_handler_list_size (&fork_handlers); i++)
+    if (fork_handler_list_at (&fork_handlers, i)->dso_handle == dso_handle)
+      {
+        fork_handler_list_remove (&fork_handlers, i);
+        break;
+      }
+
+  lll_unlock (atfork_lock, LLL_PRIVATE);
+}
 
 void
-attribute_hidden
-__linkin_atfork (struct fork_handler *newp)
+__run_fork_handlers (enum __run_fork_handler_type who)
 {
-  do
-    newp->next = __fork_handlers;
-  while (catomic_compare_and_exchange_bool_acq (&__fork_handlers,
-						newp, newp->next) != 0);
+  struct fork_handler *runp;
+
+  if (who == atfork_run_prepare)
+    {
+      lll_lock (atfork_lock, LLL_PRIVATE);
+      size_t sl = fork_handler_list_size (&fork_handlers);
+      for (size_t i = sl; i > 0; i--)
+	{
+	  runp = fork_handler_list_at (&fork_handlers, i - 1);
+	  if (runp->prepare_handler != NULL)
+	    runp->prepare_handler ();
+	}
+    }
+  else
+    {
+      size_t sl = fork_handler_list_size (&fork_handlers);
+      for (size_t i = 0; i < sl; i++)
+	{
+	  runp = fork_handler_list_at (&fork_handlers, i);
+	  if (who == atfork_run_child && runp->child_handler)
+	    runp->child_handler ();
+	  else if (who == atfork_run_parent && runp->parent_handler)
+	    runp->parent_handler ();
+	}
+      lll_unlock (atfork_lock, LLL_PRIVATE);
+    }
 }
 
 
 libc_freeres_fn (free_mem)
 {
-  /* Get the lock to not conflict with running forks.  */
-  lll_lock (__fork_lock, LLL_PRIVATE);
+  lll_lock (atfork_lock, LLL_PRIVATE);
 
-  /* No more fork handlers.  */
-  __fork_handlers = NULL;
+  fork_handler_list_free (&fork_handlers);
 
-  /* Free eventually allocated memory blocks for the object pool.  */
-  struct fork_handler_pool *runp = fork_handler_pool.next;
-
-  memset (&fork_handler_pool, '\0', sizeof (fork_handler_pool));
-
-  /* Release the lock.  */
-  lll_unlock (__fork_lock, LLL_PRIVATE);
-
-  /* We can free the memory after releasing the lock.  */
-  while (runp != NULL)
-    {
-      struct fork_handler_pool *oldp = runp;
-      runp = runp->next;
-      free (oldp);
-    }
+  lll_unlock (atfork_lock, LLL_PRIVATE);
 }
