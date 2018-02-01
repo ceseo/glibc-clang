@@ -72,6 +72,7 @@
      DYNARRAY_ELEMENT *DYNARRAY_PREFIX##emplace (struct DYNARRAY_STRUCT *);
      bool DYNARRAY_PREFIX##resize (struct DYNARRAY_STRUCT *, size_t);
      void DYNARRAY_PREFIX##remove_last (struct DYNARRAY_STRUCT *);
+     void DYNARRAY_PREFIX##remove (struct DYNARRAY_STRUCT *, size_t);
      void DYNARRAY_PREFIX##clear (struct DYNARRAY_STRUCT *);
 
    The following functions are provided are provided if the
@@ -426,6 +427,28 @@ DYNARRAY_NAME (remove_last) (struct DYNARRAY_STRUCT *list)
 #endif
       list->dynarray_header.used = new_length;
     }
+}
+
+/* Remove the element of index IDX of LIST if it is present.  */
+__attribute__ ((unused, nonnull (1)))
+static void
+DYNARRAY_NAME (remove) (struct DYNARRAY_STRUCT *list, size_t idx)
+{
+  size_t last_pos = list->dynarray_header.used;
+  if (idx + 1 == last_pos)
+    {
+      DYNARRAY_NAME (remove_last) (list);
+      return;
+    }
+  DYNARRAY_ELEMENT *elem = DYNARRAY_NAME (at) (list, idx);
+  DYNARRAY_ELEMENT *last = &list->dynarray_header.array[last_pos];
+
+  ptrdiff_t size_to_move = (uintptr_t)last - (uintptr_t)elem;
+#ifdef DYNARRAY_ELEMENT_FREE
+  DYNARRAY_ELEMENT_FREE (elem);
+#endif
+  memmove (elem, elem + 1, size_to_move);
+  list->dynarray_header.used--;
 }
 
 /* Remove all elements from the list.  The elements are freed, but the

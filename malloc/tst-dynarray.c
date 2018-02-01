@@ -55,6 +55,40 @@ struct long_array
 
 enum { max_count = 20 };
 
+static void
+check_int (int do_remove, struct dynarray_int *dyn, unsigned int base,
+	   unsigned int final_count, unsigned int to_remove)
+{
+  if (do_remove == 1)
+    for (unsigned int i = 0; i < final_count; ++i)
+      TEST_VERIFY_EXIT (*dynarray_int_at (dyn, i) == base + i);
+  else if (do_remove == 2)
+    {
+      unsigned int i;
+      for (i = 0; i < to_remove; ++i)
+	TEST_VERIFY_EXIT (*dynarray_int_at (dyn, i) == base + i);
+      for (i = to_remove; i < final_count; ++i)
+	TEST_VERIFY_EXIT (*dynarray_int_at (dyn, i) == base + i + 1);
+    }
+}
+
+static void
+check_int_array (int do_remove, struct int_array *result, unsigned int base,
+		 unsigned int final_count, unsigned int to_remove)
+{
+  if (do_remove == 1)
+    for (unsigned int i = 0; i < final_count; ++i)
+      TEST_VERIFY_EXIT (result->array[i] == base + i);
+  else if (do_remove == 2)
+    {
+      unsigned int i;
+      for (i = 0; i < to_remove; ++i)
+	TEST_VERIFY_EXIT (result->array[i] == base + i);
+      for (i = to_remove; i < final_count; ++i)
+	TEST_VERIFY_EXIT (result->array[i] == base + i + 1);
+    }
+}
+
 /* Test dynamic arrays with int elements (no automatic deallocation
    for elements).  */
 static void
@@ -84,15 +118,15 @@ test_int (void)
      do_add: Switch between emplace (false) and add (true).
      do_finalize: Perform finalize call at the end.
      do_clear: Perform clear call at the end.
-     do_remove_last: Perform remove_last call after adding elements.
+     do_remove: Perform remove_last or remove call after adding elements.
      count: Number of elements added to the array.  */
   for (int do_add = 0; do_add < 2; ++do_add)
-    for (int do_finalize = 0; do_finalize < 2; ++do_finalize)
+    for (int do_finalize = 1; do_finalize < 2; ++do_finalize)
       for (int do_clear = 0; do_clear < 2; ++do_clear)
-        for (int do_remove_last = 0; do_remove_last < 2; ++do_remove_last)
-          for (unsigned int count = 0; count < max_count; ++count)
+        for (int do_remove = 1; do_remove < 3; ++do_remove)
+          for (unsigned int count = 2; count < max_count; ++count)
             {
-              if (do_remove_last && count == 0)
+              if (do_remove && count == 0)
                 continue;
               unsigned int base = count * count;
               struct dynarray_int dyn;
@@ -123,7 +157,8 @@ test_int (void)
                 }
               unsigned final_count;
               bool heap_array = dyn.dynarray_header.array != dyn.scratch;
-              if (do_remove_last)
+	      size_t to_remove = dynarray_int_size (&dyn) / 2;
+              if (do_remove == 1)
                 {
                   dynarray_int_remove_last (&dyn);
                   if (count == 0)
@@ -131,7 +166,15 @@ test_int (void)
                   else
                     final_count = count - 1;
                 }
-              else
+              else if (do_remove == 2)
+		{
+                  dynarray_int_remove (&dyn, to_remove);
+                  if (count == 0)
+                    final_count = 0;
+                  else
+                    final_count = count - 1;
+		}
+	      else
                 final_count = count;
               if (final_count > 0)
                 {
@@ -151,8 +194,7 @@ test_int (void)
               TEST_VERIFY_EXIT (dynarray_int_size (&dyn) == final_count);
               TEST_VERIFY_EXIT (dyn.dynarray_header.allocated >= final_count);
               if (!do_clear)
-                for (unsigned int i = 0; i < final_count; ++i)
-                  TEST_VERIFY_EXIT (*dynarray_int_at (&dyn, i) == base + i);
+		check_int (do_remove, &dyn, base, final_count, to_remove);
               if (do_finalize)
                 {
                   struct int_array result = { (int *) (uintptr_t) -1, -1 };
@@ -168,8 +210,8 @@ test_int (void)
                       TEST_VERIFY_EXIT
                         (malloc_usable_size (result.array)
                          >= final_count * sizeof (result.array[0]));
-                      for (unsigned int i = 0; i < final_count; ++i)
-                        TEST_VERIFY_EXIT (result.array[i] == base + i);
+                      check_int_array (do_remove, &result, base, final_count,
+				       to_remove);
                       free (result.array);
                     }
                 }
