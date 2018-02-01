@@ -27,7 +27,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <ctype.h>
-#include <alloca.h>
+
+#include <malloc/char_array-skeleton.c>
 
 #define TM_YEAR_BASE 1900
 
@@ -142,39 +143,15 @@ __getdate_r (const char *string, struct tm *tp)
   while (isspace (*string))
     string++;
 
-  size_t inlen, oldlen;
-
-  oldlen = inlen = strlen (string);
+  size_t inlen = strlen (string);
 
   /* Skip trailing whitespace.  */
   while (inlen > 0 && isspace (string[inlen - 1]))
     inlen--;
 
-  char *instr = NULL;
-
-  if (inlen < oldlen)
-    {
-      bool using_malloc = false;
-
-      if (__libc_use_alloca (inlen + 1))
-	instr = alloca (inlen + 1);
-      else
-	{
-	  instr = malloc (inlen + 1);
-	  if (instr == NULL)
-	    {
-	      fclose (fp);
-	      return 6;
-	    }
-	  using_malloc = true;
-	}
-      memcpy (instr, string, inlen);
-      instr[inlen] = '\0';
-      string = instr;
-
-      if (!using_malloc)
-	instr = NULL;
-    }
+  struct char_array instr;
+  if (!char_array_init_str_size (&instr, string, inlen))
+    return 6;
 
   line = NULL;
   len = 0;
@@ -194,13 +171,13 @@ __getdate_r (const char *string, struct tm *tp)
       tp->tm_isdst = -1;
       tp->tm_gmtoff = 0;
       tp->tm_zone = NULL;
-      result = strptime (string, line, tp);
+      result = strptime (char_array_str (&instr), line, tp);
       if (result && *result == '\0')
 	break;
     }
   while (!feof_unlocked (fp));
 
-  free (instr);
+  char_array_free (&instr);
 
   /* Free the buffer.  */
   free (line);
