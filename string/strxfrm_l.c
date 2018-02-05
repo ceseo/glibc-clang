@@ -716,8 +716,8 @@ STRXFRM (STRING_TYPE *dest, const STRING_TYPE *src, size_t n, locale_t l)
      uncached xfrm version.  */
   size_t idxmax = 0;
   const USTRING_TYPE *cur = usrc;
-  int32_t *idxarr = alloca (SMALL_STR_SIZE * sizeof (int32_t));
-  unsigned char *rulearr = alloca (SMALL_STR_SIZE + 1);
+  int32_t idxarr[SMALL_STR_SIZE];
+  unsigned char rulearr[SMALL_STR_SIZE];
 
   do
     {
