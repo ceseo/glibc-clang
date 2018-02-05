@@ -235,15 +235,20 @@ extern char *tzname[];
 #  undef __mbsrtowcs_l
 #  define __mbsrtowcs_l(d, s, l, st, loc) __mbsrtowcs (d, s, l, st)
 # endif
-# define widen(os, ws, l) \
-  {                                                                           \
-    mbstate_t __st;                                                           \
-    const char *__s = os;                                                     \
-    memset (&__st, '\0', sizeof (__st));                                      \
-    l = __mbsrtowcs_l (NULL, &__s, 0, &__st, loc);                            \
-    ws = (wchar_t *) alloca ((l + 1) * sizeof (wchar_t));                     \
-    (void) __mbsrtowcs_l (ws, &__s, l, &__st, loc);                           \
-  }
+
+#include <scratch_buffer.h>
+
+static inline size_t
+widen (const char *src, struct scratch_buffer *buffer, locale_t loc)
+{
+  mbstate_t st = { 0 };
+  const char *s = src;
+  size_t l = __mbsrtowcs_l (NULL, &s, 0, &st, loc);
+  if (!scratch_buffer_set_array_size (buffer, l + 1, sizeof (wchar_t)))
+    return false;
+  __mbsrtowcs_l (buffer->data, &s, l, &st, loc);
+  return l;
+}
 #endif
 
 
@@ -558,6 +563,11 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
   else
     if (hour12 == 0)
       hour12 = 12;
+
+#ifdef COMPILE_WIDE
+  struct scratch_buffer wbuf;
+  scratch_buffer_init (&wbuf);
+#endif
 
   for (f = format; *f != '\0'; ++f)
     {
@@ -1385,10 +1395,8 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           {
             /* The zone string is always given in multibyte form.  We have
                to transform it first.  */
-            wchar_t *wczone;
-            size_t len;
-            widen (zone, wczone, len);
-            cpy (len, wczone);
+            size_t len = widen (zone, &wbuf, loc);
+            cpy (len, wbuf.data);
           }
 #else
           cpy (strlen (zone), zone);
