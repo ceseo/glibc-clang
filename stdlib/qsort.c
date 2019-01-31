@@ -92,6 +92,7 @@ typedef struct
   {
     char *lo;
     char *hi;
+    size_t depth;
   } stack_node;
 
 /* The next 4 #defines implement a very fast in-line stack abstraction. */
@@ -99,14 +100,92 @@ typedef struct
    log(MAX_THRESH)).  Since total_elements has type size_t, we get as
    upper bound for log (total_elements):
    bits per byte (CHAR_BIT) * sizeof(size_t).  */
-#define STACK_SIZE	(CHAR_BIT * sizeof (size_t))
-#define PUSH(low, high)	((void) ((top->lo = (low)), (top->hi = (high)), ++top))
-#define	POP(low, high)	((void) (--top, (low = top->lo), (high = top->hi)))
-#define	STACK_NOT_EMPTY	(stack < top)
 
+enum {
+  stack_size = CHAR_BIT * sizeof (size_t)
+};
 
-/* Order size using quicksort.  This implementation incorporates
-   four optimizations discussed in Sedgewick:
+static inline stack_node *
+push (stack_node *top, char *lo, char *hi, size_t depth)
+{
+  top->lo = lo;
+  top->hi = hi;
+  top->depth = depth;
+  return ++top;
+}
+
+static inline stack_node *
+pop (stack_node *top, char **lo, char **hi, size_t *depth)
+{
+  --top;
+  *lo = top->lo;
+  *hi = top->hi;
+  *depth = top->depth;
+  return top;
+}
+
+/* Helper function to calculate the maximum depth before quicksort switches
+   to heapsort.  X should be higher than 0.  */
+static inline size_t
+lg (size_t x)
+{
+  return sizeof (size_t) * CHAR_BIT - 1 - __builtin_clzl (x);
+}
+
+/* A fast, small, non-recursive O(nlog n) heapsort, adapted from Linux
+   lib/sort.c.  Used on introsort implementation as a fallback routine with
+   worst-case performance of O(nlog n) and worst-case space complexity of
+   O(1).  */
+
+static void
+heapsort_r (void *pbase, void *end, size_t size, swap_t swap,
+	    __compar_d_fn_t cmp, void *arg)
+{
+  size_t total_elems = (uintptr_t) pbase - (uintptr_t) end;
+  size_t i = (total_elems / 2 - 1) * size;
+  size_t n = total_elems * size;
+  size_t r, c;
+
+  while (1)
+    {
+      for (r = i; r * 2 + size < n; r = c)
+	{
+	  c = r * 2 + size;
+	  if (c < n - size
+	      && cmp (pbase + c, pbase + c + size, arg) < 0)
+	    c += size;
+	  if (cmp (pbase + r, pbase + c, arg) >= 0)
+	    break;
+	  swap (pbase + r, pbase + c, size);
+	}
+      if (i == 0)
+	break;
+      i -= size;
+    }
+
+  i = n - size;
+  while (1)
+    {
+      swap (pbase, pbase + i, size);
+      for (r = 0; r * 2 + size < i; r = c)
+	{
+	  c = r * 2 + size;
+	  if (c < i - size
+	      && cmp (pbase + c, pbase + c + size, arg) < 0)
+	    c += size;
+	  if (cmp (pbase + r, pbase + c, arg) >= 0)
+	    break;
+	  swap (pbase + r, pbase + c, size);
+	}
+      i -= size;
+      if (i == 0)
+	break;
+    }
+}
+
+/* qsort implements an introsort to avoid worst case scenario of quicksort.
+   For quicksort the implementation incorporates four optimizations discussed
+   in Sedgewick:
 
    1. Non-recursive, using an explicit stack of pointer that store the
       next array partition to sort.  To save time, this maximum amount
@@ -137,22 +216,23 @@ __qsort_r (void *const pbase, size_t total_elems, size_t size,
 
   const size_t max_thresh = MAX_THRESH * size;
 
-  if (total_elems == 0)
+  if (total_elems <= 1)
     /* Avoid lossage with unsigned arithmetic below.  */
     return;
 
   swap_t swap = select_swap_func (pbase, size);
+  size_t depth = 2 * lg (total_elems);
 
   if (total_elems > MAX_THRESH)
     {
       char *lo = base_ptr;
       char *hi = &lo[size * (total_elems - 1)];
-      stack_node stack[STACK_SIZE];
+      stack_node stack[stack_size];
       stack_node *top = stack;
 
-      PUSH (NULL, NULL);
+      top = push (top, NULL, NULL, depth);
 
-      while (STACK_NOT_EMPTY)
+      while (stack < top)
         {
           char *left_ptr;
           char *right_ptr;
@@ -169,11 +249,8 @@ __qsort_r (void *const pbase, size_t total_elems, size_t size,
 	    swap (mid, lo, size);
 	  if ((*cmp) ((void *) hi, (void *) mid, arg) < 0)
 	    swap (mid, hi, size);
-	  else
-	    goto jump_over;
-	  if ((*cmp) ((void *) mid, (void *) lo, arg) < 0)
+	  else if ((*cmp) ((void *) mid, (void *) lo, arg) < 0)
 	    swap (mid, lo, size);
-	jump_over:;
 
 	  left_ptr  = lo + size;
 	  right_ptr = hi - size;
@@ -217,24 +294,33 @@ __qsort_r (void *const pbase, size_t total_elems, size_t size,
             {
               if ((size_t) (hi - left_ptr) <= max_thresh)
 		/* Ignore both small partitions. */
-                POP (lo, hi);
+		top = pop (top, &lo, &hi, &depth);
               else
 		/* Ignore small left partition. */
                 lo = left_ptr;
+	      continue;
             }
           else if ((size_t) (hi - left_ptr) <= max_thresh)
-	    /* Ignore small right partition. */
-            hi = right_ptr;
+	    {
+	      /* Ignore small right partition. */
+              hi = right_ptr;
+	      continue;
+	    }
+
+	  if (depth-- == 0)
+	    {
+	      heapsort_r (left_ptr, right_ptr, size, swap, cmp, arg);
+	    }
           else if ((right_ptr - lo) > (hi - left_ptr))
             {
 	      /* Push larger left partition indices. */
-              PUSH (lo, right_ptr);
+	      top = push (top, lo, right_ptr, depth);
               lo = left_ptr;
             }
           else
             {
 	      /* Push larger right partition indices. */
-              PUSH (left_ptr, hi);
+	      top = push (top, left_ptr, hi, depth);
               hi = right_ptr;
             }
         }
