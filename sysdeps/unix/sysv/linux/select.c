@@ -20,7 +20,6 @@
 #include <sys/types.h>
 #include <sys/select.h>
 #include <errno.h>
-#include <sysdep-cancel.h>
 #include <time64-support.h>
 
 /* Check the first NFDS descriptors each in READFDS (if not NULL) for read

@@ -20,10 +20,7 @@
 #include <signal.h>
 #include <time.h>
 #include <sys/poll.h>
-#include <sysdep-cancel.h>
-#include <kernel-features.h>
 #include <time64-support.h>
-
 
 int
 __ppoll64 (struct pollfd *fds, nfds_t nfds, const struct __timespec64 *timeout,
