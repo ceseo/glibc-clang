@@ -18,7 +18,7 @@
 
 #include <sys/wait.h>
 #include <sys/resource.h>
-#include <sysdep-cancel.h>
+#include <sysdep.h>
 
 pid_t
 __wait4 (pid_t pid, int *stat_loc, int options, struct rusage *usage)

@@ -20,7 +20,6 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 
-#include <sysdep-cancel.h>
 #include <sys/syscall.h>
 
 /* Wait for events on an epoll instance "epfd". Returns the number of

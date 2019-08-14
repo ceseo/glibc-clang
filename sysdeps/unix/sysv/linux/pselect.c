@@ -17,7 +17,10 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <sys/select.h>
-#include <sysdep-cancel.h>
+#include <signal.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <sysdep.h>
 
 int
 __pselect (int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
