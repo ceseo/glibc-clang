@@ -49,6 +49,9 @@ Major new features:
   responses, indicating a lack of DNSSEC validation.  (Therefore, the name
   servers and the network path to them are treated as untrusted.)
 
+* The dladdr1 function accepts a new flag, RTLD_DL_HANDLE, to obtain a
+  handle (as used with dlsym and other functions) based on an address.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The totalorder and totalordermag functions, and the corresponding

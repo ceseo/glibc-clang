@@ -45,6 +45,7 @@ __dladdr1 (const void *address, Dl_info *info, void **extra, int flags)
     case RTLD_DL_SYMENT:
       return _dl_addr (address, info, NULL, (const ElfW(Sym) **) extra);
     case RTLD_DL_LINKMAP:
+    case RTLD_DL_HANDLE:
       return _dl_addr (address, info, (struct link_map **) extra, NULL);
     }
 }

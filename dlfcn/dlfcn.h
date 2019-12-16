@@ -111,7 +111,12 @@ enum
     RTLD_DL_SYMENT = 1,
 
     /* The object containing the address (struct link_map *).  */
-    RTLD_DL_LINKMAP = 2
+    RTLD_DL_LINKMAP = 2,
+
+    /* The object containing the address, as identified by its handle
+       (void *).  The handle is compatible with functions such as
+       dlsym.  */
+    RTLD_DL_HANDLE = 3
   };
 
 

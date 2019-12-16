@@ -1,4 +1,4 @@
-/* Provide a dummy DSO for tst-rec-dlopen to use.  */
+/* Provide a dummy DSO for tst-rec-dlopen, tst-dladdr1-handle to use.  */
 #include <stdio.h>
 #include <stdlib.h>
 
