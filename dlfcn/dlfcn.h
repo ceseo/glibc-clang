@@ -199,6 +199,15 @@ typedef struct
   Dl_serpath dls_serpath[1];	/* Actually longer, dls_cnt elements.  */
 # endif
 } Dl_serinfo;
+
+/* Return a string with the soname for the object identified by HANDLE
+   (which must have been obtained from dlopen, dlmopen, or dladdr1
+   with RTLD_DL_HANDLE).  The result is NULL if the object does not
+   have a soname (either an explicit or an implied one).  The returned
+   pointer is only valid as long as handle is valid (i.e., until
+   dlclose is called on it).  */
+extern const char *dlinfo_soname (void *handle)  __THROW __nonnull ((1));
+
 #endif /* __USE_GNU */
 
 

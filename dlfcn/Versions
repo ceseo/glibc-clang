@@ -1,3 +1,9 @@
+libc {
+  GLIBC_2.31 {
+    dlinfo_soname;
+  }
+}
+
 libdl {
   GLIBC_2.0 {
     dladdr; dlclose; dlerror; dlopen; dlsym;

@@ -23,8 +23,11 @@ headers		:= bits/dlfcn.h dlfcn.h
 extra-libs	:= libdl
 libdl-routines	:= dlopen dlclose dlsym dlvsym dlerror dladdr dladdr1 dlinfo \
 		   dlmopen dlfcn dlfreeres
-routines	:= $(patsubst %,s%,$(filter-out dlfcn,$(libdl-routines)))
-elide-routines.os := $(routines)
+
+# Most routines currently end up in libdl only (for shared builds).
+routines-for-libdl := $(patsubst %,s%,$(filter-out dlfcn,$(libdl-routines)))
+routines := $(routines-for-libdl) dlinfo_soname
+elide-routines.os := $(routines-for-libdl)
 
 extra-libs-others := libdl
 
@@ -36,7 +39,9 @@ endif
 ifeq (yes,$(build-shared))
 tests = glrefmain failtest tst-dladdr default errmsg1 tstcxaatexit \
 	bug-dlopen1 bug-dlsym1 tst-dlinfo bug-atexit1 bug-atexit2 \
-	bug-atexit3 tstatexit bug-dl-leaf tst-rec-dlopen tst-dladdr1-handle
+	bug-atexit3 tstatexit bug-dl-leaf tst-rec-dlopen tst-dladdr1-handle \
+	tst-dlinfo_soname
+tests-static = tst-dlinfo_soname-static
 endif
 modules-names = glreflib1 glreflib2 glreflib3 failtestmod defaultmod1 \
 		defaultmod2 errmsg1mod modatexit modcxaatexit \
@@ -49,14 +54,17 @@ glreflib2.so-no-z-defs = yes
 errmsg1mod.so-no-z-defs = yes
 
 ifeq (yes,$(build-shared))
-tests += tststatic tststatic2 tststatic3 tststatic4 tststatic5
-tests-static += tststatic tststatic2 tststatic3 tststatic4 tststatic5
+tests += tststatic tststatic2 tststatic3 tststatic4 tststatic5 \
+  tst-dlinfo_soname-static
+tests-static += tststatic tststatic2 tststatic3 tststatic4 tststatic5 \
+  tst-dlinfo_soname-static
 modules-names += modstatic modstatic2 modstatic3 modstatic5
 tststatic-ENV = LD_LIBRARY_PATH=$(objpfx):$(common-objpfx):$(common-objpfx)elf
 tststatic2-ENV = $(tststatic-ENV)
 tststatic3-ENV = $(tststatic-ENV)
 tststatic4-ENV = $(tststatic-ENV)
 tststatic5-ENV = $(tststatic-ENV)
+tst-dlinfo_soname-static-ENV = $(tststatic-ENV)
 
 ifneq (,$(CXX))
 modules-names += bug-atexit3-lib
@@ -154,3 +162,9 @@ $(objpfx)tst-rec-dlopen.out: $(objpfx)moddummy1.so $(objpfx)moddummy2.so
 
 $(objpfx)tst-dladdr1-handle: $(libdl)
 $(objpfx)tst-dladdr1-handle.out: $(objpfx)moddummy1.so $(objpfx)moddummy2.so
+
+$(objpfx)tst-dlinfo_soname: $(libdl)
+$(objpfx)tst-dlinfo_soname.out: $(objpfx)moddummy1.so $(objpfx)moddummy2.so
+$(objpfx)tst-dlinfo_soname-static: $(objpfx)libdl.a
+$(objpfx)tst-dlinfo_soname-static.out: \
+  $(objpfx)moddummy1.so $(objpfx)moddummy2.so
