@@ -154,7 +154,8 @@ endif
 tests-static-normal := tst-leaks1-static tst-array1-static tst-array5-static \
 	       tst-dl-iter-static \
 	       tst-tlsalign-static tst-tlsalign-extern-static \
-	       tst-linkall-static tst-env-setuid tst-env-setuid-tunables
+	       tst-linkall-static tst-env-setuid tst-env-setuid-tunables \
+	       tst-relro-static tst-relro-static-dlopen
 tests-static-internal := tst-tls1-static tst-tls2-static \
 	       tst-ptrguard1-static tst-stackguard1-static \
 	       tst-tls1-static-non-pie tst-libc_dlvsym-static
@@ -199,7 +200,8 @@ tests += restest1 preloadtest loadfail multiload origtest resolvfail \
 	 tst-debug1 tst-main1 tst-absolute-sym tst-absolute-zero tst-big-note \
 	 tst-unwind-ctor tst-unwind-main tst-audit13 \
 	 tst-sonamemove-link tst-sonamemove-dlopen tst-dlopen-tlsmodid \
-	 tst-dlopen-self tst-auditmany tst-initfinilazyfail tst-dlopenfail
+	 tst-dlopen-self tst-auditmany tst-initfinilazyfail tst-dlopenfail \
+	 tst-relro-shared
 #	 reldep9
 tests-internal += loadtest unload unload2 circleload1 \
 	 neededtest neededtest2 neededtest3 neededtest4 \
@@ -339,8 +341,9 @@ endif
 ifeq (yesyes,$(have-fpie)$(build-shared))
 modules-names += tst-piemod1
 tests += tst-pie1 tst-pie2 tst-dlopen-pie tst-dlopen-tlsmodid-pie \
-  tst-dlopen-self-pie
-tests-pie += tst-pie1 tst-pie2 tst-dlopen-tlsmodid-pie tst-dlopen-self-pie
+  tst-dlopen-self-pie tst-relro-shared-pie
+tests-pie += tst-pie1 tst-pie2 tst-dlopen-tlsmodid-pie tst-dlopen-self-pie \
+  tst-relro-shared-pie
 ifeq (yes,$(have-protected-data))
 tests += vismain
 tests-pie += vismain
@@ -1315,6 +1318,15 @@ CFLAGS-tst-dlopen-self-pie.c += $(pie-ccflag)
 $(objpfx)tst-dlopen-self-pie: $(libdl)
 $(objpfx)tst-dlopen-self-container: $(libdl)
 LDFLAGS-tst-dlopen-self-container += -Wl,-rpath,\$$ORIGIN
+$(objpfx)tst-relro-shared: $(libdl)
+LDFLAGS-tst-relro-shared += $(relro-LDFLAGS)
+tst-relro-shared-no-pie = yes
+CFLAGS-tst-relro-shared-pie.c += $(pie-ccflag)
+$(objpfx)tst-relro-shared-pie: $(libdl)
+LDFLAGS-tst-relro-shared-pie += $(relro-LDFLAGS)
+tst-relro-static-dlopen-ENV = \
+  LD_LIBRARY_PATH=$(objpfx):$(common-objpfx):$(common-objpfx)dlfcn
+$(objpfx)tst-relro-static-dlopen: $(common-objpfx)dlfcn/libdl.a
 
 CFLAGS-ifuncmain1pic.c += $(pic-ccflag)
 CFLAGS-ifuncmain1picstatic.c += $(pic-ccflag)
