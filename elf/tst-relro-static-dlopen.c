@@ -25,6 +25,9 @@
 #include "tst-relro.h"
 
 static void (*const global_function_pointer) (void *) = free;
+/* This is defined at tst-relro-shared-data.c with
+   __attribute__ ((section (".data.rel.ro"))).  */
+extern int global_data;
 
 static int
 do_test (void)
@@ -33,6 +36,10 @@ do_test (void)
           &global_function_pointer);
   support_check_fault_write (&global_function_pointer,
                              sizeof (global_function_pointer));
+
+  printf ("info: checking global_data (%p)\n", &global_data);
+  support_check_fault_write (&global_data,
+                             sizeof (global_data));
 
   void *libc = xdlopen (LIBC_SO, RTLD_NOW);
   check_relro_symbol (libc, "_rtld_global_ro", LD_SO);

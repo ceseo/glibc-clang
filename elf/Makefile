@@ -231,7 +231,7 @@ one-hundred = $(foreach x,0 1 2 3 4 5 6 7 8 9, \
 tst-tls-many-dynamic-modules := \
   $(foreach n,$(one-hundred),tst-tls-manydynamic$(n)mod)
 extra-test-objs += $(tlsmod17a-modules:=.os) $(tlsmod18a-modules:=.os) \
-		   tst-tlsalign-vars.o
+		   tst-tlsalign-vars.o tst-relro-shared-data.o
 test-extras += tst-tlsmod17a tst-tlsmod18a tst-tlsalign-vars
 modules-names = testobj1 testobj2 testobj3 testobj4 testobj5 testobj6 \
 		testobj1_1 failobj constload2 constload3 unloadmod \
@@ -1318,15 +1318,17 @@ CFLAGS-tst-dlopen-self-pie.c += $(pie-ccflag)
 $(objpfx)tst-dlopen-self-pie: $(libdl)
 $(objpfx)tst-dlopen-self-container: $(libdl)
 LDFLAGS-tst-dlopen-self-container += -Wl,-rpath,\$$ORIGIN
-$(objpfx)tst-relro-shared: $(libdl)
+$(objpfx)tst-relro-shared: $(objpfx)tst-relro-shared-data.o $(libdl)
 LDFLAGS-tst-relro-shared += $(relro-LDFLAGS)
 tst-relro-shared-no-pie = yes
 CFLAGS-tst-relro-shared-pie.c += $(pie-ccflag)
-$(objpfx)tst-relro-shared-pie: $(libdl)
+$(objpfx)tst-relro-shared-pie: $(objpfx)tst-relro-shared-data.o $(libdl)
 LDFLAGS-tst-relro-shared-pie += $(relro-LDFLAGS)
 tst-relro-static-dlopen-ENV = \
   LD_LIBRARY_PATH=$(objpfx):$(common-objpfx):$(common-objpfx)dlfcn
-$(objpfx)tst-relro-static-dlopen: $(common-objpfx)dlfcn/libdl.a
+$(objpfx)tst-relro-static-dlopen: $(objpfx)tst-relro-shared-data.o \
+  $(common-objpfx)dlfcn/libdl.a
+$(objpfx)tst-relro-static: $(objpfx)tst-relro-shared-data.o
 
 CFLAGS-ifuncmain1pic.c += $(pic-ccflag)
 CFLAGS-ifuncmain1picstatic.c += $(pic-ccflag)

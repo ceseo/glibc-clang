@@ -1,4 +1,4 @@
-/* Test RELRO protection in a statically linked program.
+/* Test that RELRO protection is applied to the program, ld.so, libc.so.
    Copyright (C) 2019 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -16,27 +16,7 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <support/check_fault.h>
-
-static void (*const global_function_pointer) (void *) = free;
-/* This is defined at tst-relro-shared-data.c with
-   __attribute__ ((section (".data.rel.ro"))).  */
-extern int global_data;
-
-static int
-do_test (void)
-{
-  printf ("info: checking global_function_pointer (%p)\n",
-          &global_function_pointer);
-  support_check_fault_write (&global_function_pointer,
-                             sizeof (global_function_pointer));
-
-  printf ("info: checking global_data (%p)\n", &global_data);
-  support_check_fault_write (&global_data,
-                             sizeof (global_data));
-  return 0;
-}
-
-#include <support/test-driver.c>
+/* Defined in a different unit to avoid possible 'section type conflict'
+   with the global_function_pointer on main test unit thrown by some
+   gcc version.  */
+int global_data __attribute__ ((section (".data.rel.ro"))) = 1;
