@@ -155,7 +155,8 @@ tests-static-normal := tst-leaks1-static tst-array1-static tst-array5-static \
 	       tst-dl-iter-static \
 	       tst-tlsalign-static tst-tlsalign-extern-static \
 	       tst-linkall-static tst-env-setuid tst-env-setuid-tunables \
-	       tst-relro-static tst-relro-static-dlopen
+	       tst-relro-static tst-relro-static-dlopen \
+	       tst-vdso-static-dlopen
 tests-static-internal := tst-tls1-static tst-tls2-static \
 	       tst-ptrguard1-static tst-stackguard1-static \
 	       tst-tls1-static-non-pie tst-libc_dlvsym-static
@@ -311,7 +312,8 @@ modules-names = testobj1 testobj2 testobj3 testobj4 testobj5 testobj6 \
 		tst-auditmanymod4 tst-auditmanymod5 tst-auditmanymod6 \
 		tst-auditmanymod7 tst-auditmanymod8 tst-auditmanymod9 \
 		tst-initlazyfailmod tst-finilazyfailmod \
-		tst-dlopenfailmod1 tst-dlopenfaillinkmod tst-dlopenfailmod2
+		tst-dlopenfailmod1 tst-dlopenfaillinkmod tst-dlopenfailmod2 \
+		tst-vdsodlopenmod
 # Most modules build with _ISOMAC defined, but those filtered out
 # depend on internal headers.
 modules-names-tests = $(filter-out ifuncmod% tst-libc_dlvsym-dso tst-tlsmod%,\
@@ -1702,3 +1704,8 @@ $(objpfx)tst-dlopen-nodelete-reloc-mod17.so: \
   $(objpfx)tst-dlopen-nodelete-reloc-mod15.so \
   $(objpfx)tst-dlopen-nodelete-reloc-mod16.so
 LDFLAGS-tst-dlopen-nodelete-reloc-mod17.so = -Wl,--no-as-needed
+
+
+$(objpfx)tst-vdso-static-dlopen: $(common-objpfx)dlfcn/libdl.a
+$(objpfx)tst-vdso-static-dlopen.out: $(objpfx)tst-vdsodlopenmod.so
+tst-vdso-static-dlopen-ENV = LD_LIBRARY_PATH=$(objpfx):$(common-objpfx)
