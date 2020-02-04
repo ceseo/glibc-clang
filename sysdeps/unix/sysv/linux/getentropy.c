@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <unistd.h>
+#include <sysdep.h>
 
 #ifdef __NR_getrandom
 /* Write LENGTH bytes of randomness starting at BUFFER.  Return 0 on

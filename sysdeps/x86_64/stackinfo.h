@@ -23,6 +23,12 @@
 
 #include <elf.h>
 
+#ifdef __ILP32__
+# define RSP_LP "esp"
+#else
+# define RSP_LP "rsp"
+#endif
+
 /* On x86_64 the stack grows down.  */
 #define _STACK_GROWS_DOWN	1
 

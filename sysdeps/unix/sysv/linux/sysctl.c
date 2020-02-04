@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
+#include <stddef.h>
 #include <linux/sysctl.h>
 
 #include <sysdep.h>
