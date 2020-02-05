@@ -27,7 +27,7 @@
 
 #ifdef SINGLE_THREAD
 # define INLINE_SETXID_SYSCALL(name, nr, args...) \
-  INLINE_SYSCALL (name, nr, args)
+  INLINE_SYSCALL_CALL (name, args)
 #elif defined SHARED
 # define INLINE_SETXID_SYSCALL(name, nr, args...) \
   ({									\
@@ -40,7 +40,7 @@
 	__result = PTHFCT_CALL (ptr__nptl_setxid, (&__cmd));		\
 	}								\
     else								\
-      __result = INLINE_SYSCALL (name, nr, args);			\
+      __result = INLINE_SYSCALL_CALL (name, args);			\
     __result;								\
    })
 #else
@@ -56,7 +56,7 @@
 	__result =__nptl_setxid (&__cmd);				\
       }									\
     else								\
-      __result = INLINE_SYSCALL (name, nr, args);			\
+      __result = INLINE_SYSCALL_CALL (name, args);			\
     __result;								\
    })
 #endif

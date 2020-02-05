@@ -24,9 +24,9 @@
 #include <elf.h>
 
 #ifdef __ILP32__
-# define RSP_LP "esp"
+# define REG_SP "esp"
 #else
-# define RSP_LP "rsp"
+# define REG_SP "rsp"
 #endif
 
 /* On x86_64 the stack grows down.  */
@@ -40,10 +40,10 @@
    for which they need to act as barriers as well, hence the additional
    (unnecessary) parameters.  */
 #define stackinfo_get_sp() \
-  ({ void *p__; asm volatile ("mov %%" RSP_LP ", %0" : "=r" (p__)); p__; })
+  ({ void *p__; asm volatile ("mov %%" REG_SP ", %0" : "=r" (p__)); p__; })
 #define stackinfo_sub_sp(ptr) \
   ({ ptrdiff_t d__;						\
-     asm volatile ("sub %%" RSP_LP " , %0" : "=r" (d__) : "0" (ptr));	\
+     asm volatile ("sub %%" REG_SP " , %0" : "=r" (d__) : "0" (ptr));	\
      d__; })
 
 #endif	/* stackinfo.h */

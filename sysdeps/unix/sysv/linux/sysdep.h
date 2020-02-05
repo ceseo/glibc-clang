@@ -21,42 +21,67 @@
 #include <bits/wordsize.h>
 #include <kernel-features.h>
 #include <errno.h>
+#include <stdbool.h>
 
-#undef INTERNAL_SYSCALL_ERROR_P
-#define INTERNAL_SYSCALL_ERROR_P(val) \
-  ((unsigned long int) (val) > -4096UL)
+#ifndef __ASSEMBLER__
 
-#ifndef SYSCALL_ERROR_LABEL
-# define SYSCALL_ERROR_LABEL(sc_err)					\
-  ({									\
-    __set_errno (sc_err);						\
-    -1L;								\
-  })
-#endif
+# define __syscall_concat_X(a,b) a##b
+# define __syscall_concat(a,b)   __syscall_concat_X (a, b)
 
-/* Define a macro which expands into the inline wrapper code for a system
-   call.  It sets the errno and returns -1 on a failure, or the syscall
-   return value otherwise.  */
-#undef INLINE_SYSCALL
-#define INLINE_SYSCALL(name, nr, args...)				\
-  ({									\
-    long int sc_ret = INTERNAL_SYSCALL (name, nr, args);		\
-    __glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (sc_ret))		\
-    ? SYSCALL_ERROR_LABEL (INTERNAL_SYSCALL_ERRNO (sc_ret))		\
-    : sc_ret;								\
-  })
+# ifndef ARGIFY
+#  define ARGIFY(X) ((__syscall_arg_t) (X))
+typedef long int __syscall_arg_t;
+# endif
 
-#undef INTERNAL_SYSCALL_ERRNO
-#define INTERNAL_SYSCALL_ERRNO(val)     (-(val))
+#define __internal_syscall0(name) \
+  internal_syscall0 (name)
+#define __internal_syscall1(name, a1) \
+  internal_syscall1 (name, ARGIFY (a1))
+#define __internal_syscall2(name, a1, a2) \
+  internal_syscall2 (name, ARGIFY (a1), ARGIFY (a2))
+#define __internal_syscall3(name, a1, a2, a3) \
+  internal_syscall3 (name, ARGIFY (a1), ARGIFY (a2), ARGIFY (a3))
+#define __internal_syscall4(name, a1, a2, a3, a4) \
+  internal_syscall4 (name, ARGIFY (a1), ARGIFY (a2), ARGIFY (a3), ARGIFY (a4))
+#define __internal_syscall5(name, a1, a2, a3, a4, a5) \
+  internal_syscall5 (name, ARGIFY (a1), ARGIFY (a2), ARGIFY (a3),\
+		     ARGIFY (a4), ARGIFY (a5))
+#define __internal_syscall6(name, a1, a2, a3, a4, a5, a6) \
+  internal_syscall6 (name, ARGIFY (a1), ARGIFY (a2), ARGIFY (a3), \
+		     ARGIFY (a4), ARGIFY (a5), ARGIFY (a6))
+#define __internal_syscall7(name, a1, a2, a3, a4, a5, a6, a7) \
+  internal_syscall7 (name, ARGIFY (a1), ARGIFY (a2), ARGIFY (a3), \
+		     ARGIFY (a4), ARGIFY (a5), ARGIFY (a6), ARGIFY (a7))
 
-/* Set error number and return -1.  A target may choose to return the
-   internal function, __syscall_error, which sets errno and returns -1.
-   We use -1l, instead of -1, so that it can be casted to (void *).  */
-#define INLINE_SYSCALL_ERROR_RETURN_VALUE(err)  \
-  ({						\
-    __set_errno (err);				\
-    -1l;					\
-  })
+#define __internal_syscall_nargs_x(a,b,c,d,e,f,g,h,n,o,...) n
+#define __internal_syscall_nargs(...) \
+  __internal_syscall_nargs_x (__VA_ARGS__,7,6,5,4,3,2,1,0,)
+#define __internal_syscall_disp(b,...) \
+  __syscall_concat (b,__internal_syscall_nargs(__VA_ARGS__))(__VA_ARGS__)
+
+#define internal_syscall(...) \
+  __internal_syscall_disp (__internal_syscall, __VA_ARGS__)
+
+static inline long int
+syscall_error_ret (unsigned long r)
+{
+  __set_errno (r);
+  return -1;
+}
+
+static inline bool
+internal_syscall_error (unsigned long r)
+{
+  return r > -4096UL;
+}
+
+static inline long int
+internal_syscall_ret (unsigned long r)
+{
+  if (internal_syscall_error (r))
+    return syscall_error_ret (r);
+  return 0;
+}
 
 /* Provide a dummy argument that can be used to force register
    alignment for register pairs if required by the syscall ABI.  */
@@ -97,5 +122,7 @@
 /* Exports the __send symbol on send.c linux implementation (some ABI have
    it missing due the usage of a old generic version without it).  */
 #define HAVE_INTERNAL_SEND_SYMBOL	1
+
+#endif /* __ASSEMBLER__  */
 
 #endif /* _SYSDEP_LINUX_H  */

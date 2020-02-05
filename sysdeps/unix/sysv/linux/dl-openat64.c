@@ -27,5 +27,5 @@ openat64 (int dfd, const char *file, int oflag, ...)
 {
   assert (!__OPEN_NEEDS_MODE (oflag));
 
-  return INLINE_SYSCALL (openat, 3, dfd, file, oflag | O_LARGEFILE);
+  return INLINE_SYSCALL_CALL (openat, dfd, file, oflag | O_LARGEFILE);
 }

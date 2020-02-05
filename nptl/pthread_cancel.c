@@ -67,10 +67,9 @@ __pthread_cancel (pthread_t th)
 	     thread as canceled.  */
 	  pid_t pid = __getpid ();
 
-	  int val = INTERNAL_SYSCALL_CALL (tgkill, pid, pd->tid,
-					   SIGCANCEL);
-	  if (INTERNAL_SYSCALL_ERROR_P (val))
-	    result = INTERNAL_SYSCALL_ERRNO (val);
+	  int val = internal_syscall (__NR_tgkill, pid, pd->tid, SIGCANCEL);
+	  if (syscall_error_ret (val))
+	    result = -val;
 
 	  break;
 	}

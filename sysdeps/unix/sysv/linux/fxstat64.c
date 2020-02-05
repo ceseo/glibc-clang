@@ -34,11 +34,11 @@ ___fxstat64 (int vers, int fd, struct stat64 *buf)
 {
   int result;
 #ifdef __NR_fstat64
-  result = INLINE_SYSCALL (fstat64, 2, fd, buf);
+  result = INLINE_SYSCALL_CALL (fstat64, fd, buf);
 #else
   struct statx tmp;
-  result = INLINE_SYSCALL (statx, 5, fd, "", AT_EMPTY_PATH, STATX_BASIC_STATS,
-                           &tmp);
+  result = INLINE_SYSCALL_CALL (statx, fd, "", AT_EMPTY_PATH,
+				STATX_BASIC_STATS, &tmp);
   if (result == 0)
     __cp_stat64_statx (buf, &tmp);
 #endif

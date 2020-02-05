@@ -32,7 +32,7 @@ int
 __futimens64 (int fd, const struct __timespec64 tsp64[2])
 {
   if (fd < 0)
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EBADF);
+    return syscall_error_ret (EBADF);
 
   return __utimensat64_helper (fd, NULL, &tsp64[0], 0);
 }

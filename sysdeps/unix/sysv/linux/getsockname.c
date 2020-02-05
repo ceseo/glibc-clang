@@ -27,7 +27,7 @@ int
 __getsockname (int fd, __SOCKADDR_ARG addr, socklen_t *len)
 {
 #ifdef __ASSUME_GETSOCKNAME_SYSCALL
-  return INLINE_SYSCALL (getsockname, 3, fd, addr.__sockaddr__, len);
+  return INLINE_SYSCALL_CALL (getsockname, fd, addr.__sockaddr__, len);
 #else
   return SOCKETCALL (getsockname, fd, addr.__sockaddr__, len);
 #endif

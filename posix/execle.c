@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <stdarg.h>
 #include <errno.h>
+#include <stddef.h>
 #include <sys/param.h>
 #include <stddef.h>
 

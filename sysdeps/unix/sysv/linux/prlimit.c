@@ -43,8 +43,8 @@ prlimit (__pid_t pid, enum __rlimit_resource resource,
       new_rlimit64 = &new_rlimit64_mem;
     }
 
-  int res = INLINE_SYSCALL (prlimit64, 4, pid, resource, new_rlimit64,
-			    old_rlimit64);
+  int res = INLINE_SYSCALL_CALL (prlimit64, pid, resource, new_rlimit64,
+				 old_rlimit64);
 
   if (res == 0 && old_rlimit != NULL)
     {
@@ -60,7 +60,7 @@ prlimit (__pid_t pid, enum __rlimit_resource resource,
 	{
 	  if ((new_rlimit == NULL)
 	      && (old_rlimit64_mem.rlim_cur != RLIM64_INFINITY))
-	    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EOVERFLOW);
+	    return syscall_error_ret (EOVERFLOW);
 	  old_rlimit->rlim_cur = RLIM_INFINITY;
 	}
       old_rlimit->rlim_max = old_rlimit64_mem.rlim_max;
@@ -68,7 +68,7 @@ prlimit (__pid_t pid, enum __rlimit_resource resource,
 	{
 	  if ((new_rlimit == NULL)
 	      && (old_rlimit64_mem.rlim_max != RLIM64_INFINITY))
-	    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EOVERFLOW);
+	    return syscall_error_ret (EOVERFLOW);
 	  old_rlimit->rlim_max = RLIM_INFINITY;
 	}
     }

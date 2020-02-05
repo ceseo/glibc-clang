@@ -30,17 +30,15 @@ __pthread_setaffinity_new (pthread_t th, size_t cpusetsize,
   const struct pthread *pd = (const struct pthread *) th;
   int res;
 
-  res = INTERNAL_SYSCALL_CALL (sched_setaffinity, pd->tid, cpusetsize,
-			       cpuset);
+  res = internal_syscall (__NR_sched_setaffinity, pd->tid, cpusetsize,
+			  cpuset);
 
 #ifdef RESET_VGETCPU_CACHE
-  if (!INTERNAL_SYSCALL_ERROR_P (res))
+  if (!internal_syscall_error (res))
     RESET_VGETCPU_CACHE ();
 #endif
 
-  return (INTERNAL_SYSCALL_ERROR_P (res)
-	  ? INTERNAL_SYSCALL_ERRNO (res)
-	  : 0);
+  return internal_syscall_error (res) ? -res : 0;
 }
 versioned_symbol (libpthread, __pthread_setaffinity_new,
 		  pthread_setaffinity_np, GLIBC_2_3_4);

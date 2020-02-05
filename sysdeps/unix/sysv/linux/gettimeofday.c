@@ -59,7 +59,7 @@ weak_alias (__gettimeofday, gettimeofday)
 #include <errno.h>
 
 int
-__gettimeofday64 (struct __timeval64 *restrict tv, void *restrict tz)
+___gettimeofday64 (struct __timeval64 *restrict tv, void *restrict tz)
 {
   if (__glibc_unlikely (tz != 0))
     memset (tz, 0, sizeof (struct timezone));

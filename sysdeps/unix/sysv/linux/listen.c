@@ -27,7 +27,7 @@ int
 listen (int fd, int backlog)
 {
 #ifdef __ASSUME_LISTEN_SYSCALL
-  return INLINE_SYSCALL (listen, 2, fd, backlog);
+  return INLINE_SYSCALL_CALL (listen, fd, backlog);
 #else
   return SOCKETCALL (listen, fd, backlog);
 #endif

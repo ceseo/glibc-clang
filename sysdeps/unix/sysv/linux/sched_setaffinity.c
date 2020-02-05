@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <sched.h>
 #include <string.h>
+#include <stdlib.h>
 #include <sysdep.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -32,7 +33,7 @@ libc_hidden_proto (__sched_setaffinity_new)
 int
 __sched_setaffinity_new (pid_t pid, size_t cpusetsize, const cpu_set_t *cpuset)
 {
-  int result = INLINE_SYSCALL (sched_setaffinity, 3, pid, cpusetsize, cpuset);
+  int result = INLINE_SYSCALL_CALL (sched_setaffinity, pid, cpusetsize, cpuset);
 
 #ifdef RESET_VGETCPU_CACHE
   if (result != -1)

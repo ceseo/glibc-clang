@@ -27,7 +27,7 @@ int
 __getpeername (int fd, __SOCKADDR_ARG addr, socklen_t *len)
 {
 #ifdef __ASSUME_GETPEERNAME_SYSCALL
-  return INLINE_SYSCALL (getpeername, 3, fd, addr.__sockaddr__, len);
+  return INLINE_SYSCALL_CALL (getpeername, fd, addr.__sockaddr__, len);
 #else
   return SOCKETCALL (getpeername, fd, addr.__sockaddr__, len);
 #endif

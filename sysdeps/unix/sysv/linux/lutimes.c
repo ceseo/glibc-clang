@@ -33,12 +33,12 @@ lutimes (const char *file, const struct timeval tvp[2])
     {
       if (tvp[0].tv_usec < 0 || tvp[0].tv_usec >= 1000000
           || tvp[1].tv_usec < 0 || tvp[1].tv_usec >= 1000000)
-	return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+	return syscall_error_ret (EINVAL);
 
       TIMEVAL_TO_TIMESPEC (&tvp[0], &ts[0]);
       TIMEVAL_TO_TIMESPEC (&tvp[1], &ts[1]);
     }
 
-  return INLINE_SYSCALL (utimensat, 4, AT_FDCWD, file, tvp ? ts : NULL,
-			 AT_SYMLINK_NOFOLLOW);
+  return INLINE_SYSCALL_CALL (utimensat, AT_FDCWD, file, tvp ? ts : NULL,
+			      AT_SYMLINK_NOFOLLOW);
 }

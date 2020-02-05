@@ -35,5 +35,5 @@ futimesat (int fd, const char *file, const struct timeval tvp[2])
     return __futimes (fd, tvp);
 
   /* Avoid implicit array coercion in syscall macros.  */
-  return INLINE_SYSCALL (futimesat, 3, fd, file, &tvp[0]);
+  return INLINE_SYSCALL_CALL (futimesat, fd, file, &tvp[0]);
 }

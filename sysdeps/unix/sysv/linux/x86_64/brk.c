@@ -28,7 +28,7 @@ __brk (void *addr)
 {
   void *newbrk;
 
-  __curbrk = newbrk = (void *) INLINE_SYSCALL (brk, 1, addr);
+  __curbrk = newbrk = (void *) INLINE_SYSCALL_CALL (brk, addr);
 
   if (newbrk < addr)
     {

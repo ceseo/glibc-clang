@@ -27,7 +27,7 @@ int
 setsockopt (int fd, int level, int optname, const void *optval, socklen_t len)
 {
 #ifdef __ASSUME_SETSOCKOPT_SYSCALL
-  return INLINE_SYSCALL (setsockopt, 5, fd, level, optname, optval, len);
+  return INLINE_SYSCALL_CALL (setsockopt, fd, level, optname, optval, len);
 #else
   return SOCKETCALL (setsockopt, fd, level, optname, optval, len);
 #endif

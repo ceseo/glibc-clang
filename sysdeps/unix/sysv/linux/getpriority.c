@@ -36,7 +36,7 @@ __getpriority (enum __priority_which which, id_t who)
 {
   int res;
 
-  res = INLINE_SYSCALL (getpriority, 2, (int) which, who);
+  res = INLINE_SYSCALL_CALL (getpriority, (int) which, who);
   if (res >= 0)
     res = PZERO - res;
   return res;

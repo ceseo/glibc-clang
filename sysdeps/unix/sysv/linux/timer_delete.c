@@ -35,7 +35,7 @@ timer_delete (timer_t timerid)
   struct timer *kt = (struct timer *) timerid;
 
   /* Delete the kernel timer object.  */
-  int res = INLINE_SYSCALL (timer_delete, 1, kt->ktimerid);
+  int res = INLINE_SYSCALL_CALL (timer_delete, kt->ktimerid);
 
   if (res == 0)
     {

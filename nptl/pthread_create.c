@@ -396,8 +396,8 @@ START_THREAD_DEFN
     {
       /* This call should never fail because the initial call in init.c
 	 succeeded.  */
-      INTERNAL_SYSCALL_CALL (set_robust_list, &pd->robust_head,
-			     sizeof (struct robust_list_head));
+      internal_syscall (__NR_set_robust_list, &pd->robust_head,
+			sizeof (struct robust_list_head));
     }
 #endif
 
@@ -409,8 +409,8 @@ START_THREAD_DEFN
       sigset_t mask;
       __sigemptyset (&mask);
       __sigaddset (&mask, SIGCANCEL);
-      INTERNAL_SYSCALL_CALL (rt_sigprocmask, SIG_UNBLOCK, &mask,
-			     NULL, _NSIG / 8);
+      internal_syscall (__NR_rt_sigprocmask, SIG_UNBLOCK, &mask, NULL,
+			_NSIG / 8);
     }
 
   /* This is where the try/finally block should be created.  For

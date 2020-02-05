@@ -297,12 +297,11 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
 	    int private = (robust
 			   ? PTHREAD_ROBUST_MUTEX_PSHARED (mutex)
 			   : PTHREAD_MUTEX_PSHARED (mutex));
-	    int e = INTERNAL_SYSCALL_CALL (futex, &mutex->__data.__lock,
-					   __lll_private_flag (FUTEX_TRYLOCK_PI,
-							       private), 0, 0);
+	    int e = internal_syscall (__NR_futex, &mutex->__data.__lock,
+				      __lll_private_flag (FUTEX_TRYLOCK_PI,
+							  private), 0, 0);
 
-	    if (INTERNAL_SYSCALL_ERROR_P (e)
-		&& INTERNAL_SYSCALL_ERRNO (e) == EWOULDBLOCK)
+	    if (e == -EWOULDBLOCK)
 	      {
 		/* The kernel has not yet finished the mutex owner death.
 		   We do not need to ensure ordering wrt another memory

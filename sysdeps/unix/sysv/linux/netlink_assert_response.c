@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <sys/socket.h>
+#include <stdbool.h>
 
 #include "netlinkaccess.h"
 

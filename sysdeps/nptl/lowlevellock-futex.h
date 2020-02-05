@@ -67,10 +67,9 @@
 
 # define lll_futex_syscall(nargs, futexp, op, ...)                      \
   ({                                                                    \
-    long int __ret = INTERNAL_SYSCALL (futex, nargs, futexp, op, 	\
+    long int __ret = internal_syscall (__NR_futex, futexp, op, 		\
 				       __VA_ARGS__);                    \
-    (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (__ret))         	\
-     ? -INTERNAL_SYSCALL_ERRNO (__ret) : 0);                     	\
+    (__glibc_unlikely (internal_syscall_error (__ret)) ? __ret : 0);	\
   })
 
 /* For most of these macros, the return value is never really used.

@@ -20,6 +20,7 @@
 # define SYSDEP_VDSO_LINUX_H
 
 #include <ldsodefs.h>
+#include <sysdep.h>
 
 #ifndef INTERNAL_VSYSCALL_CALL
 # define INTERNAL_VSYSCALL_CALL(funcptr, nr, args...)		      	      \
@@ -36,18 +37,17 @@
     if (vdsop != NULL)							      \
       {									      \
 	sc_ret = INTERNAL_VSYSCALL_CALL (vdsop, nr, ##args);	      	      \
-	if (!INTERNAL_SYSCALL_ERROR_P (sc_ret))			      	      \
+	if (!internal_syscall_error (sc_ret))			      	      \
 	  goto out;							      \
-	if (INTERNAL_SYSCALL_ERRNO (sc_ret) != ENOSYS)		      	      \
+	if (sc_ret != -ENOSYS)		      	      			      \
 	  goto iserr;							      \
       }									      \
 									      \
-    sc_ret = INTERNAL_SYSCALL_CALL (name, ##args);		      	      \
-    if (INTERNAL_SYSCALL_ERROR_P (sc_ret))			      	      \
+    sc_ret = internal_syscall (__NR_##name, ##args);		      	      \
+    if (internal_syscall_error (sc_ret))			      	      \
       {									      \
       iserr:								      \
-        __set_errno (INTERNAL_SYSCALL_ERRNO (sc_ret));		      	      \
-        sc_ret = -1L;							      \
+	syscall_error_ret (-sc_ret);					      \
       }									      \
   out:									      \
     sc_ret;								      \

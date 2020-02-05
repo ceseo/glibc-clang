@@ -43,7 +43,7 @@ __clock_nanosleep_time64 (clockid_t clock_id, int flags, const struct __timespec
 # ifndef __NR_clock_nanosleep_time64
 #  define __NR_clock_nanosleep_time64 __NR_clock_nanosleep
 # endif
-  r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep_time64, clock_id,
+  r = INTERNAL_SYSCALL_CANCEL (__NR_clock_nanosleep_time64, clock_id,
                                flags, req, rem);
 #else
 # ifdef __NR_clock_nanosleep_time64
@@ -74,8 +74,7 @@ __clock_nanosleep_time64 (clockid_t clock_id, int flags, const struct __timespec
     }
 #endif /* __ASSUME_TIME64_SYSCALLS */
 
-  return (INTERNAL_SYSCALL_ERROR_P (r)
-	  ? INTERNAL_SYSCALL_ERRNO (r) : 0);
+  return internal_syscall_error (r) ? -r : 0;
 }
 
 #if __TIMESIZE != 64

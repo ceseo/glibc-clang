@@ -25,6 +25,7 @@
 #include <stdbool.h>
 #include <lowlevellock-futex.h>
 #include <libc-diag.h>
+#include <lowlevellock-futex.h>
 
 /* This file defines futex operations used internally in glibc.  A futex
    consists of the so-called futex word in userspace, which is of type
