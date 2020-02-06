@@ -29,9 +29,7 @@
 int
 ___xstat64 (int vers, const char *name, struct stat64 *buf)
 {
-  int result;
-  result = INLINE_SYSCALL (stat64, 2, name, buf);
-  return result;
+  return INLINE_SYSCALL_CALL (stat64, name, buf);
 }
 
 

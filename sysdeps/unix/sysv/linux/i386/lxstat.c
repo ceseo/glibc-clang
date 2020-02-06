@@ -38,14 +38,14 @@ __lxstat (int vers, const char *name, struct stat *buf)
   int result;
 
   if (vers == _STAT_VER_KERNEL)
-    return INLINE_SYSCALL (lstat, 2, name, buf);
+    return INLINE_SYSCALL_CALL (lstat, name, buf);
 
   {
     struct stat64 buf64;
 
-    result = INTERNAL_SYSCALL_CALL (lstat64, name, &buf64);
-    if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (result)))
-      return INLINE_SYSCALL_ERROR_RETURN_VALUE (INTERNAL_SYSCALL_ERRNO (result));
+    result = internal_syscall (__NR_lstat64, name, &buf64);
+    if (__glibc_unlikely (internal_syscall_error (result)))
+      return syscall_error_ret (-result);
     else
       return __xstat32_conv (vers, &buf64, buf);
   }

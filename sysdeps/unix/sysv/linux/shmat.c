@@ -34,11 +34,10 @@ shmat (int shmid, const void *shmaddr, int shmflg)
   unsigned long resultvar;
   void *raddr;
 
-  resultvar = INTERNAL_SYSCALL_CALL (ipc, IPCOP_shmat, shmid, shmflg,
-				     &raddr, shmaddr);
-  if (INTERNAL_SYSCALL_ERROR_P (resultvar))
-    return (void *) INLINE_SYSCALL_ERROR_RETURN_VALUE (INTERNAL_SYSCALL_ERRNO (resultvar));
-
+  resultvar = internal_syscall (__NR_ipc, IPCOP_shmat, shmid, shmflg,
+				&raddr, shmaddr);
+  if (internal_syscall_error (resultvar))
+    return (void *) syscall_error_ret (-resultvar);
   return raddr;
 #endif
 }

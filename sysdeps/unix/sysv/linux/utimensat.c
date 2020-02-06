@@ -54,8 +54,8 @@ __utimensat64_helper (int fd, const char *file,
       tsp32[1] = valid_timespec64_to_timespec (tsp64[1]);
     }
 
-  return INLINE_SYSCALL (utimensat, 4, fd, file, tsp64 ? &tsp32[0] : NULL,
-                         flags);
+  return INLINE_SYSCALL_CALL (utimensat, fd, file, tsp64 ? &tsp32[0] : NULL,
+			      flags);
 #endif
 
 }

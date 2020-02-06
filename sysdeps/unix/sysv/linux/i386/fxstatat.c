@@ -40,9 +40,9 @@ __fxstatat (int vers, int fd, const char *file, struct stat *st, int flag)
   int result;
   struct stat64 st64;
 
-  result = INTERNAL_SYSCALL_CALL (fstatat64, fd, file, &st64, flag);
-  if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (result)))
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (INTERNAL_SYSCALL_ERRNO (result));
+  result = internal_syscall (__NR_fstatat64, fd, file, &st64, flag);
+  if (__glibc_unlikely (internal_syscall_error (result)))
+    return syscall_error_ret (-result);
   else
     return __xstat32_conv (vers, &st64, st);
 }

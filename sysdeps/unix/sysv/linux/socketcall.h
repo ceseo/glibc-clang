@@ -19,6 +19,8 @@
 #ifndef _SYS_SOCKETCALL_H
 #define _SYS_SOCKETCALL_H	1
 
+#include <sysdep.h>
+
 /* Define unique numbers for the operations permitted on socket.  Linux
    uses a single system call for all these functions.  The relevant code
    file is /usr/include/linux/net.h.
@@ -48,24 +50,24 @@
 #define SOCKOP_sendmmsg		20
 
 #define __SOCKETCALL1(name, a1) \
-  INLINE_SYSCALL (socketcall, 2, name, \
+  INLINE_SYSCALL_CALL (socketcall, name, \
      ((long int [1]) { (long int) (a1) }))
 #define __SOCKETCALL2(name, a1, a2) \
-  INLINE_SYSCALL (socketcall, 2, name, \
+  INLINE_SYSCALL_CALL (socketcall, name, \
      ((long int [2]) { (long int) (a1), (long int) (a2) }))
 #define __SOCKETCALL3(name, a1, a2, a3) \
-  INLINE_SYSCALL (socketcall, 2, name, \
+  INLINE_SYSCALL_CALL (socketcall, name, \
      ((long int [3]) { (long int) (a1), (long int) (a2), (long int) (a3) }))
 #define __SOCKETCALL4(name, a1, a2, a3, a4) \
-  INLINE_SYSCALL (socketcall, 2, name, \
+  INLINE_SYSCALL_CALL (socketcall, name, \
      ((long int [4]) { (long int) (a1), (long int) (a2), (long int) (a3), \
                        (long int) (a4) }))
 #define __SOCKETCALL5(name, a1, a2, a3, a4, a5) \
-  INLINE_SYSCALL (socketcall, 2, name, \
+  INLINE_SYSCALL_CALL (socketcall, name, \
      ((long int [5]) { (long int) (a1), (long int) (a2), (long int) (a3), \
                        (long int) (a4), (long int) (a5) }))
 #define __SOCKETCALL6(name, a1, a2, a3, a4, a5, a6) \
-  INLINE_SYSCALL (socketcall, 2, name, \
+  INLINE_SYSCALL_CALL (socketcall, name, \
      ((long int [6]) { (long int) (a1), (long int) (a2), (long int) (a3), \
                        (long int) (a4), (long int) (a5), (long int) (a6) }))
 

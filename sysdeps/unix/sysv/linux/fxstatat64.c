@@ -48,8 +48,6 @@ __fxstatat64 (int vers, int fd, const char *file, struct stat64 *st, int flag)
   if (result == 0)
     __cp_stat64_statx (st, &tmp);
 #endif
-  if (__glibc_likely (!syscall_error_ret (result)))
-    return 0;
-  return syscall_error_ret (-result);
+  return internal_syscall_ret (result);
 }
 libc_hidden_def (__fxstatat64)

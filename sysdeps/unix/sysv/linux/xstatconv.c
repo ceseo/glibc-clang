@@ -28,6 +28,7 @@ struct kernel_stat;
 #else
 
 #include <string.h>
+#include <sysdep.h>
 
 
 #if XSTAT_IS_XSTAT64

@@ -16,10 +16,11 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <time.h>
+#include <string.h>
+
 /* Optimize the function call by setting the PLT directly to vDSO symbol.  */
 #ifdef USE_IFUNC_GETTIMEOFDAY
-# include <time.h>
-# include <string.h>
 # include <sysdep.h>
 # include <sysdep-vdso.h>
 
@@ -59,7 +60,7 @@ weak_alias (__gettimeofday, gettimeofday)
 #include <errno.h>
 
 int
-___gettimeofday64 (struct __timeval64 *restrict tv, void *restrict tz)
+__gettimeofday64 (struct __timeval64 *restrict tv, void *restrict tz)
 {
   if (__glibc_unlikely (tz != 0))
     memset (tz, 0, sizeof (struct timezone));

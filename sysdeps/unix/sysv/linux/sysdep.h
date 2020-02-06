@@ -79,7 +79,7 @@ static inline long int
 internal_syscall_ret (unsigned long r)
 {
   if (internal_syscall_error (r))
-    return syscall_error_ret (r);
+    return syscall_error_ret (-r);
   return 0;
 }
 

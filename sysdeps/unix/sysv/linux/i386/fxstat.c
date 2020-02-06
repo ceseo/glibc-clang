@@ -37,16 +37,15 @@ __fxstat (int vers, int fd, struct stat *buf)
   int result;
 
   if (vers == _STAT_VER_KERNEL)
-    return INLINE_SYSCALL (fstat, 2, fd, buf);
+    return INLINE_SYSCALL_CALL (fstat, fd, buf);
 
   {
     struct stat64 buf64;
 
-    result = INTERNAL_SYSCALL_CALL (fstat64, fd, &buf64);
-    if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (result)))
-      return INLINE_SYSCALL_ERROR_RETURN_VALUE (INTERNAL_SYSCALL_ERRNO (result));
-    else
-      return __xstat32_conv (vers, &buf64, buf);
+    result = internal_syscall (__NR_fstat64, fd, &buf64);
+    if (__glibc_unlikely (internal_syscall_error (result)))
+      return internal_syscall_ret (-result);
+    return __xstat32_conv (vers, &buf64, buf);
   }
 }
 
