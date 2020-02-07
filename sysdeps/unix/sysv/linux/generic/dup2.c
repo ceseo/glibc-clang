@@ -16,10 +16,9 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
-#include <fcntl.h>
-#include <limits.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sysdep.h>
 
 /* Duplicate FD to FD2, closing the old FD2 and making FD2 be
    open the same file as FD is.  Return FD2 or -1.  */
@@ -31,7 +30,7 @@ __dup2 (int fd, int fd2)
   if (fd == fd2)
     return __libc_fcntl (fd, F_GETFL, 0) < 0 ? -1 : fd;
 
-  return INLINE_SYSCALL (dup3, 3, fd, fd2, 0);
+  return INLINE_SYSCALL_CALL (dup3, fd, fd2, 0);
 }
 libc_hidden_def (__dup2)
 weak_alias (__dup2, dup2)

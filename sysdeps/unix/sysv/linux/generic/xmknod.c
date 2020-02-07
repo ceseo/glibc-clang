@@ -47,8 +47,8 @@ __xmknod (int vers, const char *path, mode_t mode, dev_t *dev)
       return -1;
     }
 
-  return INLINE_SYSCALL (mknodat, 4, AT_FDCWD, path, mode,
-                         (unsigned int) k_dev);
+  return INLINE_SYSCALL_CALL (mknodat, AT_FDCWD, path, mode,
+			      (unsigned int) k_dev);
 }
 weak_alias (__xmknod, _xmknod)
 libc_hidden_def (__xmknod)

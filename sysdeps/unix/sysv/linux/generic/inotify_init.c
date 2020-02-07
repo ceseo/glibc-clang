@@ -16,17 +16,14 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <stddef.h>
-#include <errno.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/inotify.h>
+#include <sysdep.h>
 
 libc_hidden_proto (inotify_init)
 
 int
 inotify_init (void)
 {
-  return INLINE_SYSCALL (inotify_init1, 1, 0);
+  return INLINE_SYSCALL_CALL (inotify_init1, 0);
 }
 libc_hidden_def (inotify_init)

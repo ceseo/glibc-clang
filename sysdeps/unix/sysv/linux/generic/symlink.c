@@ -16,15 +16,14 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
-#include <stddef.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sysdep.h>
 
 /* Make a link to FROM called TO.  */
 int
 __symlink (const char *from, const char *to)
 {
-  return INLINE_SYSCALL (symlinkat, 3, from, AT_FDCWD, to);
+  return INLINE_SYSCALL_CALL (symlinkat, from, AT_FDCWD, to);
 }
 weak_alias (__symlink, symlink)

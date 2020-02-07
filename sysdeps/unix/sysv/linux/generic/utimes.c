@@ -40,7 +40,7 @@ __utimes (const char *file, const struct timeval tvp[2])
       tsp = &ts[0];
     }
 
-  return INLINE_SYSCALL (utimensat, 4, AT_FDCWD, file, tsp, 0);
+  return INLINE_SYSCALL_CALL (utimensat, AT_FDCWD, file, tsp, 0);
 }
 
 weak_alias (__utimes, utimes)

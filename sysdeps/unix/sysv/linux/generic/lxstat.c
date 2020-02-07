@@ -33,8 +33,8 @@ int
 __lxstat (int vers, const char *name, struct stat *buf)
 {
   if (vers == _STAT_VER_KERNEL)
-    return INLINE_SYSCALL (newfstatat, 4, AT_FDCWD, name, buf,
-                           AT_SYMLINK_NOFOLLOW);
+    return INLINE_SYSCALL_CALL (newfstatat, AT_FDCWD, name, buf,
+				AT_SYMLINK_NOFOLLOW);
   errno = EINVAL;
   return -1;
 }

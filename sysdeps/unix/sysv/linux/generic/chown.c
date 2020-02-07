@@ -16,17 +16,15 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
-#include <stddef.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/types.h>
+#include <sysdep.h>
 
 /* Change the owner and group of FILE.  */
 int
 __chown (const char *file, uid_t owner, gid_t group)
 {
-  return INLINE_SYSCALL (fchownat, 5, AT_FDCWD, file, owner, group, 0);
+  return INLINE_SYSCALL_CALL (fchownat, AT_FDCWD, file, owner, group, 0);
 }
 libc_hidden_def (__chown)
 weak_alias (__chown, chown)

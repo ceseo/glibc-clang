@@ -16,17 +16,15 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
-#include <stddef.h>
-#include <unistd.h>
+#include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/types.h>
+#include <sysdep.h>
 
 /* Change the owner and group of FILE.  */
 int
 __lchown (const char *file, uid_t owner, gid_t group)
 {
-  return INLINE_SYSCALL (fchownat, 5, AT_FDCWD, file, owner, group,
-                         AT_SYMLINK_NOFOLLOW);
+  return INLINE_SYSCALL_CALL (fchownat, AT_FDCWD, file, owner, group,
+			      AT_SYMLINK_NOFOLLOW);
 }
 weak_alias (__lchown, lchown)

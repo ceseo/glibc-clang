@@ -16,17 +16,15 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
-#include <stddef.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <sys/types.h>
+#include <sysdep.h>
 
 /* Change the protections of FILE to MODE.  */
 int
 __chmod (const char *file, mode_t mode)
 {
-  return INLINE_SYSCALL (fchmodat, 3, AT_FDCWD, file, mode);
+  return INLINE_SYSCALL_CALL (fchmodat, AT_FDCWD, file, mode);
 }
 
 libc_hidden_def (__chmod)

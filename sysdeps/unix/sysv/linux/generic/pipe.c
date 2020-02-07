@@ -16,9 +16,8 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
 #include <unistd.h>
-#include <stddef.h>
+#include <sysdep.h>
 
 /* Create a one-way communication channel (__pipe).
    If successful, two file descriptors are stored in PIPEDES;
@@ -27,7 +26,7 @@
 int
 __pipe (int __pipedes[2])
 {
-  return INLINE_SYSCALL (pipe2, 2, __pipedes, 0);
+  return INLINE_SYSCALL_CALL (pipe2, __pipedes, 0);
 }
 libc_hidden_def (__pipe)
 weak_alias (__pipe, pipe)

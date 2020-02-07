@@ -16,16 +16,14 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
-#include <stddef.h>
 #include <unistd.h>
 #include <fcntl.h>
-
+#include <sysdep.h>
 
 /* Remove the link named NAME.  */
 int
 __unlink (const char *name)
 {
-  return INLINE_SYSCALL (unlinkat, 3, AT_FDCWD, name, 0);
+  return INLINE_SYSCALL_CALL (unlinkat, AT_FDCWD, name, 0);
 }
 weak_alias (__unlink, unlink)

@@ -16,9 +16,9 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sysdep.h>
 
 /* Read the contents of the symbolic link PATH into no more than
    LEN bytes of BUF.  The contents are not null-terminated.
@@ -26,6 +26,6 @@
 ssize_t
 __readlink (const char *path, char *buf, size_t len)
 {
-  return INLINE_SYSCALL (readlinkat, 4, AT_FDCWD, path, buf, len);
+  return INLINE_SYSCALL_CALL (readlinkat, AT_FDCWD, path, buf, len);
 }
 weak_alias (__readlink, readlink)
