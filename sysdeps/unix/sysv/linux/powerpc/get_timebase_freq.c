@@ -105,6 +105,6 @@ __get_timebase_freq (void)
   if (vdsop == NULL)
     return get_timebase_freq_fallback ();
 
-  return INTERNAL_VSYSCALL_CALL_TYPE (vdsop, uint64_t, 0);
+  return internal_vsyscall_type (uint64_t, vdsop);
 }
 weak_alias (__get_timebase_freq, __ppc_get_timebase_freq)

@@ -35,101 +35,10 @@
 #ifndef __ASSEMBLER__
 
 /* Define a macro which expands inline into the wrapper code for a system
-   call. This use is for internal calls that do not need to handle errors
-   normally. It will never touch errno. This returns just what the kernel
+   call.  This use is for internal calls that do not need to handle errors
+   normally. It will never touch errno.  This returns just what the kernel
    gave back in the non-error (CR0.SO cleared) case, otherwise (CR0.SO set)
    the negation of the return value in the kernel gets reverted.  */
-
-#define INTERNAL_VSYSCALL_CALL_TYPE(funcptr, type, nr, args...)         \
-  ({									\
-    register void *r0  __asm__ ("r0");					\
-    register long int r3  __asm__ ("r3");				\
-    register long int r4  __asm__ ("r4");				\
-    register long int r5  __asm__ ("r5");				\
-    register long int r6  __asm__ ("r6");				\
-    register long int r7  __asm__ ("r7");				\
-    register long int r8  __asm__ ("r8");				\
-    register type rval  __asm__ ("r3");				        \
-    LOADARGS_##nr (funcptr, args);					\
-    __asm__ __volatile__						\
-      ("mtctr %0\n\t"							\
-       "bctrl\n\t"							\
-       "mfcr  %0\n\t"							\
-       "0:"								\
-       : "+r" (r0), "+r" (r3), "+r" (r4), "+r" (r5),  "+r" (r6),        \
-         "+r" (r7), "+r" (r8)						\
-       : : "r9", "r10", "r11", "r12", "cr0", "ctr", "lr", "memory");	\
-    __asm__ __volatile__ ("" : "=r" (rval) : "r" (r3));		        \
-    (long int) r0 & (1 << 28) ? -rval : rval;				\
-  })
-
-#define INTERNAL_VSYSCALL_CALL(funcptr, nr, args...)			\
-  INTERNAL_VSYSCALL_CALL_TYPE(funcptr, long int, nr, args)
-
-#if defined(__PPC64__) || defined(__powerpc64__)
-# define SYSCALL_ARG_SIZE 8
-#else
-# define SYSCALL_ARG_SIZE 4
-#endif
-
-#define LOADARGS_0(name, dummy) \
-	r0 = name
-#define LOADARGS_1(name, __arg1) \
-	long int arg1 = (long int) (__arg1); \
-	LOADARGS_0(name, 0); \
-	extern void __illegally_sized_syscall_arg1 (void); \
-	if (__builtin_classify_type (__arg1) != 5 \
-	    && sizeof (__arg1) > SYSCALL_ARG_SIZE) \
-	  __illegally_sized_syscall_arg1 (); \
-	r3 = arg1
-#define LOADARGS_2(name, __arg1, __arg2) \
-	long int arg2 = (long int) (__arg2); \
-	LOADARGS_1(name, __arg1); \
-	extern void __illegally_sized_syscall_arg2 (void); \
-	if (__builtin_classify_type (__arg2) != 5 \
-	    && sizeof (__arg2) > SYSCALL_ARG_SIZE) \
-	  __illegally_sized_syscall_arg2 (); \
-	r4 = arg2
-#define LOADARGS_3(name, __arg1, __arg2, __arg3) \
-	long int arg3 = (long int) (__arg3); \
-	LOADARGS_2(name, __arg1, __arg2); \
-	extern void __illegally_sized_syscall_arg3 (void); \
-	if (__builtin_classify_type (__arg3) != 5 \
-	    && sizeof (__arg3) > SYSCALL_ARG_SIZE) \
-	  __illegally_sized_syscall_arg3 (); \
-	r5 = arg3
-#define LOADARGS_4(name, __arg1, __arg2, __arg3, __arg4) \
-	long int arg4 = (long int) (__arg4); \
-	LOADARGS_3(name, __arg1, __arg2, __arg3); \
-	extern void __illegally_sized_syscall_arg4 (void); \
-	if (__builtin_classify_type (__arg4) != 5 \
-	    && sizeof (__arg4) > SYSCALL_ARG_SIZE) \
-	  __illegally_sized_syscall_arg4 (); \
-	r6 = arg4
-#define LOADARGS_5(name, __arg1, __arg2, __arg3, __arg4, __arg5) \
-	long int arg5 = (long int) (__arg5); \
-	LOADARGS_4(name, __arg1, __arg2, __arg3, __arg4); \
-	extern void __illegally_sized_syscall_arg5 (void); \
-	if (__builtin_classify_type (__arg5) != 5 \
-	    && sizeof (__arg5) > SYSCALL_ARG_SIZE) \
-	  __illegally_sized_syscall_arg5 (); \
-	r7 = arg5
-#define LOADARGS_6(name, __arg1, __arg2, __arg3, __arg4, __arg5, __arg6) \
-	long int arg6 = (long int) (__arg6); \
-	LOADARGS_5(name, __arg1, __arg2, __arg3, __arg4, __arg5); \
-	extern void __illegally_sized_syscall_arg6 (void); \
-	if (__builtin_classify_type (__arg6) != 5 \
-	    && sizeof (__arg6) > SYSCALL_ARG_SIZE) \
-	  __illegally_sized_syscall_arg6 (); \
-	r8 = arg6
-
-#define ASM_INPUT_0 "0" (r0)
-#define ASM_INPUT_1 ASM_INPUT_0, "1" (r3)
-#define ASM_INPUT_2 ASM_INPUT_1, "2" (r4)
-#define ASM_INPUT_3 ASM_INPUT_2, "3" (r5)
-#define ASM_INPUT_4 ASM_INPUT_3, "4" (r6)
-#define ASM_INPUT_5 ASM_INPUT_4, "5" (r7)
-#define ASM_INPUT_6 ASM_INPUT_5, "6" (r8)
 
 static inline long int
 internal_syscall0 (long int name)
@@ -258,6 +167,185 @@ internal_syscall6 (long int name, __syscall_arg_t arg1, __syscall_arg_t arg2,
 		  "cr0", "memory");
   return r3;
 }
+
+/* Similar to internal_syscall, issues a vDSO call by branching to the
+   defined symbol.  The powerpc vDSO implementation might issue the syscall
+   if the vDSO can not handle the input, which requires handling the error
+   case where CR0.SO is set.
+   Different than internal_syscall, we need to use a macro instead of
+   inline function due the function pointer.  */
+
+#define __internal_vsyscall1(rettype, name) \
+  internal_vsyscall0 (name, rettype)
+#define __internal_vsyscall2(rettype, name, a1) \
+  internal_vsyscall1 (name, rettype, a1)
+#define __internal_vsyscall3(rettype, name, a1, a2) \
+  internal_vsyscall2 (name, rettype, a1, a2)
+#define __internal_vsyscall4(rettype, name, a1, a2, a3) \
+  internal_vsyscall3 (name, rettype, a1, a2, a3)
+#define __internal_vsyscall5(rettype, name, a1, a2, a3, a4) \
+  internal_vsyscall4 (name, rettype, a1), a2, a3, a4
+#define __internal_vsyscall6(rettype, name, a1, a2, a3, a4, a5) \
+  internal_vsyscall5 (name, rettype, a1), a2, a3, a4, a5
+#define __internal_vsyscall7(rettype, name, a1, a2, a3, a4, a5, a6) \
+  internal_vsyscall6 (name, rettype, a1, a2, a3, a4, a5, a6)
+#define __internal_vsyscall8(rettype, name, a1, a2, a3, a4, a5, a6, a7) \
+  internal_vsyscall7 (name, rettype, a1, a2, a3, a4, a5, a6, a7)
+
+#define __internal_vsyscall_nargs_x(a,b,c,d,e,f,g,h,n,o,...) n
+#define __internal_vsyscall_nargs(...) \
+  __internal_vsyscall_nargs_x (__VA_ARGS__,6,5,4,3,2,1,0,)
+#define __internal_vsyscall_disp(rettype, b,...) \
+  __syscall_concat (b,__internal_vsyscall_nargs(__VA_ARGS__))(__VA_ARGS__)
+
+#define internal_vsyscall_type(...) \
+  __internal_syscall_disp (__internal_vsyscall, __VA_ARGS__)
+#define internal_vsyscall(...) \
+  internal_vsyscall_type (long int, __VA_ARGS__)
+
+#define internal_vsyscall0(name, type, dummy...)			\
+  ({									\
+    register long int r0  __asm__ ("r0") = (long int) (name);		\
+    register long int r3  __asm__ ("r3");				\
+    type rval;								\
+    __asm__ __volatile__						\
+      ("mtctr %0\n\t"							\
+       "bctrl\n\t"							\
+       "neg 9, %1\n\t"							\
+       "isel %1, 9, %1, 3\n\t"						\
+       : "+r" (r0), "=r" (r3)						\
+       : 								\
+       : "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12",	\
+	 "lr", "ctr", "cr0", "memory");					\
+    __asm__ __volatile__ ("" : "=r" (rval) : "r" (r3));			\
+    rval;								\
+  })
+
+#define internal_vsyscall1(name, type, arg1)				\
+  ({									\
+    register long int r0  __asm__ ("r0") = (long int) (name);		\
+    register long int r3  __asm__ ("r3") = (long int) (arg1);		\
+    type rval;								\
+    __asm__ __volatile__						\
+      ("mtctr %0\n\t"							\
+       "bctrl\n\t"							\
+       "neg 9, %1\n\t"							\
+       "isel %1, 9, %1, 3\n\t"						\
+       : "+r" (r0), "+r" (r3)						\
+       : 								\
+       : "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12",	\
+	 "lr", "ctr", "cr0", "memory");					\
+    __asm__ __volatile__ ("" : "=r" (rval) : "r" (r3));			\
+    rval;								\
+  })
+
+#define internal_vsyscall2(name, type, arg1, arg2)			\
+  ({									\
+    register long int r0  __asm__ ("r0") = (long int) (name);		\
+    register long int r3  __asm__ ("r3") = (long int) (arg1);		\
+    register long int r4  __asm__ ("r4") = (long int) (arg2);		\
+    type rval;								\
+    __asm__ __volatile__						\
+      ("mtctr %0\n\t"							\
+       "bctrl\n\t"							\
+       "neg 9, %1\n\t"							\
+       "isel %1, 9, %1, 3\n\t"						\
+       : "+r" (r0), "+r" (r3), "+r" (r4)				\
+       : 								\
+       : "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12",		\
+	 "lr", "ctr", "cr0", "memory");					\
+    __asm__ __volatile__ ("" : "=r" (rval) : "r" (r3));			\
+    rval;								\
+  })
+
+#define internal_vsyscall3(name, type, arg1, arg2, arg3)		\
+  ({									\
+    register long int r0  __asm__ ("r0") = (long int) (name);		\
+    register long int r3  __asm__ ("r3") = (long int) (arg1);		\
+    register long int r4  __asm__ ("r4") = (long int) (arg2);		\
+    register long int r5  __asm__ ("r5") = (long int) (arg3);		\
+    type rval;								\
+    __asm__ __volatile__						\
+      ("mtctr %0\n\t"							\
+       "bctrl\n\t"							\
+       "neg 9, %1\n\t"							\
+       "isel %1, 9, %1, 3\n\t"						\
+       : "+r" (r0), "+r" (r3), "+r" (r4), "+r" (r5)			\
+       : 								\
+       : "r6", "r7", "r8", "r9", "r10", "r11", "r12",			\
+	 "lr", "ctr", "cr0", "memory");					\
+    __asm__ __volatile__ ("" : "=r" (rval) : "r" (r3));			\
+    rval;								\
+  })
+
+#define internal_vsyscall4(name, type, arg1, arg2, arg3, arg4)		\
+  ({									\
+    register long int r0  __asm__ ("r0") = (long int) (name);		\
+    register long int r3  __asm__ ("r3") = (long int) (arg1);		\
+    register long int r4  __asm__ ("r4") = (long int) (arg2);		\
+    register long int r5  __asm__ ("r5") = (long int) (arg3);		\
+    register long int r6  __asm__ ("r6") = (long int) (arg4);		\
+    type rval;								\
+    __asm__ __volatile__						\
+      ("mtctr %0\n\t"							\
+       "bctrl\n\t"							\
+       "neg 9, %1\n\t"							\
+       "isel %1, 9, %1, 3\n\t"						\
+       : "+r" (r0), "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6)		\
+       : 								\
+       : "r7", "r8", "r9", "r10", "r11", "r12",				\
+	 "lr", "ctr", "cr0", "memory");					\
+    __asm__ __volatile__ ("" : "=r" (rval) : "r" (r3));			\
+    rval;								\
+  })
+
+#define internal_vsyscall5(name, type, arg1, arg2, arg3, arg4, arg5)	\
+  ({									\
+    register long int r0  __asm__ ("r0") = (long int) (name);		\
+    register long int r3  __asm__ ("r3") = (long int) (arg1);		\
+    register long int r4  __asm__ ("r4") = (long int) (arg2);		\
+    register long int r5  __asm__ ("r5") = (long int) (arg3);		\
+    register long int r6  __asm__ ("r6") = (long int) (arg4);		\
+    register long int r7  __asm__ ("r7") = (long int) (arg5);		\
+    type rval;								\
+    __asm__ __volatile__						\
+      ("mtctr %0\n\t"							\
+       "bctrl\n\t"							\
+       "neg 9, %1\n\t"							\
+       "isel %1, 9, %1, 3\n\t"						\
+       : "+r" (r0), "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6),		\
+	 "+r" (r7)							\
+       : 								\
+       : "r8", "r9", "r10", "r11", "r12",				\
+	 "lr", "ctr", "cr0", "memory");					\
+    __asm__ __volatile__ ("" : "=r" (rval) : "r" (r3));			\
+    rval;								\
+  })
+
+#define internal_vsyscall6(name, type, arg1, arg2, arg3, arg4, arg5,	\
+			   arg6)					\
+  ({									\
+    register long int r0  __asm__ ("r0") = (long int) (name);		\
+    register long int r3  __asm__ ("r3") = (long int) (arg1);		\
+    register long int r4  __asm__ ("r4") = (long int) (arg2);		\
+    register long int r5  __asm__ ("r5") = (long int) (arg3);		\
+    register long int r6  __asm__ ("r6") = (long int) (arg4);		\
+    register long int r7  __asm__ ("r7") = (long int) (arg5);		\
+    register long int r8  __asm__ ("r8") = (long int) (arg6);		\
+    type rval;								\
+    __asm__ __volatile__						\
+      ("mtctr %0\n\t"							\
+       "bctrl\n\t"							\
+       "neg 9, %1\n\t"							\
+       "isel %1, 9, %1, 3\n\t"						\
+       : "+r" (r0), "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6),		\
+	 "+r" (r7), "+r" (r8)						\
+       : 								\
+       : "r9", "r10", "r11", "r12",					\
+	 "lr", "ctr", "cr0", "memory");					\
+    __asm__ __volatile__ ("" : "=r" (rval) : "r" (r3));			\
+    rval;								\
+  })
 
 #endif /* __ASSEMBLER__  */
 

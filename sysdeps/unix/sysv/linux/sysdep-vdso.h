@@ -22,12 +22,11 @@
 #include <ldsodefs.h>
 #include <sysdep.h>
 
-#ifndef INTERNAL_VSYSCALL_CALL
-# define INTERNAL_VSYSCALL_CALL(funcptr, nr, args...)		      	      \
-     funcptr (args)
+#ifndef internal_vsyscall
+# define internal_vsyscall(funcptr, args...)  funcptr (args)
 #endif
 
-#define INLINE_VSYSCALL(name, nr, args...)				      \
+#define inline_vsyscall(name, args...)					      \
   ({									      \
     __label__ out;							      \
     __label__ iserr;							      \
@@ -36,14 +35,14 @@
     __typeof (GLRO(dl_vdso_##name)) vdsop = GLRO(dl_vdso_##name);	      \
     if (vdsop != NULL)							      \
       {									      \
-	sc_ret = INTERNAL_VSYSCALL_CALL (vdsop, nr, ##args);	      	      \
+	sc_ret = internal_vsyscall (vdsop, args);	      	      	      \
 	if (!internal_syscall_error (sc_ret))			      	      \
 	  goto out;							      \
 	if (sc_ret != -ENOSYS)		      	      			      \
 	  goto iserr;							      \
       }									      \
 									      \
-    sc_ret = internal_syscall (__NR_##name, ##args);		      	      \
+    sc_ret = internal_syscall (__NR_##name, args);		      	      \
     if (internal_syscall_error (sc_ret))			      	      \
       {									      \
       iserr:								      \
