@@ -18,6 +18,25 @@
 #ifndef _LINUX_X32_SYSDEP_H
 #define _LINUX_X32_SYSDEP_H 1
 
+#include <libc-diag.h>
+
+#ifndef __ASSEMBLER__
+/* Syscall arguments for x32 follows x86_64 ABI, however pointers are 32 bits
+   should be zero extended.  However compiler may not see such cases and
+   accuse a cast from pointer to integer of different size.  */
+#define ARGIFY(X)						\
+  ({								\
+    DIAG_PUSH_NEEDS_COMMENT;					\
+    DIAG_IGNORE_NEEDS_COMMENT (5, "-Wpointer-to-int-cast");	\
+    __syscall_arg_t __arg = sizeof (1 ? (X) : 0ULL) < 8		\
+			    ? (unsigned long int) (X) 		\
+			    : (long long int) ((X));		\
+    DIAG_POP_NEEDS_COMMENT;					\
+    __arg;							\
+  })
+typedef long long int __syscall_arg_t;
+#endif
+
 /* There is some commonality.  */
 #include <sysdeps/unix/sysv/linux/x86_64/sysdep.h>
 #include <sysdeps/x86_64/x32/sysdep.h>

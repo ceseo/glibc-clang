@@ -42,7 +42,7 @@ __arch_prctl (int code, uintptr_t *addr)
       break;
     }
 
-  res = INLINE_SYSCALL (arch_prctl, 2, code, prctl_arg);
+  res = INLINE_SYSCALL_CALL (arch_prctl, code, prctl_arg);
   if (res == 0)
     switch (code)
       {

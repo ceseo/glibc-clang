@@ -18,23 +18,32 @@
 
 #include <sysdep.h>
 
-/* Linux times system call returns 64-bit integer.  */
-#undef internal_syscall1
-#define internal_syscall1(number, arg1)				\
-({									\
-    unsigned long long int resultvar;					\
-    TYPEFY (arg1, __arg1) = ARGIFY (arg1);			 	\
-    register TYPEFY (arg1, _a1) asm ("rdi") = __arg1;			\
-    asm volatile (							\
-    "syscall\n\t"							\
-    : "=a" (resultvar)							\
-    : "0" (number), "r" (_a1)						\
-    : "memory", REGISTERS_CLOBBERED_BY_SYSCALL);			\
-    (long long int) resultvar;						\
-})
+static unsigned long long int
+internal_syscall1_u64 (long int name, __syscall_arg_t arg1)
+{
+  unsigned long long int resultvar;
+  register __syscall_arg_t a1 asm ("rdi") = arg1;
+  asm volatile ("syscall\n\t"
+		: "=a" (resultvar)
+		: "0" (name),  "r" (a1)
+		: "memory", "cc", "r11", "cx");
+  return resultvar;
+}
 
-#undef INTERNAL_SYSCALL_ERROR_P
-#define INTERNAL_SYSCALL_ERROR_P(val) \
-  ((unsigned long long int) (val) >= -4095LL)
+static long long int
+internal_syscall_ret_64 (unsigned long long r)
+{
+  if (r > -4096ULL)
+    {
+      __set_errno (-r);
+      return -1;
+    }
+  return r;
+}
+
+/* Linux times system call returns 64-bit integer.  */
+#undef internal_syscall
+#define internal_syscall(number, arg1)					\
+  internal_syscall_ret_64 (internal_syscall1_u64 (number, ARGIFY (arg1)))
 
 #include <sysdeps/unix/sysv/linux/times.c>
