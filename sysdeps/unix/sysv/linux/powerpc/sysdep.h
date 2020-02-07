@@ -32,6 +32,8 @@
 #undef SYS_ify
 #define SYS_ify(syscall_name)  __NR_##syscall_name
 
+#ifndef __ASSEMBLER__
+
 /* Define a macro which expands inline into the wrapper code for a system
    call. This use is for internal calls that do not need to handle errors
    normally. It will never touch errno. This returns just what the kernel
@@ -63,33 +65,6 @@
 
 #define INTERNAL_VSYSCALL_CALL(funcptr, nr, args...)			\
   INTERNAL_VSYSCALL_CALL_TYPE(funcptr, long int, nr, args)
-
-
-#undef INTERNAL_SYSCALL
-#define INTERNAL_SYSCALL_NCS(name, nr, args...) \
-  ({									\
-    register long int r0  __asm__ ("r0");				\
-    register long int r3  __asm__ ("r3");				\
-    register long int r4  __asm__ ("r4");				\
-    register long int r5  __asm__ ("r5");				\
-    register long int r6  __asm__ ("r6");				\
-    register long int r7  __asm__ ("r7");				\
-    register long int r8  __asm__ ("r8");				\
-    LOADARGS_##nr (name, ##args);					\
-    __asm__ __volatile__						\
-      ("sc\n\t"								\
-       "mfcr  %0\n\t"							\
-       "0:"								\
-       : "=&r" (r0),							\
-         "=&r" (r3), "=&r" (r4), "=&r" (r5),				\
-         "=&r" (r6), "=&r" (r7), "=&r" (r8)				\
-       : ASM_INPUT_##nr							\
-       : "r9", "r10", "r11", "r12",					\
-         "cr0", "ctr", "memory");					\
-    r0 & (1 << 28) ? -r3 : r3;						\
-  })
-#define INTERNAL_SYSCALL(name, nr, args...)				\
-  INTERNAL_SYSCALL_NCS (__NR_##name, nr, args)
 
 #if defined(__PPC64__) || defined(__powerpc64__)
 # define SYSCALL_ARG_SIZE 8
@@ -156,6 +131,135 @@
 #define ASM_INPUT_5 ASM_INPUT_4, "5" (r7)
 #define ASM_INPUT_6 ASM_INPUT_5, "6" (r8)
 
+static inline long int
+internal_syscall0 (long int name)
+{
+  register long int r0  __asm__ ("r0") = name;
+  register long int r3  __asm__ ("r3");
+  asm volatile ("sc\n\t"
+		"neg  9, %1\n\t"
+		"isel %1, 9, %1, 3\n\t"
+		: "+r" (r0), "=r" (r3)
+		:
+		: "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12",
+		  "cr0", "memory");
+  return r3;
+}
+
+static inline long int
+internal_syscall1 (long int name, __syscall_arg_t arg1)
+{
+  register long int r0  __asm__ ("r0") = name;
+  register long int r3  __asm__ ("r3") = arg1;
+  asm volatile ("sc\n\t"
+		"neg  9, %1\n\t"
+		"isel %1, 9, %1, 3\n\t"
+		: "+r" (r0), "+r" (r3)
+		:
+		: "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12",
+		  "cr0", "memory");
+  return r3;
+}
+
+static inline long int
+internal_syscall2 (long int name, __syscall_arg_t arg1, __syscall_arg_t arg2)
+{
+  register long int r0  __asm__ ("r0") = name;
+  register long int r3  __asm__ ("r3") = arg1;
+  register long int r4  __asm__ ("r4") = arg2;
+  asm volatile ("sc\n\t"
+		"neg  9, %1\n\t"
+		"isel %1, 9, %1, 3\n\t"
+		: "+r" (r0), "+r" (r3), "+r" (r4)
+		:
+		: "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12",
+		  "cr0", "memory");
+  return r3;
+}
+
+static inline long int
+internal_syscall3 (long int name, __syscall_arg_t arg1, __syscall_arg_t arg2,
+		   __syscall_arg_t arg3)
+{
+  register long int r0  __asm__ ("r0") = name;
+  register long int r3  __asm__ ("r3") = arg1;
+  register long int r4  __asm__ ("r4") = arg2;
+  register long int r5  __asm__ ("r5") = arg3;
+  asm volatile ("sc\n\t"
+		"neg  9, %1\n\t"
+		"isel %1, 9, %1, 3\n\t"
+		: "+r" (r0), "+r" (r3), "+r" (r4), "+r" (r5)
+		:
+		: "r6", "r7", "r8", "r9", "r10", "r11", "r12",
+		  "cr0", "memory");
+  return r3;
+}
+
+static inline long int
+internal_syscall4 (long int name, __syscall_arg_t arg1, __syscall_arg_t arg2,
+		   __syscall_arg_t arg3, __syscall_arg_t arg4)
+{
+  register long int r0  __asm__ ("r0") = name;
+  register long int r3  __asm__ ("r3") = arg1;
+  register long int r4  __asm__ ("r4") = arg2;
+  register long int r5  __asm__ ("r5") = arg3;
+  register long int r6  __asm__ ("r6") = arg4;
+  asm volatile ("sc\n\t"
+		"neg  9, %1\n\t"
+		"isel %1, 9, %1, 3\n\t"
+		: "+r" (r0), "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6)
+		:
+		: "r7", "r8", "r9", "r10", "r11", "r12",
+		  "cr0", "memory");
+  return r3;
+}
+
+static inline long int
+internal_syscall5 (long int name, __syscall_arg_t arg1, __syscall_arg_t arg2,
+		   __syscall_arg_t arg3, __syscall_arg_t arg4,
+		   __syscall_arg_t arg5)
+{
+  register long int r0  __asm__ ("r0") = name;
+  register long int r3  __asm__ ("r3") = arg1;
+  register long int r4  __asm__ ("r4") = arg2;
+  register long int r5  __asm__ ("r5") = arg3;
+  register long int r6  __asm__ ("r6") = arg4;
+  register long int r7  __asm__ ("r7") = arg5;
+  asm volatile ("sc\n\t"
+		"neg  9, %1\n\t"
+		"isel %1, 9, %1, 3\n\t"
+		: "+r" (r0), "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6),
+		  "+r" (r7)
+		:
+		: "r8", "r9", "r10", "r11", "r12",
+		  "cr0", "memory");
+  return r3;
+}
+
+static inline long int
+internal_syscall6 (long int name, __syscall_arg_t arg1, __syscall_arg_t arg2,
+		   __syscall_arg_t arg3, __syscall_arg_t arg4,
+		   __syscall_arg_t arg5, __syscall_arg_t arg6)
+{
+  register long int r0  __asm__ ("r0") = name;
+  register long int r3  __asm__ ("r3") = arg1;
+  register long int r4  __asm__ ("r4") = arg2;
+  register long int r5  __asm__ ("r5") = arg3;
+  register long int r6  __asm__ ("r6") = arg4;
+  register long int r7  __asm__ ("r7") = arg5;
+  register long int r8  __asm__ ("r8") = arg6;
+  asm volatile ("sc\n\t"
+		"neg  9, %1\n\t"
+		"isel %1, 9, %1, 3\n\t"
+		: "+r" (r0), "+r" (r3), "+r" (r4), "+r" (r5), "+r" (r6),
+		  "+r" (r7), "+r" (r8)
+		:
+		: "r9", "r10", "r11", "r12",
+		  "cr0", "memory");
+  return r3;
+}
+
+#endif /* __ASSEMBLER__  */
 
 /* Pointer mangling support.  */
 #if IS_IN (rtld)
