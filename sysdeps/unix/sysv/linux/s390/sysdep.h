@@ -16,11 +16,14 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#ifndef __ASSEMBLY__
+#include <sysdeps/unix/sysv/linux/sysdep.h>
 
 #undef SYS_ify
 #define SYS_ify(syscall_name)	__NR_##syscall_name
 
+#ifndef __ASSEMBLER__
+
+#if 0
 #undef INTERNAL_SYSCALL_DIRECT
 #define INTERNAL_SYSCALL_DIRECT(name, nr, args...)			      \
   ({									      \
@@ -92,6 +95,112 @@
 #define ASMFMT_4 , "0" (gpr2), "d" (gpr3), "d" (gpr4), "d" (gpr5)
 #define ASMFMT_5 , "0" (gpr2), "d" (gpr3), "d" (gpr4), "d" (gpr5), "d" (gpr6)
 #define ASMFMT_6 , "0" (gpr2), "d" (gpr3), "d" (gpr4), "d" (gpr5), "d" (gpr6), "d" (gpr7)
+#endif
+
+static inline long int
+internal_syscall0 (long int name)
+{
+  register long int r1 asm ("1") = name;
+  register long int r2 asm ("2");
+  asm volatile ("svc   0\n\t"
+		: "=d" (r2)
+		: "d" (r1)
+		: "memory");
+  return r2;
+}
+
+static inline long int
+internal_syscall1 (long int name, __syscall_arg_t arg1)
+{
+  register long int r1 asm ("1") = name;
+  register long int r2 asm ("2") = arg1;
+  asm volatile ("svc   0\n\t"
+		: "+d" (r2)
+		: "d" (r1)
+		: "memory");
+  return r2;
+}
+
+static inline long int
+internal_syscall2 (long int name, __syscall_arg_t arg1, __syscall_arg_t arg2)
+{
+  register long int r1 asm ("1") = name;
+  register long int r2 asm ("2") = arg1;
+  register long int r3 asm ("3") = arg2;
+  asm volatile ("svc   0\n\t"
+		: "+d" (r2)
+		: "d" (r1), "d" (r3)
+		: "memory");
+  return r2;
+}
+
+static inline long int
+internal_syscall3 (long int name, __syscall_arg_t arg1, __syscall_arg_t arg2,
+		   __syscall_arg_t arg3)
+{
+  register long int r1 asm ("1") = name;
+  register long int r2 asm ("2") = arg1;
+  register long int r3 asm ("3") = arg2;
+  register long int r4 asm ("4") = arg3;
+  asm volatile ("svc   0\n\t"
+		: "+d" (r2)
+		: "d" (r1), "d" (r3), "d" (r4)
+		: "memory");
+  return r2;
+}
+
+static inline long int
+internal_syscall4 (long int name, __syscall_arg_t arg1, __syscall_arg_t arg2,
+		   __syscall_arg_t arg3, __syscall_arg_t arg4)
+{
+  register long int r1 asm ("1") = name;
+  register long int r2 asm ("2") = arg1;
+  register long int r3 asm ("3") = arg2;
+  register long int r4 asm ("4") = arg3;
+  register long int r5 asm ("5") = arg4;
+  asm volatile ("svc   0\n\t"
+		: "+d" (r2)
+		: "d" (r1), "d" (r3), "d" (r4), "d" (r5)
+		: "memory");
+  return r2;
+}
+
+static inline long int
+internal_syscall5 (long int name, __syscall_arg_t arg1, __syscall_arg_t arg2,
+		   __syscall_arg_t arg3, __syscall_arg_t arg4,
+		   __syscall_arg_t arg5)
+{
+  register long int r1 asm ("1") = name;
+  register long int r2 asm ("2") = arg1;
+  register long int r3 asm ("3") = arg2;
+  register long int r4 asm ("4") = arg3;
+  register long int r5 asm ("5") = arg4;
+  register long int r6 asm ("6") = arg5;
+  asm volatile ("svc   0\n\t"
+		: "+d" (r2)
+		: "d" (r1), "d" (r3), "d" (r4), "d" (r5), "d" (r6)
+		: "memory");
+  return r2;
+}
+
+static inline long int
+internal_syscall6 (long int name, __syscall_arg_t arg1, __syscall_arg_t arg2,
+		   __syscall_arg_t arg3, __syscall_arg_t arg4,
+		   __syscall_arg_t arg5, __syscall_arg_t arg6)
+{
+  register long int r1 asm ("1") = name;
+  register long int r2 asm ("2") = arg1;
+  register long int r3 asm ("3") = arg2;
+  register long int r4 asm ("4") = arg3;
+  register long int r5 asm ("5") = arg4;
+  register long int r6 asm ("6") = arg5;
+  register long int r7 asm ("6") = arg6;
+  asm volatile ("svc   0\n\t"
+		: "+d" (r2)
+		: "d" (r1), "d" (r3), "d" (r4), "d" (r5), "d" (r6), "d" (r7)
+		: "memory");
+  return r2;
+}
 
 #define SINGLE_THREAD_BY_GLOBAL		1
 
