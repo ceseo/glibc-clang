@@ -156,7 +156,7 @@ sigcancel_handler (int sig, siginfo_t *si, void *ctx)
 	  THREAD_SETMEM (self, result, PTHREAD_CANCELED);
 
 	  /* Make sure asynchronous cancellation is still enabled.  */
-	  if ((newval & CANCELTYPE_BITMASK) != 0)
+	  if (self->canceltype == PTHREAD_CANCEL_ASYNCHRONOUS)
 	    /* Run the registered destructors and terminate the thread.  */
 	    __do_cancel ();
 

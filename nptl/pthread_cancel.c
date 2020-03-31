@@ -56,7 +56,10 @@ __pthread_cancel (pthread_t th)
 	 signal.  We avoid this if possible since it's more
 	 expensive.  */
       if (pd->cancelstate == PTHREAD_CANCEL_ENABLE
-	  && CANCEL_CANCELED_AND_ASYNCHRONOUS (newval))
+	  && pd->canceltype == PTHREAD_CANCEL_ASYNCHRONOUS
+	  && (newval & CANCELED_BITMASK)
+	  && !(newval & EXITING_BITMASK)
+	  && !(newval & TERMINATED_BITMASK))
 	{
 	  /* Mark the cancellation as "in progress".  */
 	  if (atomic_compare_and_exchange_bool_acq (&pd->cancelhandling,
