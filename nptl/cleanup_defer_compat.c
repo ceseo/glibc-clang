@@ -83,7 +83,7 @@ _pthread_cleanup_pop_restore (struct _pthread_cleanup_buffer *buffer,
 	  cancelhandling = curval;
 	}
 
-      CANCELLATION_P (self);
+      __pthread_testcancel ();
     }
 
   /* If necessary call the cleanup routine after we removed the
