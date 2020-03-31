@@ -34,5 +34,5 @@ __pthread_testcancel (void)
       __do_cancel ();
     }
 }
-strong_alias (__pthread_testcancel, pthread_testcancel)
+weak_alias (__pthread_testcancel, pthread_testcancel)
 hidden_def (__pthread_testcancel)
