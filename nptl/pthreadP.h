@@ -258,18 +258,6 @@ extern int __pthread_debug attribute_hidden;
 #endif
 
 
-/* Cancellation test.  */
-#define CANCELLATION_P(self) \
-  do {									      \
-    int cancelhandling = THREAD_GETMEM (self, cancelhandling);		      \
-    if (CANCEL_ENABLED_AND_CANCELED (cancelhandling))			      \
-      {									      \
-	THREAD_SETMEM (self, result, PTHREAD_CANCELED);			      \
-	__do_cancel ();							      \
-      }									      \
-  } while (0)
-
-
 extern void __pthread_unwind (__pthread_unwind_buf_t *__buf)
      __cleanup_fct_attribute __attribute ((__noreturn__))
 #if !defined SHARED && !IS_IN (libpthread)
