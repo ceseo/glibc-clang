@@ -269,9 +269,6 @@ struct pthread
 
   /* Flags determining processing of cancellation.  */
   int cancelhandling;
-  /* Bit set if asynchronous cancellation mode is selected.  */
-#define CANCELTYPE_BIT		1
-#define CANCELTYPE_BITMASK	(0x01 << CANCELTYPE_BIT)
   /* Bit set if canceling has been initiated.  */
 #define CANCELING_BIT		2
 #define CANCELING_BITMASK	(0x01 << CANCELING_BIT)
@@ -287,13 +284,6 @@ struct pthread
   /* Bit set if thread is supposed to change XID.  */
 #define SETXID_BIT		6
 #define SETXID_BITMASK		(0x01 << SETXID_BIT)
-  /* Mask for the rest.  Helps the compiler to optimize.  */
-#define CANCEL_RESTMASK		0xffffff80
-
-#define CANCEL_CANCELED_AND_ASYNCHRONOUS(value) \
-  (((value) & (CANCELTYPE_BITMASK | CANCELED_BITMASK    \
-	       | EXITING_BITMASK | CANCEL_RESTMASK | TERMINATED_BITMASK))     \
-   == (CANCELTYPE_BITMASK | CANCELED_BITMASK))
 
   /* Flags.  Including those copied from the thread attribute.  */
   int flags;
@@ -390,6 +380,9 @@ struct pthread
 
   /* Thread cancel state (enable, disable).  */
   unsigned char cancelstate;
+
+  /* Thread cancel type (deferred, asynchronous).  */
+  unsigned char canceltype;
 
   /* This member must be last.  */
   char end_padding[];
