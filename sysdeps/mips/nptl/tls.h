@@ -52,7 +52,7 @@
 #else /* __ASSEMBLER__ */
 # include <tcb-offsets.h>
 
-# if __mips_isa_rev >= 2
+# if defined (__mips_isa_rev) &&  __mips_isa_rev >= 2
 #  define READ_THREAD_POINTER(rd) rdhwr	rd, $29
 # else
 #  define READ_THREAD_POINTER(rd) \
