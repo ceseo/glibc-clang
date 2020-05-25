@@ -17,8 +17,8 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <ipc_priv.h>
+#include <stddef.h>
 #include <sysdep.h>
-#include <errno.h>
 
 /* Return descriptor for message queue associated with KEY.  The MSGFLG
    parameter describes how to proceed with clashing of key values.  */
