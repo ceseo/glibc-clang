@@ -40,12 +40,12 @@ __fxstat (int vers, int fd, struct stat *buf)
 # if STAT_IS_KERNEL_STAT
 	/* New kABIs which uses generic pre 64-bit time Linux ABI,
 	   e.g. csky, nios2  */
-	int r = INLINE_SYSCALL_CALL (fstat64, fd, buf);
+	int r = inline_syscall (__NR_fstat64, fd, buf);
 	return r ?: stat_overflow (buf);
 # else
 	/* Old kABIs with old non-LFS support, e.g. arm, i386, hppa, m68k,
 	   microblaze, s390, sh, powerpc, and sparc.  */
-	return INLINE_SYSCALL_CALL (fstat, fd, buf);
+	return inline_syscall (__NR_fstat, fd, buf);
 # endif
       }
 
@@ -55,7 +55,7 @@ __fxstat (int vers, int fd, struct stat *buf)
 	return __syscall_error (-EINVAL);
 # else
 	struct stat64 buf64;
-	int r = INLINE_SYSCALL_CALL (fstat64, fd, &buf64);
+	int r = inline_syscall (__NR_fstat64, fd, &buf64);
 	return r ?: __xstat32_conv (vers, &buf64, buf);
 #endif
       }

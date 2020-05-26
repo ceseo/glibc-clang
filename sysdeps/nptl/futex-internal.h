@@ -557,7 +557,7 @@ static __always_inline int
 futex_timed_wait_cancel64 (pid_t *tidp,  pid_t tid,
                            const struct __timespec64 *timeout, int private)
 {
-  int err = INTERNAL_SYSCALL_CANCEL (futex_time64, tidp,
+  int err = internal_syscall_cancel (__NR_futex_time64, tidp,
                                      __lll_private_flag (FUTEX_WAIT, private),
                                      tid, timeout);
 #ifndef __ASSUME_TIME64_SYSCALLS
@@ -567,7 +567,7 @@ futex_timed_wait_cancel64 (pid_t *tidp,  pid_t tid,
         {
           struct timespec ts32 = valid_timespec64_to_timespec (*timeout);
 
-          err = INTERNAL_SYSCALL_CANCEL (futex, tidp,
+          err = internal_syscall_cancel (__NR_futex, tidp,
                                          __lll_private_flag (FUTEX_WAIT,
                                                              private),
                                          tid, &ts32);

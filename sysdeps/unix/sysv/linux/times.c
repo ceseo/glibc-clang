@@ -22,7 +22,7 @@
 clock_t
 __times (struct tms *buf)
 {
-  clock_t ret = INTERNAL_SYSCALL_CALL (times, buf);
+  clock_t ret = internal_syscall (__NR_times, buf);
   if (__glibc_unlikely (ret == -EFAULT)
       && buf)
     {

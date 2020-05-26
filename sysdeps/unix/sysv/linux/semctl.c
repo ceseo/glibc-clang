@@ -123,11 +123,11 @@ static int
 semctl_syscall (int semid, int semnum, int cmd, semctl_arg_t arg)
 {
 #ifdef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
-  return INLINE_SYSCALL_CALL (semctl, semid, semnum, cmd | __IPC_64,
-			      arg.array);
+  return inline_syscall (__NR_semctl, semid, semnum, cmd | __IPC_64,
+			 arg.array);
 #else
-  return INLINE_SYSCALL_CALL (ipc, IPCOP_semctl, semid, semnum, cmd | __IPC_64,
-			      SEMCTL_ARG_ADDRESS (arg));
+  return inline_syscall (__NR_ipc, IPCOP_semctl, semid, semnum, cmd | __IPC_64,
+			 SEMCTL_ARG_ADDRESS (arg));
 #endif
 }
 
@@ -383,10 +383,10 @@ __old_semctl (int semid, int semnum, int cmd, ...)
  /* For architectures that have wire-up semctl but also have __IPC_64 to a
     value different than default (0x0) it means the compat symbol used the
     __NR_ipc syscall.  */
-  return INLINE_SYSCALL_CALL (semctl, semid, semnum, cmd, arg.array);
+  return inline_syscall (__NR_semctl, semid, semnum, cmd, arg.array);
 # else
-  return INLINE_SYSCALL_CALL (ipc, IPCOP_semctl, semid, semnum, cmd,
-			      SEMCTL_ARG_ADDRESS (arg));
+  return inline_syscall (__NR_ipc, IPCOP_semctl, semid, semnum, cmd,
+			 SEMCTL_ARG_ADDRESS (arg));
 # endif
 }
 compat_symbol (libc, __old_semctl, semctl, GLIBC_2_0);

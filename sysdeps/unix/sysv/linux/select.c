@@ -46,8 +46,8 @@ __select64 (int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
   int r;
   if (supports_time64 ())
     {
-      r = SYSCALL_CANCEL (pselect6_time64, nfds, readfds, writefds, exceptfds,
-			  pts64, NULL);
+      r = inline_syscall_cancel (__NR_pselect6_time64, nfds, readfds,
+				 writefds, exceptfds, pts64, NULL);
       /* Linux by default will update the timeout after a pselect6 syscall
          (though the pselect() glibc call suppresses this behavior).
          Since select() on Linux has the same behavior as the pselect6
@@ -79,10 +79,11 @@ __select64 (int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
 #   undef __NR_select
 #   define __NR_select __NR__newselect
 #  endif
-  r = SYSCALL_CANCEL (select, nfds, readfds, writefds, exceptfds, pts32);
+  r = inline_syscall_cancel (__NR_select, nfds, readfds, writefds, exceptfds,
+			     pts32);
 # else
-  r = SYSCALL_CANCEL (pselect6, nfds, readfds, writefds, exceptfds, pts32,
-		      NULL);
+  r = inline_syscall_cancel (__NR_pselect6, nfds, readfds, writefds,
+			     exceptfds, pts32, NULL);
 # endif
   if (r >= 0 && timeout != NULL)
     *timeout = valid_timespec_to_timeval64 (ts32);

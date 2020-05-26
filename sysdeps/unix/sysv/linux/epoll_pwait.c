@@ -37,7 +37,7 @@ int epoll_pwait (int epfd, struct epoll_event *events,
 		 int maxevents, int timeout,
 		 const sigset_t *set)
 {
-  return SYSCALL_CANCEL (epoll_pwait, epfd, events, maxevents,
-			 timeout, set, __NSIG_BYTES);
+  return inline_syscall_cancel (__NR_epoll_pwait, epfd, events, maxevents,
+				timeout, set, __NSIG_BYTES);
 }
 libc_hidden_def (epoll_pwait)

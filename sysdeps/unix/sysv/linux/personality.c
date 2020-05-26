@@ -23,6 +23,6 @@ extern __typeof (personality) __personality;
 int
 __personality (unsigned long persona)
 {
-  return INTERNAL_SYSCALL_CALL (personality, persona);
+  return -internal_syscall (__NR_personality, persona);
 }
 weak_alias (__personality, personality)

@@ -47,7 +47,7 @@ __mq_open (const char *name, int oflag, ...)
       va_end (ap);
     }
 
-  return INLINE_SYSCALL (mq_open, 4, name + 1, oflag, mode, attr);
+  return inline_syscall (__NR_mq_open, name + 1, oflag, mode, attr);
 }
 strong_alias (__mq_open, mq_open);
 

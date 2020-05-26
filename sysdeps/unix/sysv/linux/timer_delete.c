@@ -33,7 +33,7 @@ timer_delete (timer_t timerid)
 {
 #undef timer_delete
   kernel_timer_t ktimerid = timerid_to_kernel_timer (timerid);
-  int res = INLINE_SYSCALL_CALL (timer_delete, ktimerid);
+  int res = inline_syscall (__NR_timer_delete, ktimerid);
 
   if (res == 0)
     {

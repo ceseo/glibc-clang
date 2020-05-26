@@ -52,13 +52,6 @@ syscall_ret (unsigned long int val)
     return __syscall_error (val);
   return val;
 }
-
-/* Define a macro which expands into the inline wrapper code for a system
-   call.  It sets the errno and returns -1 on a failure, or the syscall
-   return value otherwise.  */
-#undef INLINE_SYSCALL
-#define INLINE_SYSCALL(...)				\
-  syscall_ret (INTERNAL_SYSCALL (__VA_ARGS__))
 #endif
 
 /* Provide a dummy argument that can be used to force register

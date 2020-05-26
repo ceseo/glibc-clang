@@ -31,7 +31,7 @@ attribute_compat_text_section
 __fxstatat (int vers, int fd, const char *file, struct stat *st, int flag)
 {
   struct kernel_stat kst;
-  int r = INLINE_SYSCALL_CALL (newfstatat, fd, file, &kst, flag);
+  int r = inline_syscall (__NR_newfstatat, fd, file, &kst, flag);
   return r ?: __xstat_conv (vers, &kst, st);
 }
 

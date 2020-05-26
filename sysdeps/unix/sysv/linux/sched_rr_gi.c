@@ -28,13 +28,13 @@ __sched_rr_get_interval64 (pid_t pid, struct __timespec64 *tp)
 #ifndef __NR_sched_rr_get_interval_time64
 # define __NR_sched_rr_get_interval_time64 __NR_sched_rr_get_interval
 #endif
-  int ret = INLINE_SYSCALL_CALL (sched_rr_get_interval_time64, pid, tp);
+  int ret = inline_syscall (__NR_sched_rr_get_interval_time64, pid, tp);
 #ifndef __ASSUME_TIME64_SYSCALLS
   if (ret == 0 || errno != ENOSYS)
     return ret;
 
   struct timespec tp32;
-  ret = INLINE_SYSCALL_CALL (sched_rr_get_interval, pid, &tp32);
+  ret = inline_syscall (__NR_sched_rr_get_interval, pid, &tp32);
   if (ret == 0)
     *tp = valid_timespec_to_timespec64 (tp32);
 #endif

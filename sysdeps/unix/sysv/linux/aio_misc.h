@@ -26,16 +26,16 @@
 # define aio_start_notify_thread __aio_start_notify_thread
 # define aio_create_helper_thread __aio_create_helper_thread
 
-extern inline void
+static inline void
 __aio_start_notify_thread (void)
 {
   sigset_t ss;
   sigemptyset (&ss);
-  INTERNAL_SYSCALL_CALL (rt_sigprocmask, SIG_SETMASK, &ss, NULL,
-			 __NSIG_BYTES);
+  internal_syscall (__NR_rt_sigprocmask, SIG_SETMASK, &ss, NULL,
+		    __NSIG_BYTES);
 }
 
-extern inline int
+static inline int
 __aio_create_helper_thread (pthread_t *threadp, void *(*tf) (void *),
 			    void *arg)
 {
@@ -53,14 +53,14 @@ __aio_create_helper_thread (pthread_t *threadp, void *(*tf) (void *),
   sigset_t ss;
   sigset_t oss;
   sigfillset (&ss);
-  INTERNAL_SYSCALL_CALL (rt_sigprocmask, SIG_SETMASK, &ss, &oss,
-			 __NSIG_BYTES);
+  internal_syscall (__NR_rt_sigprocmask, SIG_SETMASK, &ss, &oss,
+		    __NSIG_BYTES);
 
   int ret = pthread_create (threadp, &attr, tf, arg);
 
   /* Restore the signal mask.  */
-  INTERNAL_SYSCALL_CALL (rt_sigprocmask, SIG_SETMASK, &oss, NULL,
-			 __NSIG_BYTES);
+  internal_syscall (__NR_rt_sigprocmask, SIG_SETMASK, &oss, NULL,
+		    __NSIG_BYTES);
 
   (void) pthread_attr_destroy (&attr);
   return ret;

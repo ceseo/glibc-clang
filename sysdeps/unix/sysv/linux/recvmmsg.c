@@ -27,8 +27,8 @@ __recvmmsg64 (int fd, struct mmsghdr *vmessages, unsigned int vlen, int flags,
 #ifndef __NR_recvmmsg_time64
 # define __NR_recvmmsg_time64 __NR_recvmmsg
 #endif
-  int r = SYSCALL_CANCEL (recvmmsg_time64, fd, vmessages, vlen, flags,
-			  timeout);
+  int r = inline_syscall_cancel (__NR_recvmmsg_time64, fd, vmessages, vlen,
+				 flags, timeout);
 #ifndef __ASSUME_TIME64_SYSCALLS
   if (r >= 0 || errno != ENOSYS)
     return r;
@@ -45,9 +45,10 @@ __recvmmsg64 (int fd, struct mmsghdr *vmessages, unsigned int vlen, int flags,
       pts32 = &ts32;
     }
 # ifdef __ASSUME_RECVMMSG_SYSCALL
-  r = SYSCALL_CANCEL (recvmmsg, fd, vmessages, vlen, flags, pts32);
+  r = inline_syscall_cancel (__NR_recvmmsg, fd, vmessages, vlen, flags,
+			     pts32);
 # else
-  r = SOCKETCALL_CANCEL (recvmmsg, fd, vmessages, vlen, flags, pts32);
+  r = socketcall_cancel (recvmmsg, fd, vmessages, vlen, flags, pts32);
 # endif
   if (r >= 0 && timeout != NULL)
     *timeout = valid_timespec_to_timespec64 (ts32);

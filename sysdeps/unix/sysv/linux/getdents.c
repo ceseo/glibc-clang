@@ -53,7 +53,7 @@ __getdents (int fd, void *buf0, size_t nbytes)
   if (nbytes <= sizeof (struct dirent))
     kbuf = (void*) kbuftmp;
 
-  retval = INLINE_SYSCALL_CALL (getdents64, fd, kbuf, kbytes);
+  retval = inline_syscall (__NR_getdents64, fd, kbuf, kbytes);
   if (retval == -1)
     return -1;
 

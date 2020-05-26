@@ -34,12 +34,12 @@ __timer_settime64 (timer_t timerid, int flags,
 # ifndef __NR_timer_settime64
 #  define __NR_timer_settime64 __NR_timer_settime
 # endif
-  return INLINE_SYSCALL_CALL (timer_settime64, ktimerid, flags, value,
-                              ovalue);
+  return inline_syscall (__NR_timer_settime64, ktimerid, flags, value,
+                         ovalue);
 #else
 # ifdef __NR_timer_settime64
-  int ret = INLINE_SYSCALL_CALL (timer_settime64, ktimerid, flags, value,
-                                 ovalue);
+  int ret = inline_syscall (__NR_timer_settime64, ktimerid, flags, value,
+                            ovalue);
   if (ret == 0 || errno != ENOSYS)
     return ret;
 # endif
@@ -55,8 +55,8 @@ __timer_settime64 (timer_t timerid, int flags,
   its32.it_interval = valid_timespec64_to_timespec (value->it_interval);
   its32.it_value = valid_timespec64_to_timespec (value->it_value);
 
-  int retval = INLINE_SYSCALL_CALL (timer_settime, ktimerid, flags,
-                                    &its32, ovalue ? &oits32 : NULL);
+  int retval = inline_syscall (__NR_timer_settime, ktimerid, flags,
+			       &its32, ovalue ? &oits32 : NULL);
   if (retval == 0 && ovalue)
     {
       ovalue->it_interval = valid_timespec_to_timespec64 (oits32.it_interval);

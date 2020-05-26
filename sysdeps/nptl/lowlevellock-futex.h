@@ -65,8 +65,8 @@
   (((fl) | FUTEX_PRIVATE_FLAG) ^ (private))
 # endif
 
-# define lll_futex_syscall(nargs, futexp, op, ...)                      \
-  INTERNAL_SYSCALL (futex, nargs, futexp, op, __VA_ARGS__)
+# define lll_futex_syscall(futexp, op, ...)                      \
+  internal_syscall (__NR_futex, futexp, op, __VA_ARGS__)
 
 /* For most of these macros, the return value is never really used.
    Nevertheless, the protocol is that each one returns a negated errno
@@ -80,7 +80,7 @@
   lll_futex_timed_wait (futexp, val, NULL, private)
 
 # define lll_futex_timed_wait(futexp, val, timeout, private)     \
-  lll_futex_syscall (4, futexp,                                 \
+  lll_futex_syscall (futexp,                                 \
 		     __lll_private_flag (FUTEX_WAIT, private),  \
 		     val, timeout)
 
@@ -102,7 +102,7 @@
         const int op =                                                  \
           __lll_private_flag (FUTEX_WAIT_BITSET | clockbit, private);   \
                                                                         \
-        __ret = lll_futex_syscall (6, futexp, op, val,                  \
+        __ret = lll_futex_syscall (futexp, op, val,                     \
                                    timeout, NULL /* Unused.  */,	\
                                    FUTEX_BITSET_MATCH_ANY);		\
       }                                                                 \
@@ -113,21 +113,21 @@
 
 /* Wake up up to NR waiters on FUTEXP.  */
 # define lll_futex_wake(futexp, nr, private)                             \
-  lll_futex_syscall (4, futexp,                                         \
+  lll_futex_syscall (futexp,                                             \
 		     __lll_private_flag (FUTEX_WAKE, private), nr, 0)
 
 /* Wake up up to NR_WAKE waiters on FUTEXP.  Move up to NR_MOVE of the
    rest from waiting on FUTEXP to waiting on MUTEX (a different futex).
    Returns non-zero if error happened, zero if success.  */
 # define lll_futex_requeue(futexp, nr_wake, nr_move, mutex, val, private) \
-  lll_futex_syscall (6, futexp,                                         \
+  lll_futex_syscall (futexp,                                            \
 		     __lll_private_flag (FUTEX_CMP_REQUEUE, private),   \
 		     nr_wake, nr_move, mutex, val)
 
 /* Wake up up to NR_WAKE waiters on FUTEXP and NR_WAKE2 on FUTEXP2.
    Returns non-zero if error happened, zero if success.  */
 # define lll_futex_wake_unlock(futexp, nr_wake, nr_wake2, futexp2, private) \
-  lll_futex_syscall (6, futexp,                                         \
+  lll_futex_syscall (futexp,                                            \
 		     __lll_private_flag (FUTEX_WAKE_OP, private),       \
 		     nr_wake, nr_wake2, futexp2,                        \
 		     FUTEX_OP_CLEAR_WAKE_IF_GT_ONE)
@@ -135,17 +135,17 @@
 
 /* Priority Inheritance support.  */
 #define lll_futex_timed_lock_pi(futexp, abstime, private) 		\
-  lll_futex_syscall (4, futexp,						\
+  lll_futex_syscall (futexp,						\
 		     __lll_private_flag (FUTEX_LOCK_PI, private),	\
 		     0, abstime)
 
 #define lll_futex_trylock_pi(futexp, private)				\
-  lll_futex_syscall (4, futexp,						\
+  lll_futex_syscall (futexp,						\
 		     __lll_private_flag (FUTEX_TRYLOCK_PI, private),	\
 		     0, 0)
 
 #define lll_futex_timed_unlock_pi(futexp, private) 			\
-  lll_futex_syscall (4, futexp,						\
+  lll_futex_syscall (futexp,						\
 		     __lll_private_flag (FUTEX_UNLOCK_PI, private),	\
 		     0, 0)
 
@@ -159,7 +159,7 @@
 /* Like lll_futex_wait_requeue_pi, but with a timeout.  */
 # define lll_futex_timed_wait_requeue_pi(futexp, val, timeout, clockbit, \
                                         mutex, private)                 \
-  lll_futex_syscall (5, futexp,                                         \
+  lll_futex_syscall (futexp,                                            \
 		     __lll_private_flag (FUTEX_WAIT_REQUEUE_PI          \
 					 | (clockbit), private),        \
 		     val, timeout, mutex)
@@ -168,7 +168,7 @@
    and inherits priority from the waiter.  */
 # define lll_futex_cmp_requeue_pi(futexp, nr_wake, nr_move, mutex,       \
                                  val, private)                          \
-  lll_futex_syscall (6, futexp,                                         \
+  lll_futex_syscall (futexp,                                            \
 		     __lll_private_flag (FUTEX_CMP_REQUEUE_PI,          \
 					 private),                      \
 		     nr_wake, nr_move, mutex, val)

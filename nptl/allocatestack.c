@@ -1040,8 +1040,7 @@ setxid_signal_thread (struct xid_command *cmdp, struct pthread *t)
 
   int val;
   pid_t pid = __getpid ();
-  val = INTERNAL_SYSCALL_CALL (tgkill, pid, t->tid, SIGSETXID);
-
+  val = internal_syscall (__NR_tgkill, pid, t->tid, SIGSETXID);
   /* If this failed, it must have had not started yet or else exited.  */
   if (val == 0)
     {
@@ -1169,16 +1168,10 @@ __nptl_setxid (struct xid_command *cmdp)
 
   /* This must be last, otherwise the current thread might not have
      permissions to send SIGSETXID syscall to the other threads.  */
-  result = INTERNAL_SYSCALL_NCS (cmdp->syscall_no, 3,
-				 cmdp->id[0], cmdp->id[1], cmdp->id[2]);
-  int error = 0;
-  if (__glibc_unlikely (result < 0))
-    {
-      error = -result;
-      __set_errno (error);
-      result = -1;
-    }
-  __nptl_setxid_error (cmdp, error);
+  result = inline_syscall (cmdp->syscall_no, cmdp->id[0], cmdp->id[1],
+			   cmdp->id[2]);
+
+  __nptl_setxid_error (cmdp, result == 0 ? 0 : errno);
 
   lll_unlock (stack_cache_lock, LLL_PRIVATE);
   return result;

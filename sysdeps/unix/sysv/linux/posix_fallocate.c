@@ -26,8 +26,8 @@
 int
 posix_fallocate (int fd, __off_t offset, __off_t len)
 {
-  int res = INTERNAL_SYSCALL_CALL (fallocate, fd, 0,
-				   SYSCALL_LL (offset), SYSCALL_LL (len));
+  int res = internal_syscall (__NR_fallocate, fd, 0,
+			      SYSCALL_LL (offset), SYSCALL_LL (len));
   if (res == 0 || res != -EOPNOTSUPP)
     return -res;
   return internal_fallocate (fd, offset, len);

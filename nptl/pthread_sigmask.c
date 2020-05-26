@@ -38,8 +38,8 @@ __pthread_sigmask (int how, const sigset_t *newmask, sigset_t *oldmask)
     }
 
   /* We know that realtime signals are available if NPTL is used.  */
-  return -INTERNAL_SYSCALL_CALL (rt_sigprocmask, how, newmask, oldmask,
-				 __NSIG_BYTES);
+  return -internal_syscall (__NR_rt_sigprocmask, how, newmask, oldmask,
+			    __NSIG_BYTES);
 }
 libc_hidden_def (__pthread_sigmask)
 

@@ -50,6 +50,6 @@ __pthread_kill (pthread_t threadid, int signo)
   /* We have a special syscall to do the work.  */
   pid_t pid = __getpid ();
 
-  return -INTERNAL_SYSCALL_CALL (tgkill, pid, tid, signo);
+  return -internal_syscall (__NR_tgkill, pid, tid, signo);
 }
 strong_alias (__pthread_kill, pthread_kill)

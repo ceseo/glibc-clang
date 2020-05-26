@@ -33,6 +33,5 @@ syscall (long int number, ...)
   long int arg5 = va_arg (args, long int);
   va_end (args);
 
-  return syscall_ret (INTERNAL_SYSCALL_NCS (number, 6, arg0, arg1, arg2,
-					    arg3, arg4, arg5));
+  return inline_syscall (number, arg0, arg1, arg2, arg3, arg4, arg5);
 }

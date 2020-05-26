@@ -158,7 +158,7 @@ typedef long int __syscall_arg_t;
   __INTERNAL_SYSCALL_DISP(__internal_syscall_,__VA_ARGS__)
 
 #define inline_syscall(...)						\
-  __syscall_ret (internal_syscall (__VA_ARGS__))
+  syscall_ret (internal_syscall (__VA_ARGS__))
 
 #define internal_syscall_cancel(...) 					\
   ({									\
@@ -173,7 +173,7 @@ typedef long int __syscall_arg_t;
   })
 
 #define inline_syscall_cancel(...)					\
-  __syscall_ret (internal_syscall_cancel(__VA_ARGS__))
+  syscall_ret (internal_syscall_cancel(__VA_ARGS__))
 
 /* Machine-dependent sysdep.h files are expected to define the macro
    PSEUDO (function_name, syscall_name) to emit assembly code to define the

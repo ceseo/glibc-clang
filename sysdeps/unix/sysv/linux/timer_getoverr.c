@@ -32,5 +32,5 @@ timer_getoverrun (timer_t timerid)
 {
 #undef timer_getoverrun
   kernel_timer_t ktimerid = timerid_to_kernel_timer (timerid);
-  return INLINE_SYSCALL_CALL (timer_getoverrun, ktimerid);
+  return inline_syscall (__NR_timer_getoverrun, ktimerid);
 }

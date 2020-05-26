@@ -39,8 +39,8 @@ _dl_get_origin (void)
   char *result;
   int len;
 
-  len = INTERNAL_SYSCALL_CALL (readlinkat, AT_FDCWD, "/proc/self/exe",
-			       linkval, sizeof (linkval));
+  len = internal_syscall (__NR_readlinkat, AT_FDCWD, "/proc/self/exe",
+			  linkval, sizeof (linkval));
   if (len > 0 && linkval[0] != '[')
     {
       /* We can use this value.  */

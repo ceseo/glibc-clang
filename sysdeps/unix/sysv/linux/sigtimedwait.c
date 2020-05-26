@@ -25,8 +25,8 @@ __sigtimedwait64 (const sigset_t *set, siginfo_t *info,
 #ifndef __NR_rt_sigtimedwait_time64
 # define __NR_rt_sigtimedwait_time64 __NR_rt_sigtimedwait
 #endif
-  int result = SYSCALL_CANCEL (rt_sigtimedwait_time64, set, info, timeout,
-			       __NSIG_BYTES);
+  int result = inline_syscall_cancel (__NR_rt_sigtimedwait_time64, set, info,
+				      timeout, __NSIG_BYTES);
 
 #ifndef __ASSUME_TIME64_SYSCALLS
   if (result != 0 && errno == ENOSYS)
@@ -42,8 +42,8 @@ __sigtimedwait64 (const sigset_t *set, siginfo_t *info,
 	  ts32 = valid_timespec64_to_timespec (*timeout);
 	  pts32 = &ts32;
 	}
-      result = SYSCALL_CANCEL (rt_sigtimedwait, set, info, pts32,
-			       __NSIG_BYTES);
+      result = inline_syscall_cancel (__NR_rt_sigtimedwait, set, info, pts32,
+				      __NSIG_BYTES);
     }
 #endif
 

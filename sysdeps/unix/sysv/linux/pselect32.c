@@ -39,9 +39,9 @@ __pselect32 (int nfds, fd_set *readfds, fd_set *writefds,
       pts32 = &ts32;
     }
 
-  return SYSCALL_CANCEL (pselect6, nfds, readfds, writefds, exceptfds,
-			 pts32,
-			 ((__syscall_ulong_t[]){ (uintptr_t) sigmask,
-						 __NSIG_BYTES }));
+  return inline_syscall_cancel (__NR_pselect6, nfds, readfds, writefds,
+				exceptfds, pts32,
+				((__syscall_ulong_t[]){ (uintptr_t) sigmask,
+							__NSIG_BYTES }));
 }
 #endif

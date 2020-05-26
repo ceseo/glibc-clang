@@ -48,7 +48,7 @@ int
 __old_ustat (dev_t dev, struct ustat *ubuf)
 {
 # ifdef __NR_ustat
-  return INLINE_SYSCALL_CALL (ustat, DEV_TO_KDEV (dev), ubuf);
+  return inline_syscall (__NR_ustat, DEV_TO_KDEV (dev), ubuf);
 # else
   return __syscall_error (-ENOSYS);
 # endif

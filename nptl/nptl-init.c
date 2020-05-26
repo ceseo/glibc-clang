@@ -116,8 +116,8 @@ static
 void
 __nptl_set_robust (struct pthread *self)
 {
-  INTERNAL_SYSCALL_CALL (set_robust_list, &self->robust_head,
-			 sizeof (struct robust_list_head));
+  internal_syscall (__NR_set_robust_list, &self->robust_head,
+		    sizeof (struct robust_list_head));
 }
 
 
@@ -187,12 +187,9 @@ sighandler_setxid (int sig, siginfo_t *si, void *ctx)
       || si->si_code != SI_TKILL)
     return;
 
-  result = INTERNAL_SYSCALL_NCS (__xidcmd->syscall_no, 3, __xidcmd->id[0],
-				 __xidcmd->id[1], __xidcmd->id[2]);
-  int error = 0;
-  if (__glibc_unlikely (result < 0))
-    error = -result;
-  __nptl_setxid_error (__xidcmd, error);
+  result = internal_syscall (__xidcmd->syscall_no, __xidcmd->id[0],
+			     __xidcmd->id[1], __xidcmd->id[2]);
+  __nptl_setxid_error (__xidcmd, -result);
 
   /* Reset the SETXID flag.  */
   struct pthread *self = THREAD_SELF;
@@ -240,9 +237,8 @@ __pthread_initialize_minimal_internal (void)
     pd->robust_head.futex_offset = (offsetof (pthread_mutex_t, __data.__lock)
 				    - offsetof (pthread_mutex_t,
 						__data.__list.__next));
-    int res = INTERNAL_SYSCALL_CALL (set_robust_list, &pd->robust_head,
-				     sizeof (struct robust_list_head));
-    if (res < 0)
+    if (internal_syscall (__NR_set_robust_list, &pd->robust_head,
+			  sizeof (struct robust_list_head)) != 0)
       set_robust_list_not_avail ();
   }
 
@@ -279,8 +275,8 @@ __pthread_initialize_minimal_internal (void)
      structure.  It is already cleared.  */
   __sigaddset (&sa.sa_mask, SIGCANCEL);
   __sigaddset (&sa.sa_mask, SIGSETXID);
-  INTERNAL_SYSCALL_CALL (rt_sigprocmask, SIG_UNBLOCK, &sa.sa_mask,
-			 NULL, __NSIG_BYTES);
+  internal_syscall (__NR_rt_sigprocmask, SIG_UNBLOCK, &sa.sa_mask,
+		    NULL, __NSIG_BYTES);
 
   /* Get the size of the static and alignment requirements for the TLS
      block.  */

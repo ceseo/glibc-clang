@@ -65,8 +65,8 @@ timer_create (clockid_t clock_id, struct sigevent *evp, timer_t *timerid)
 	  }
 
 	kernel_timer_t ktimerid;
-	if (INLINE_SYSCALL_CALL (timer_create, syscall_clockid, evp,
-				 &ktimerid) == -1)
+	if (inline_syscall (__NR_timer_create, syscall_clockid, evp,
+			    &ktimerid) == -1)
 	  return -1;
 
 	*timerid = kernel_timer_to_timerid (ktimerid);
@@ -122,8 +122,8 @@ timer_create (clockid_t clock_id, struct sigevent *evp, timer_t *timerid)
 
 	/* Create the timer.  */
 	int res;
-	res = INTERNAL_SYSCALL_CALL (timer_create, syscall_clockid, &sev,
-				     &newp->ktimerid);
+	res = internal_syscall (__NR_timer_create, syscall_clockid, &sev,
+				&newp->ktimerid);
 	if (res < 0)
 	  {
 	    free (newp);

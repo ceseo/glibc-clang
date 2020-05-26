@@ -33,12 +33,12 @@ __fxstat (int vers, int fd, struct stat *buf)
   switch (vers)
     {
     case _STAT_VER_KERNEL:
-      return INLINE_SYSCALL_CALL (fstat, fd, buf);
+      return inline_syscall (__NR_fstat, fd, buf);
 
     default:
       {
 	struct kernel_stat kbuf;
-	int r = INTERNAL_SYSCALL_CALL (fstat, fd, &kbuf);
+	int r = internal_syscall (__NR_fstat, fd, &kbuf);
 	return r ?: __xstat_conv (vers, &kbuf, buf);
       }
     }

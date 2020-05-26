@@ -43,7 +43,7 @@ __futex_abstimed_wait_cancelable32 (unsigned int* futex_word,
 	  ? FUTEX_CLOCK_REALTIME : 0;
   int op = __lll_private_flag (FUTEX_WAIT_BITSET | clockbit, private);
 
-  return INTERNAL_SYSCALL_CANCEL (futex, futex_word, op, expected,
+  return internal_syscall_cancel (__NR_futex, futex_word, op, expected,
                                   pts32, NULL /* Unused.  */,
                                   FUTEX_BITSET_MATCH_ANY);
 }
@@ -113,7 +113,7 @@ __futex_abstimed_wait_cancelable64 (unsigned int* futex_word,
   clockbit = (clockid == CLOCK_REALTIME) ? FUTEX_CLOCK_REALTIME : 0;
   int op = __lll_private_flag (FUTEX_WAIT_BITSET | clockbit, private);
 
-  err = INTERNAL_SYSCALL_CANCEL (futex_time64, futex_word, op, expected,
+  err = internal_syscall_cancel (__NR_futex_time64, futex_word, op, expected,
                                  abstime, NULL /* Unused.  */,
                                  FUTEX_BITSET_MATCH_ANY);
 #ifndef __ASSUME_TIME64_SYSCALLS

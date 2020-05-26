@@ -76,10 +76,10 @@ static int
 msgctl_syscall (int msqid, int cmd, msgctl_arg_t *buf)
 {
 #ifdef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
-  return INLINE_SYSCALL_CALL (msgctl, msqid, cmd | __IPC_64, buf);
+  return inline_syscall (__NR_msgctl, msqid, cmd | __IPC_64, buf);
 #else
-  return INLINE_SYSCALL_CALL (ipc, IPCOP_msgctl, msqid, cmd | __IPC_64, 0,
-			      buf);
+  return inline_syscall (__NR_ipc, IPCOP_msgctl, msqid, cmd | __IPC_64, 0,
+			 buf);
 #endif
 }
 
@@ -271,9 +271,9 @@ __old_msgctl (int msqid, int cmd, struct __old_msqid_ds *buf)
   /* For architecture that have wire-up msgctl but also have __IPC_64 to a
      value different than default (0x0) it means the compat symbol used the
      __NR_ipc syscall.  */
-  return INLINE_SYSCALL_CALL (msgctl, msqid, cmd, buf);
+  return inline_syscall (__NR_msgctl, msqid, cmd, buf);
 #else
-  return INLINE_SYSCALL_CALL (ipc, IPCOP_msgctl, msqid, cmd, 0, buf);
+  return inline_syscall (__NR_ipc, IPCOP_msgctl, msqid, cmd, 0, buf);
 #endif
 }
 compat_symbol (libc, __old_msgctl, msgctl, GLIBC_2_0);

@@ -39,10 +39,9 @@ __clock_gettime64 (clockid_t clock_id, struct __timespec64 *tp)
     {
 #ifdef HAVE_CLOCK_GETTIME64_VSYSCALL
       r = INLINE_VSYSCALL (clock_gettime64, 2, clock_id, tp);
-#else
-      r = INLINE_SYSCALL_CALL (clock_gettime64, clock_id, tp);
-#endif
-
+#  else
+      r = inline_syscall (__NR_clock_gettime64, clock_id, tp);
+#  endif
       if (r == 0 || errno != ENOSYS)
 	return r;
 
@@ -55,7 +54,7 @@ __clock_gettime64 (clockid_t clock_id, struct __timespec64 *tp)
 # ifdef HAVE_CLOCK_GETTIME_VSYSCALL
   r = INLINE_VSYSCALL (clock_gettime, 2, clock_id, &tp32);
 # else
-  r = INLINE_SYSCALL_CALL (clock_gettime, clock_id, &tp32);
+  r = inline_syscall (__NR_clock_gettime, clock_id, &tp32);
 # endif
   if (r == 0)
     *tp = valid_timespec_to_timespec64 (tp32);

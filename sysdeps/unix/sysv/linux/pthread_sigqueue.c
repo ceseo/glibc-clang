@@ -61,7 +61,8 @@ pthread_sigqueue (pthread_t threadid, int signo, const union sigval value)
   info.si_value = value;
 
   /* We have a special syscall to do the work.  */
-  return -INTERNAL_SYSCALL_CALL (rt_tgsigqueueinfo, pid, tid, signo, &info);
+  return -internal_syscall (__NR_rt_tgsigqueueinfo, pid, tid, signo,
+			    &info);
 #else
   return ENOSYS;
 #endif

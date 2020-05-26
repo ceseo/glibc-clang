@@ -38,7 +38,7 @@ __fxstatat (int vers, int fd, const char *file, struct stat *st, int flag)
      csky, nios2  */
   if (vers == _STAT_VER_KERNEL)
     {
-      int r = INLINE_SYSCALL_CALL (fstatat64, fd, file, st, flag);
+      int r = inline_syscall (__NR_fstatat64, fd, file, st, flag);
       return r ?: stat_overflow (st);
     }
   return __syscall_error (-EINVAL);

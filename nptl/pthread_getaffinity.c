@@ -31,8 +31,8 @@ __pthread_getaffinity_np (pthread_t th, size_t cpusetsize, cpu_set_t *cpuset)
 {
   const struct pthread *pd = (const struct pthread *) th;
 
-  int res = INTERNAL_SYSCALL_CALL (sched_getaffinity, pd->tid,
-				   MIN (INT_MAX, cpusetsize), cpuset);
+  int res = internal_syscall (__NR_sched_getaffinity, pd->tid,
+			      MIN (INT_MAX, cpusetsize), cpuset);
   if (res < 0)
     return -res;
 

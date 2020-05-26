@@ -39,19 +39,19 @@ __fxstatat64 (int vers, int fd, const char *file, struct stat64 *st, int flag)
   /* 64-bit kABI, e.g. aarch64, ia64, powerpc64*, s390x, riscv64, and
      x86_64.  */
   if (vers == _STAT_VER_KERNEL || vers == _STAT_VER_LINUX)
-    return INLINE_SYSCALL_CALL (newfstatat, fd, file, st, flag);
+    return inline_syscall (__NR_newfstatat, fd, file, st, flag);
 # elif defined __NR_fstatat64
   /* 64-bit kABI outlier, e.g. sparc64.  */
   struct stat64 st64;
-  int r = INLINE_SYSCALL_CALL (fstatat64, fd, file, &st64, flag);
+  int r = inline_syscall (__NR_fstatat64, fd, file, &st64, flag);
   return r ?: __xstat32_conv (vers, &st64, (struct stat *) st);
 # else
   /* New 32-bit kABIs with only 64-bit time_t support, e.g. arc, riscv32.  */
   if (vers == _STAT_VER_KERNEL)
     {
       struct statx tmp;
-      int r = INLINE_SYSCALL_CALL (statx, fd, file, AT_NO_AUTOMOUNT | flag,
-				   STATX_BASIC_STATS, &tmp);
+      int r = inline_syscall (__NR_statx, fd, file, AT_NO_AUTOMOUNT | flag,
+			      STATX_BASIC_STATS, &tmp);
       if (r == 0)
 	__cp_stat64_statx (st, &tmp);
       return r;
@@ -61,7 +61,7 @@ __fxstatat64 (int vers, int fd, const char *file, struct stat64 *st, int flag)
   /* All kABIs with non-LFS support, e.g. arm, csky, i386, hppa, m68k,
      microblaze, mips32, nios2, sh, powerpc32, and sparc32.  */
   if (vers == _STAT_VER_LINUX)
-    return INLINE_SYSCALL_CALL (fstatat64, fd, file, st, flag);
+    return inline_syscall (__NR_fstatat64, fd, file, st, flag);
 #endif
   return __syscall_error (-EINVAL);
 }

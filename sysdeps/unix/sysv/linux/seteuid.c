@@ -29,9 +29,9 @@ seteuid (uid_t uid)
     return __syscall_error (-EINVAL);
 
 #ifdef __NR_setresuid32
-  result = INLINE_SETXID_SYSCALL (setresuid32, 3, -1, uid, -1);
+  result = inline_setxid_syscall (__NR_setresuid32,  -1, uid, -1);
 #else
-  result = INLINE_SETXID_SYSCALL (setresuid, 3, -1, uid, -1);
+  result = inline_setxid_syscall (__NR_setresuid, -1, uid, -1);
 #endif
 
   return result;

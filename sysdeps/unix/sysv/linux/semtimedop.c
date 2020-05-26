@@ -28,12 +28,12 @@ __semtimedop64 (int semid, struct sembuf *sops, size_t nsops,
 {
   int r;
 #if defined __NR_semtimedop_time64
-  r = INLINE_SYSCALL_CALL (semtimedop_time64, semid, sops, nsops, timeout);
+  r = inline_syscall (__NR_semtimedop_time64, semid, sops, nsops, timeout);
 #elif defined __ASSUME_DIRECT_SYSVIPC_SYSCALLS && defined __NR_semtimedop
-  r = INLINE_SYSCALL_CALL (semtimedop, semid, sops, nsops, timeout);
+  r = inline_syscall (__NR_semtimedop, semid, sops, nsops, timeout);
 #else
-  r = INLINE_SYSCALL_CALL (ipc, IPCOP_semtimedop, semid,
-			   SEMTIMEDOP_IPC_ARGS (nsops, sops, timeout));
+  r = inline_syscall (__NR_ipc, IPCOP_semtimedop, semid,
+		      SEMTIMEDOP_IPC_ARGS (nsops, sops, timeout));
 #endif
 
 #ifndef __ASSUME_TIME64_SYSCALLS
@@ -52,10 +52,10 @@ __semtimedop64 (int semid, struct sembuf *sops, size_t nsops,
       pts32 = &ts32;
     }
 # if defined __ASSUME_DIRECT_SYSVIPC_SYSCALLS
-  r = INLINE_SYSCALL_CALL (semtimedop, semid, sops, nsops, pts32);
+  r = inline_syscall (__NR_semtimedop, semid, sops, nsops, pts32);
 # else
-  r = INLINE_SYSCALL_CALL (ipc, IPCOP_semtimedop, semid,
-			   SEMTIMEDOP_IPC_ARGS (nsops, sops, pts32));
+  r = inline_syscall (__NR_ipc, IPCOP_semtimedop, semid,
+		      SEMTIMEDOP_IPC_ARGS (nsops, sops, pts32));
 # endif
 #endif /* __ASSUME_TIME64_SYSCALLS  */
   return r;

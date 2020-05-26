@@ -26,7 +26,7 @@ writev_for_fatal (int fd, const struct iovec *iov, size_t niov, size_t total)
 {
   ssize_t cnt;
   do
-    cnt = INTERNAL_SYSCALL_CALL (writev, fd, iov, niov);
+    cnt = internal_syscall (__NR_writev, fd, iov, niov);
   while (cnt < 0 && cnt == -EINTR);
   return cnt == total;
 }

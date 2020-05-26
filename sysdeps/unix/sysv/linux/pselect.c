@@ -49,8 +49,8 @@ __pselect64 (int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
 	{
 	  (uintptr_t) sigmask, __NSIG_BYTES
 	};
-      r = SYSCALL_CANCEL (pselect6_time64, nfds, readfds, writefds, exceptfds,
-			  timeout, data);
+      r = inline_syscall_cancel (__NR_pselect6_time64, nfds, readfds,
+				 writefds, exceptfds, timeout, data);
       if (r == 0 || errno != ENOSYS)
 	return r;
 

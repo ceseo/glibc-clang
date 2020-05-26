@@ -24,5 +24,5 @@
 int
 sigpending (sigset_t *set)
 {
-  return INLINE_SYSCALL_CALL (rt_sigpending, set, __NSIG_BYTES);
+  return inline_syscall (__NR_rt_sigpending, set, _NSIG / 8);
 }

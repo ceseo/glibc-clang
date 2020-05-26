@@ -33,7 +33,7 @@
     if (vdsop != NULL)							      \
       sc_ret = INTERNAL_VSYSCALL_CALL (vdsop, nr, ##args);	      	      \
     if (sc_ret == -ENOSYS)						      \
-      sc_ret = INTERNAL_SYSCALL_CALL (name, ##args);		      	      \
+      sc_ret = internal_syscall (__NR_##name, ##args);		      	      \
     syscall_ret (sc_ret);						      \
   })
 
