@@ -16,8 +16,6 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <sysdep.h>
-#define _ERRNO_H	1
-#include <bits/errno.h>
 #include <tcb-offsets.h>
 
 /* Clone the calling process, but without copying the whole address space.
@@ -34,7 +32,7 @@ ENTRY (__vfork)
 	cfi_register(%rip, %rdi)
 
 	/* Stuff the syscall number in RAX and enter into the kernel.  */
-	movl	$SYS_ify (vfork), %eax
+	movl	$__NR_vfork, %eax
 	syscall
 
 	/* Push back the return PC.  */
@@ -42,7 +40,7 @@ ENTRY (__vfork)
 	cfi_adjust_cfa_offset(8)
 
 	cmpl	$-4095, %eax
-	jae SYSCALL_ERROR_LABEL		/* Branch forward if it failed.  */
+	jae	syscall_error		/* Branch forward if it failed.  */
 
 #if SHSTK_ENABLED
 	/* Check if shadow stack is in use.  */
@@ -70,7 +68,7 @@ L(no_shstk):
 	/* Normal return.  */
 	ret
 
-PSEUDO_END (__vfork)
+END (__vfork)
 libc_hidden_def (__vfork)
 
 weak_alias (__vfork, vfork)

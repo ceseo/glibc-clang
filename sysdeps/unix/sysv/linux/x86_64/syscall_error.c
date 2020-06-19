@@ -1,7 +1,6 @@
-/* The auto-generated syscalls calls __syscall_error for static objects.  */
+/* The auto-generated syscalls calls __syscall_error for static objects and
+   on assembly implementations.  */
 #include <syscall_error.h>
-#ifndef SHARED
-# undef SYSCALL_ERROR_FUNC 
-# define SYSCALL_ERROR_FUNC 1
-#endif
+#undef SYSCALL_ERROR_FUNC
+#define SYSCALL_ERROR_FUNC 1
 #include <sysdeps/unix/sysv/linux/syscall_error.c>

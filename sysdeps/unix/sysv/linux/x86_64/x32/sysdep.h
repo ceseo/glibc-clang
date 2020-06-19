@@ -18,35 +18,7 @@
 #ifndef _LINUX_X32_SYSDEP_H
 #define _LINUX_X32_SYSDEP_H 1
 
-/* There is some commonality.  */
-#include <sysdeps/unix/sysv/linux/x86_64/sysdep.h>
-#include <sysdeps/x86_64/x32/sysdep.h>
-
-/* How to pass the off{64}_t argument on p{readv,writev}{64}.  */
-#undef LO_HI_LONG
-#define LO_HI_LONG(val) (val)
-
-#ifdef __ASSEMBLER__
-/* Zero-extend 32-bit unsigned long int arguments to 64 bits.  */
-# undef ZERO_EXTEND_1
-# define ZERO_EXTEND_1 movl %edi, %edi;
-# undef ZERO_EXTEND_2
-# define ZERO_EXTEND_2 movl %esi, %esi;
-# undef ZERO_EXTEND_3
-# define ZERO_EXTEND_3 movl %edx, %edx;
-# if SYSCALL_ULONG_ARG_1 == 4 || SYSCALL_ULONG_ARG_2 == 4
-#  undef DOARGS_4
-#  define DOARGS_4 movl %ecx, %r10d;
-# else
-#  undef ZERO_EXTEND_4
-#  define ZERO_EXTEND_4 movl %r10d, %r10d;
-# endif
-# undef ZERO_EXTEND_5
-# define ZERO_EXTEND_5 movl %r8d, %r8d;
-# undef ZERO_EXTEND_6
-# define ZERO_EXTEND_6 movl %r9d, %r9d;
-#else /* !__ASSEMBLER__ */
-# include <stdint.h>
+#ifndef __ASSEMBLER__
 # undef ARGIFY
 /* Enforce zero-extension for pointers and array system call arguments.
    For integer types, extend to int64_t (the full register) using a
@@ -60,6 +32,15 @@
      ? (uintptr_t) (X) : (int64_t) (X));				\
     _Pragma ("GCC diagnostic pop");					\
   })
+typedef long long int __syscall_arg_t;
 #endif	/* __ASSEMBLER__ */
+
+/* There is some commonality.  */
+#include <sysdeps/unix/sysv/linux/x86_64/sysdep.h>
+#include <sysdeps/x86_64/x32/sysdep.h>
+
+/* How to pass the off{64}_t argument on p{readv,writev}{64}.  */
+#undef LO_HI_LONG
+#define LO_HI_LONG(val) (val)
 
 #endif /* linux/x86_64/x32/sysdep.h */
