@@ -45,7 +45,7 @@ ENTRY (__vfork)
 
 	cmpl	$-4095, %eax
 	/* Branch forward if it failed.  */
-	jae	SYSCALL_ERROR_LABEL
+	jae	__syscall_error
 
 #if SHSTK_ENABLED
 	/* Check if shadow stack is in use.  */
@@ -72,7 +72,7 @@ L(no_shstk):
 
 	ret
 
-PSEUDO_END (__vfork)
+END (__vfork)
 libc_hidden_def (__vfork)
 
 weak_alias (__vfork, vfork)
