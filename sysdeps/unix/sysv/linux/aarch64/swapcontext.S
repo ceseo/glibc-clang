@@ -89,7 +89,7 @@ ENTRY(__swapcontext)
 	mov	x0, SIG_BLOCK
 	mov	x1, 0
 	mov	x3, _NSIG8
-	mov	x8, SYS_ify (rt_sigprocmask)
+	mov	x8, __NR_rt_sigprocmask
 	svc	0
 	cbnz	x0, 1f
 
@@ -107,5 +107,5 @@ ENTRY(__swapcontext)
 	BTI_J
 	mov	x30, x1
 	RET
-PSEUDO_END (__swapcontext)
+END (__swapcontext)
 weak_alias (__swapcontext, swapcontext)
