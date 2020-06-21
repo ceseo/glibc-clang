@@ -1,4 +1,5 @@
-/* Copyright (C) 1997-2020 Free Software Foundation, Inc.
+/* Indirect system call.  Linux version.
+   Copyright (C) 2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,23 +18,16 @@
 
 #include <stdarg.h>
 #include <sysdep.h>
-#include <errno.h>
-
-/* HPPA implements syscall() in 'C'; the assembler version would
-   typically be in syscall.S. Also note that we have INLINE_SYSCALL,
-   INTERNAL_SYSCALL, and all the generated pure assembly syscall wrappers.
-   How often the function is used is unknown. */
 
 long int
-syscall (long int __sysno, ...)
+syscall (long int number, ...)
 {
-  /* FIXME: Keep this matching INLINE_SYSCALL for hppa */
   va_list args;
   long int arg0, arg1, arg2, arg3, arg4, arg5;
-  long int __sys_res;
+  long int ret;
 
   /* Load varargs */
-  va_start (args, __sysno);
+  va_start (args, number);
   arg0 = va_arg (args, long int);
   arg1 = va_arg (args, long int);
   arg2 = va_arg (args, long int);
@@ -42,24 +36,8 @@ syscall (long int __sysno, ...)
   arg5 = va_arg (args, long int);
   va_end (args);
 
-  {
-    LOAD_ARGS_6 (arg0, arg1, arg2, arg3, arg4, arg5)
-    register unsigned long int __res asm("r28");
-    PIC_REG_DEF
-    LOAD_REGS_6
-    asm volatile (SAVE_ASM_PIC
-		  "	ble  0x100(%%sr2, %%r0)	\n"
-		  "	copy %1, %%r20		\n"
-		  LOAD_ASM_PIC
-		  : "=r" (__res)
-		  : "r" (__sysno) PIC_REG_USE ASM_ARGS_6
-		  : "memory", CALL_CLOB_REGS CLOB_ARGS_6);
-    __sys_res = __res;
-  }
-  if ((unsigned long int) __sys_res >= (unsigned long int) -4095)
-    {
-      __set_errno (-__sys_res);
-      __sys_res = -1;
-    }
-  return __sys_res;
+  ret = INTERNAL_SYSCALL_NCS (number, 6, arg0, arg1, arg2, arg3, arg4, arg5);
+  return __glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (ret))
+	 ? SYSCALL_ERROR_LABEL (INTERNAL_SYSCALL_ERRNO (ret))
+	 : ret;
 }
