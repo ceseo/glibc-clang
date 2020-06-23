@@ -65,7 +65,8 @@ ENTRY (__clone)
 	cfi_endproc
 
 	/* Do the call.  */
-	DO_CALL(SYS_ify(clone))
+	li	r0,__NR_clone
+	sc
 
 	/* Check for child process.  */
 	cmpwi	cr1,r3,0
@@ -76,7 +77,8 @@ ENTRY (__clone)
 	mtctr	r30
 	mr	r3,r31
 	bctrl
-	DO_CALL(SYS_ify(exit))
+	li	r0,__NR_exit
+	sc
 
 L(parent):
 	/* Parent.  Restore registers & return.  */
