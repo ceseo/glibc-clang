@@ -38,7 +38,7 @@ __clock_gettime64 (clockid_t clock_id, struct __timespec64 *tp)
   if (supports_time64 ())
     {
 #ifdef HAVE_CLOCK_GETTIME64_VSYSCALL
-      r = INLINE_VSYSCALL (clock_gettime64, 2, clock_id, tp);
+      r = inline_vsyscall (clock_gettime64, clock_id, tp);
 #  else
       r = inline_syscall (__NR_clock_gettime64, clock_id, tp);
 #  endif
@@ -52,7 +52,7 @@ __clock_gettime64 (clockid_t clock_id, struct __timespec64 *tp)
   /* Fallback code that uses 32-bit support.  */
   struct timespec tp32;
 # ifdef HAVE_CLOCK_GETTIME_VSYSCALL
-  r = INLINE_VSYSCALL (clock_gettime, 2, clock_id, &tp32);
+  r = inline_vsyscall (clock_gettime, clock_id, &tp32);
 # else
   r = inline_syscall (__NR_clock_gettime, clock_id, &tp32);
 # endif
