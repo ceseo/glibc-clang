@@ -1,4 +1,4 @@
-/* Copyright (C) 2004-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,37 +15,16 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <fenv.h>
 #include <sysdep.h>
 #include "kernel_sysinfo.h"
 
-
-	.text
-
-ENTRY(__feraiseexcept)
-	cfi_startproc
-	PSEUDO_PROLOGUE
-
-	lda	sp, -16(sp)
-	cfi_adjust_cfa_offset(16)
-
-	ldi	v0, __NR_osf_setsysinfo
-	stq	a0, 0(sp)
-	mov	sp, a1
-	ldi	a0, SSI_IEEE_RAISE_EXCEPTION
-	call_pal PAL_callsys
-
-	lda	sp, 16(sp)
-	cfi_adjust_cfa_offset(-16)
-
-	/* Here in libm we can't use SYSCALL_ERROR_LABEL.  Nor is it clear
-	   that we'd want to set errno anyway.  All we're required to do is
-	   return non-zero on error.  Which is exactly A3.  */
-	mov	a3, v0
-	ret
-
-END(__feraiseexcept)
-	cfi_endproc
-
+int
+__feraiseexcept (int excepts)
+{
+  return -INTERNAL_SYSCALL_CALL (osf_setsysinfo, SSI_IEEE_RAISE_EXCEPTION,
+				 &excepts, 0, 0, 0);
+}
 #if IS_IN (libm)
 # include <shlib-compat.h>
 # if SHLIB_COMPAT (libm, GLIBC_2_1, GLIBC_2_2)

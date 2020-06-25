@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,12 +15,15 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <fenv_libc.h>
 #include <sysdep.h>
+#include "kernel_sysinfo.h"
 
-
-PSEUDO (__getegid, getxgid, 0)
-	MOVE (r1, r0)
-	ret
-PSEUDO_END (__getegid)
-
-weak_alias (__getegid, getegid)
+void
+__ieee_set_fp_control (unsigned long int env)
+{
+  INLINE_SYSCALL_CALL (osf_setsysinfo, SSI_IEEE_FP_CONTROL, &env, 0,
+		       0, 0);
+}
+libc_hidden_def (__ieee_set_fp_control)
+weak_alias (__ieee_set_fp_control, ieee_set_fp_control)
