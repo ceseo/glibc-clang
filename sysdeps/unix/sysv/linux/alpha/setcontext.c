@@ -1,4 +1,5 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Set the user context.  Linux/Alpha version.
+   Copyright (C) 2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,12 +16,16 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <ucontext.h>
 #include <sysdep.h>
 
-
-PSEUDO (__getppid, getxpid, 0)
-	MOVE (r1, r0)
-	ret
-PSEUDO_END (__getppid)
-
-weak_alias (__getppid, getppid)
+int
+__setcontext (const ucontext_t *ucp)
+{
+  /* In case the user fiddled it, copy the "official" signal mask
+     from the ucontext_t into the sigcontext structure.  */
+  ucontext_t *ucp_noconst = (ucontext_t *) ucp;
+  ucp_noconst->uc_mcontext.sc_mask = *((long int *)&ucp_noconst->uc_sigmask);
+  return INLINE_SYSCALL_CALL (__NR_sigreturn, &ucp->uc_mcontext);
+}
+weak_alias (__setcontext, setcontext)
