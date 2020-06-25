@@ -37,7 +37,7 @@ L(error):
 	RESTORE_GP64_REG
 	jr t9
 
-PSEUDO_END (__ioctl)
+END (__ioctl)
 
 libc_hidden_def (__ioctl)
 weak_alias (__ioctl, ioctl)

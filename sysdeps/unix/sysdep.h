@@ -20,17 +20,6 @@
 #include <sys/syscall.h>
 #define	HAVE_SYSCALLS
 
-#ifndef __ASSEMBLER__
-# ifndef ARGIFY
-#  define ARGIFY(__x) ((__syscall_arg_t) (__x))
-typedef long int __syscall_arg_t;
-# endif
-#endif
-
-/* Note that using a `PASTE' macro loses.  */
-#define	SYSCALL__(name, args)	PSEUDO (__##name, name, args)
-#define	SYSCALL(name, args)	PSEUDO (name, name, args)
-
 #define __SYSCALL_CONCAT_X(a,b)     a##b
 #define __SYSCALL_CONCAT(a,b)       __SYSCALL_CONCAT_X (a, b)
 
