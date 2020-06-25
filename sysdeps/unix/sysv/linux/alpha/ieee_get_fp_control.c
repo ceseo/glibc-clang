@@ -1,5 +1,4 @@
-/* Install given context.
-   Copyright (C) 2004-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,19 +15,19 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <fenv_libc.h>
 #include <sysdep.h>
-#include <ucontext-offsets.h>
+#include "kernel_sysinfo.h"
 
-
-/* In case the user fiddled it, copy the "official" signal mask
-   from the ucontext_t into the sigcontext structure.  */
-#undef PSEUDO_PREPARE_ARGS
-#define PSEUDO_PREPARE_ARGS			\
-	ldq	$0, UC_SIGMASK($16);		\
-	stq	$0, UC_SIGCTX+SC_MASK($16);	\
-	lda	$16, UC_SIGCTX($16);
-
-PSEUDO(__setcontext, sigreturn, 1)
-	ret
-PSEUDO_END(__setcontext)
-weak_alias (__setcontext, setcontext)
+unsigned long int
+__ieee_get_fp_control (void)
+{
+  unsigned long int env;
+  int r = INLINE_SYSCALL_CALL (osf_getsysinfo, GSI_IEEE_FP_CONTROL, &env, 0,
+			       0, 0);
+  if (r != 0)
+    return r;
+  return env;
+}
+libc_hidden_def (__ieee_get_fp_control)
+weak_alias (__ieee_get_fp_control, ieee_get_fp_control)

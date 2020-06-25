@@ -1,6 +1,6 @@
-/* Copyright (C) 1993-2020 Free Software Foundation, Inc.
+/* Get effective user identity.  Linux/Alpha.
+   Copyright (C) 2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by David Mosberger <davidm@azstarnet.com>, 1995.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,31 +16,12 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <unistd.h>
 #include <sysdep.h>
-#include "kernel_sysinfo.h"
 
-
-ENTRY(__ieee_set_fp_control)
-	cfi_startproc
-	PSEUDO_PROLOGUE
-
-	lda	sp, -16(sp)
-	cfi_adjust_cfa_offset(16)
-
-	ldi	v0, __NR_osf_setsysinfo
-	stq	a0, 0(sp)
-	mov	sp, a1
-	ldi	a0, SSI_IEEE_FP_CONTROL
-	call_pal PAL_callsys
-
-	lda	sp, 16(sp)
-	cfi_adjust_cfa_offset(-16)
-
-	bne	a3, SYSCALL_ERROR_LABEL
-	ret
-
-PSEUDO_END(__ieee_set_fp_control)
-	cfi_endproc
-
-libc_hidden_def(__ieee_set_fp_control)
-weak_alias (__ieee_set_fp_control, ieee_set_fp_control)
+uid_t
+__geteuid (void)
+{
+  return __internal_syscall_pair (__NR_getxuid).sc_20;
+}
+weak_alias (__geteuid, geteuid)
