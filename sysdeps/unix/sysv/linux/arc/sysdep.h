@@ -206,6 +206,9 @@ L (call_syscall_err):			ASM_LINE_SEP	\
 # define PTR_MANGLE(var) (void) (var)
 # define PTR_DEMANGLE(var) (void) (var)
 
+# undef HAVE_INTERNAL_BRK_ADDR_SYMBOL
+# define HAVE_INTERNAL_BRK_ADDR_SYMBOL  1
+
 #endif /* !__ASSEMBLER__ */
 
 #endif /* linux/arc/sysdep.h */
