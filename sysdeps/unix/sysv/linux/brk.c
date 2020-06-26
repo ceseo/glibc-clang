@@ -1,5 +1,5 @@
-/* brk system call for Linux/i386.
-   Copyright (C) 1995-2020 Free Software Foundation, Inc.
+/* Change data segment.  Linux generic version.
+   Copyright (C) 2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -13,13 +13,8 @@
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
+   License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
-
-#if BUILD_PIE_DEFAULT
-/* Can't use "call *%gs:SYSINFO_OFFSET" during statup in static PIE.  */
-# define I386_USE_SYSENTER 0
-#endif
 
 #include <errno.h>
 #include <unistd.h>
@@ -28,18 +23,23 @@
 /* This must be initialized data because commons can't have aliases.  */
 void *__curbrk = 0;
 
+#if HAVE_INTERNAL_BRK_ADDR_SYMBOL
 /* Old braindamage in GCC's crtstuff.c requires this symbol in an attempt
    to work around different old braindamage in the old Linux ELF dynamic
    linker.  */
 weak_alias (__curbrk, ___brk_addr)
+#endif
 
 int
 __brk (void *addr)
 {
-  void *newbrk = (void *) INTERNAL_SYSCALL_CALL (brk, addr);
-  __curbrk = newbrk;
-  if (newbrk < addr)
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (ENOMEM);
+  __curbrk = (void *) INTERNAL_SYSCALL_CALL (brk, addr);
+  if (__curbrk < addr)
+    {
+      __set_errno (ENOMEM);
+      return -1;
+    }
+
   return 0;
 }
 weak_alias (__brk, brk)
