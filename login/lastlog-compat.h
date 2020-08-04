@@ -1,4 +1,4 @@
-/* The 'struct lastlog' type.
+/* Compat lastlog definitions.
    Copyright (C) 2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -16,15 +16,22 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#ifndef _UTMP_H
-# error "Never include <bits/struct_lastlog.h> directly; use <utmp.h> instead."
-#endif
+#ifndef _LASTLOG_COMPAT_H
+#define _LASTLOG_COMPAT_H 1
 
-/* The structure describing an entry in the database of
-   previous logins.  */
-struct lastlog
+#include <string.h>
+
+struct lastlog_compat
 {
-  int64_t ll_time;
-  char ll_line[UT_LINESIZE] __attribute_nonstring__;
-  char ll_host[UT_HOSTSIZE] __attribute_nonstring__;
+  int32_t ll_time;
+  char ll_line[UT_LINESIZE];
+  char ll_host[UT_HOSTSIZE];
 };
+
+static inline bool
+is_path_lastlog_compat (const char *file)
+{
+  return strcmp (file, "/var/log/lastlog") == 0;
+}
+
+#endif
