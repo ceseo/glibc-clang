@@ -1,4 +1,4 @@
-/* Test the lock upgrade path in tst-pututxline.
+/* Test the lock path in putut{x}line.
    Copyright (C) 2019-2021 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -16,23 +16,32 @@
    License along with the GNU C Library; see the file COPYING.LIB.  If
    not, see <https://www.gnu.org/licenses/>.  */
 
-/* pututxline upgrades the read lock on the file to a write lock.
-   This test verifies that if the lock upgrade fails, the utmp
-   subsystem remains in a consistent state, so that pututxline can be
-   called again.  */
+/* putut{x}line and updwtmp{x} do not lock the utmp{x} file, but rather a
+   specific file based on the database path.  For non default files
+   set by utmpname is is the '/var/lock/`basename $path`.lock.
+   This test verifies that if the lock fails, the utmp subsystem remains
+   in a consistent state, so that putut{x}line can be called again.  */
 
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <limits.h>
+#include <libgen.h>
 #include <support/check.h>
 #include <support/namespace.h>
 #include <support/support.h>
 #include <support/temp_file.h>
 #include <support/xthread.h>
 #include <support/xunistd.h>
+#include <support/xsignal.h>
 #include <unistd.h>
 #include <utmp.h>
 #include <utmpx.h>
+
+#ifndef PATH_MAX
+# define PATH_MAX 1024
+#endif
 
 /* Path to the temporary utmp file.   */
 static char *path;
@@ -66,11 +75,15 @@ subprocess_create_entry (void *closure)
   TEST_VERIFY (write_entry (101) != NULL);
 }
 
-/* Acquire an advisory read lock on PATH.  */
+/* Acquire an advisory read lock file for on PATH.  */
 __attribute__ ((noreturn)) static void
 subprocess_lock_file (void)
 {
-  int fd = xopen (path, O_RDONLY, 0);
+  char lockpath[PATH_MAX];
+  snprintf (lockpath, sizeof (lockpath), "%s.lock", path);
+
+  int fd = xopen (lockpath, O_RDONLY | O_CREAT, 0644);
+  add_temp_file (lockpath);
 
   struct flock64 fl =
     {
@@ -101,6 +114,9 @@ subprocess_lock_file (void)
   _exit (0);
 }
 
+/* Do-nothing handler for locking timeout.  */
+static void timeout_handler (int signum) {};
+
 static int
 do_test (void)
 {
@@ -124,6 +140,20 @@ do_test (void)
 
   /* Wait for the file locking to complete.  */
   xpthread_barrier_wait (barrier);
+
+  {
+    /* The 'subprocess_lock_file' creates and locks the file created by
+       utmpname pututxline, the SIGARLM forces the utmp lock to return
+       and the function call to fail.  */
+
+    struct sigaction action;
+    action.sa_handler = timeout_handler;
+    sigemptyset (&action.sa_mask);
+    action.sa_flags = 0;
+    xsigaction (SIGALRM, &action, NULL);
+
+    alarm (5);
+  }
 
   /* Try to add another entry.  This attempt will fail, with EINTR or
      EAGAIN.  */

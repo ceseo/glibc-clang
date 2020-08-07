@@ -2,6 +2,10 @@
 mkdirp 0755 /var/run
 touch  0664 /var/run/utmp.v2
 touch  0664 /var/run/wtmp.v2
+# For default UTMP_FILE we need to create the lock files
+mkdirp 0755 /var/lock
+touch  0664 /var/lock/utmp.v2.lock
+touch  0664 /var/lock/wtmp.v2.lock
 
 # Must run localedef as root to write into default paths.
 su

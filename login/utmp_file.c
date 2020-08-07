@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 #include <sys/param.h>
 #include <not-cancel.h>
 
@@ -27,6 +28,10 @@
 #include <utmp-path.h>
 #include <utmp-compat.h>
 #include <shlib-compat.h>
+
+#ifndef PATH_MAX
+# define PATH_MAX 1024
+#endif
 
 
 /* Descriptor for the file and position.  */
@@ -121,61 +126,62 @@ matches_last_entry (enum operation_mode_t mode, short int type,
     }
 }
 
-/* Locking timeout.  */
-#ifndef TIMEOUT
-# define TIMEOUT 10
-#endif
-
-/* Do-nothing handler for locking timeout.  */
-static void timeout_handler (int signum) {};
-
-
-/* try_file_lock (LOCKING, FD, TYPE) returns true if the locking
-   operation failed and recovery needs to be performed.
-
-   file_unlock (FD) removes the lock (which must have been
-   successfully acquired). */
-
-static bool
-try_file_lock (int fd, int type)
+/* Construct a lock file base on FILE depending of DEFAULT_DB: if true
+   the lock is constructed on /var/lock; otherwise is used the FILE
+   path itself.  The lock file is also created if it does not exist if
+   DEFAULT_DB is false.  */
+static int
+lock_write_file (const char *file, bool default_db)
 {
-  /* Cancel any existing alarm.  */
-  int old_timeout = alarm (0);
+  char path[PATH_MAX];
+  if (default_db)
+    __snprintf (path, sizeof (path), "/var/lock/%s.lock", __basename (file));
+  else
+    __snprintf (path, sizeof (path), "%s.lock", file);
 
-  /* Establish signal handler.  */
-  struct sigaction old_action;
-  struct sigaction action;
-  action.sa_handler = timeout_handler;
-  __sigemptyset (&action.sa_mask);
-  action.sa_flags = 0;
-  __sigaction (SIGALRM, &action, &old_action);
+  int flags = O_RDWR | O_LARGEFILE | O_CLOEXEC;
+  mode_t mode = 0644;
 
-  alarm (TIMEOUT);
-
-  /* Try to get the lock.  */
- struct flock64 fl =
-   {
-    .l_type = type,
-    .l_whence = SEEK_SET,
-   };
-
- bool status = __fcntl64_nocancel (fd, F_SETLKW, &fl) < 0;
- int saved_errno = errno;
-
- /* Reset the signal handler and alarm.  We must reset the alarm
-    before resetting the handler so our alarm does not generate a
-    spurious SIGALRM seen by the user.  However, we cannot just set
-    the user's old alarm before restoring the handler, because then
-    it's possible our handler could catch the user alarm's SIGARLM and
-    then the user would never see the signal he expected.  */
-  alarm (0);
-  __sigaction (SIGALRM, &old_action, NULL);
-  if (old_timeout != 0)
-    alarm (old_timeout);
-
+  /* The errno need to reset if 'create_file' is set and the O_CREAT does not
+     fail.  */
+  int saved_errno = errno;
+  int fd = __open_nocancel (path, flags, mode);
+  if (fd == -1 && errno == ENOENT && !default_db)
+    fd = __open_nocancel (path, flags | O_CREAT, mode);
+  if (fd == -1)
+    return -1;
   __set_errno (saved_errno);
-  return status;
+
+  struct flock64 fl =
+    {
+     .l_type = F_WRLCK,
+     .l_whence = SEEK_SET,
+    };
+
+  if (__fcntl64_nocancel (fd, F_SETLKW, &fl) == -1)
+    {
+      __close_nocancel_nostatus (fd);
+      return -1;
+    }
+  return fd;
 }
+
+static void
+unlock_write_file (const char *file, int lockfd, bool default_db)
+{
+  __close_nocancel_nostatus (lockfd);
+
+  char path[PATH_MAX];
+  __snprintf (path, sizeof (path), "/var/lock/%s.lock", __basename (file));
+  if (! default_db)
+    {
+      /* Ignore error for the case the file does not exist.  */
+      int saved_errno = errno;
+      __unlink (path);
+      __set_errno (saved_errno);
+    }
+}
+
 
 static void
 file_unlock (int fd)
@@ -251,8 +257,7 @@ internal_getutent_r (enum operation_mode_t mode, void *buffer)
 {
   int saved_errno = errno;
 
-  if (!maybe_setutent (mode)
-      || try_file_lock (file_fd, F_RDLCK))
+  if (!maybe_setutent (mode))
     return -1;
 
   ssize_t nbytes = read_last_entry (mode);
@@ -304,9 +309,6 @@ static bool
 internal_getut_r (enum operation_mode_t mode, short int type, const char *id,
 		  const char *line)
 {
-  if (try_file_lock (file_fd, F_RDLCK))
-    return false;
-
   bool r = internal_getut_nolock (mode, type, id, line);
   file_unlock (file_fd);
   return r;
@@ -335,8 +337,7 @@ static int
 internal_getutline_r (enum operation_mode_t mode, const char *line,
 		      void *buffer)
 {
-  if (!maybe_setutent (mode)
-      || try_file_lock (file_fd, F_RDLCK))
+  if (!maybe_setutent (mode))
     return -1;
 
   while (1)
@@ -375,13 +376,13 @@ internal_pututline (enum operation_mode_t mode, short int type,
   if (!maybe_setutent (mode))
     return false;
 
+  const char *file_name = mode == UTMP_TIME64
+    ? __libc_utmp_file_name
+    : utmp_file_name_time32 (__libc_utmp_file_name);
+
   if (! file_writable)
     {
       /* We must make the file descriptor writable before going on.  */
-      const char *file_name = mode == UTMP_TIME64
-	? __libc_utmp_file_name
-	: utmp_file_name_time32 (__libc_utmp_file_name);
-
       int new_fd = __open_nocancel
 	(file_name, O_RDWR | O_LARGEFILE | O_CLOEXEC);
       if (new_fd == -1)
@@ -396,34 +397,25 @@ internal_pututline (enum operation_mode_t mode, short int type,
       file_writable = true;
     }
 
-  /* Exclude other writers before validating the cache.  */
-  if (try_file_lock (file_fd, F_WRLCK))
+  /* To avoid DOS when accessing the utmp{x} database for update, the lock
+     file should be accessible only by previleged users (BZ #24492).  For non
+     default utmp{x} database the function tries to create the lock file.  */
+  bool default_db = __libc_utmpname_mode == UTMPNAME_TIME64
+		   || __libc_utmpname_mode == UTMPNAME_TIME32;
+  int lockfd = lock_write_file (file_name, default_db);
+  if (lockfd == -1)
     return false;
 
   /* Find the correct place to insert the data.  */
   const size_t utmp_size = last_entry_size (mode);
-  bool found = false;
+  bool ret = false;
+
   if (matches_last_entry (mode, type, id, line))
-    {
-      /* Read back the entry under the write lock.  */
-      file_offset -= utmp_size;
-      ssize_t nbytes = read_last_entry (mode);
-      if (nbytes < 0)
-	{
-	  file_unlock (file_fd);
-	  return false;
-	}
-
-      if (nbytes == 0)
-	/* End of file reached.  */
-	found = false;
-      else
-	found = matches_last_entry (mode, type, id, line);
-    }
-
-  if (!found)
-    /* Search forward for the entry.  */
-    found = internal_getut_nolock (mode, type, id, line);
+    /* Read back the entry under the write lock.  */
+    file_offset -= utmp_size;
+  bool found = internal_getut_nolock (mode, type, id, line);
+  if (!found && errno != ESRCH)
+    goto internal_pututline_out;
 
   off64_t write_offset;
   if (!found)
@@ -444,31 +436,29 @@ internal_pututline (enum operation_mode_t mode, short int type,
   ssize_t nbytes;
   if (__lseek64 (file_fd, write_offset, SEEK_SET) < 0
       || (nbytes = __write_nocancel (file_fd, data, utmp_size)) < 0)
-    {
-      /* There is no need to recover the file position because all
-	 reads use pread64, and any future write is preceded by
-	 another seek.  */
-      file_unlock (file_fd);
-      return false;
-    }
+    /* There is no need to recover the file position because all reads use
+       pread64, and any future write is preceded by another seek.  */
+    goto internal_pututline_out;
 
   if (nbytes != utmp_size)
     {
       /* If we appended a new record this is only partially written.
 	 Remove it.  */
       if (!found)
-	(void) __ftruncate64 (file_fd, write_offset);
-      file_unlock (file_fd);
+	__ftruncate64 (file_fd, write_offset);
       /* Assume that the write failure was due to missing disk
 	 space.  */
       __set_errno (ENOSPC);
-      return false;
+      goto internal_pututline_out;
     }
 
-  file_unlock (file_fd);
   file_offset = write_offset + utmp_size;
+  ret = true;
 
-  return true;
+internal_pututline_out:
+  /* Release the write lock.  */
+  unlock_write_file (file_name, lockfd, default_db);
+  return ret;
 }
 
 static int
@@ -484,7 +474,10 @@ internal_updwtmp (enum operation_mode_t mode, const char *file,
   if (fd < 0)
     return -1;
 
-  if (try_file_lock (fd, F_WRLCK))
+  bool default_db = strcmp (file, _PATH_UTMP) == 0
+		    || strcmp (file, _PATH_UTMP_BASE) == 0;
+  int lockfd = lock_write_file (file, default_db);
+  if (lockfd == -1)
     {
       __close_nocancel_nostatus (fd);
       return -1;
@@ -514,9 +507,8 @@ internal_updwtmp (enum operation_mode_t mode, const char *file,
   result = 0;
 
 unlock_return:
-  file_unlock (fd);
-
   /* Close WTMP file.  */
+  unlock_write_file (file, lockfd, default_db);
   __close_nocancel_nostatus (fd);
 
   return result;
