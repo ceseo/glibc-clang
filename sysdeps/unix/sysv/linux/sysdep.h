@@ -43,12 +43,9 @@
   ({									\
     long int sc_ret = INTERNAL_SYSCALL (name, nr, args);		\
     __glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (sc_ret))		\
-    ? SYSCALL_ERROR_LABEL (INTERNAL_SYSCALL_ERRNO (sc_ret))		\
+    ? SYSCALL_ERROR_LABEL (-sc_ret)					\
     : sc_ret;								\
   })
-
-#undef INTERNAL_SYSCALL_ERRNO
-#define INTERNAL_SYSCALL_ERRNO(val)     (-(val))
 
 /* Set error number and return -1.  A target may choose to return the
    internal function, __syscall_error, which sets errno and returns -1.

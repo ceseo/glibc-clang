@@ -56,8 +56,7 @@ __fcntl64_nocancel_adjusted (int fd, int cmd, void *arg)
       if (!INTERNAL_SYSCALL_ERROR_P (res))
 	return fex.type == F_OWNER_GID ? -fex.pid : fex.pid;
 
-      return INLINE_SYSCALL_ERROR_RETURN_VALUE
-        (INTERNAL_SYSCALL_ERRNO (res));
+      return INLINE_SYSCALL_ERROR_RETURN_VALUE (-res);
     }
 
   return INLINE_SYSCALL_CALL (fcntl64, fd, cmd, (void *) arg);

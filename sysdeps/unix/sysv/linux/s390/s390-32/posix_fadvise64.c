@@ -43,9 +43,7 @@ __posix_fadvise64_l64 (int fd, off64_t offset, off64_t len, int advise)
   parameters.len = len;
   parameters.advise = advise;
   int ret = INTERNAL_SYSCALL_CALL (fadvise64_64, &parameters);
-  if (!INTERNAL_SYSCALL_ERROR_P (ret))
-    return 0;
-  return INTERNAL_SYSCALL_ERRNO (ret);
+  return INTERNAL_SYSCALL_ERROR_P (ret) ? -ret : 0;
 }
 
 #include <shlib-compat.h>

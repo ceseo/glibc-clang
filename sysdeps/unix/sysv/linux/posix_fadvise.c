@@ -60,8 +60,6 @@ posix_fadvise (int fd, off_t offset, off_t len, int advise)
 				   SYSCALL_LL (len), advise);
 #  endif
 # endif
-  if (INTERNAL_SYSCALL_ERROR_P (ret))
-    return INTERNAL_SYSCALL_ERRNO (ret);
-  return 0;
+  return INTERNAL_SYSCALL_ERROR_P (ret) ? -ret : 0;
 }
 #endif /* __OFF_T_MATCHES_OFF64_T  */

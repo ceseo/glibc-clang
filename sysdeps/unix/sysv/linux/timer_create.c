@@ -127,7 +127,7 @@ timer_create (clockid_t clock_id, struct sigevent *evp, timer_t *timerid)
 	if (INTERNAL_SYSCALL_ERROR_P (res))
 	  {
 	    free (newp);
-	    __set_errno (INTERNAL_SYSCALL_ERRNO (res));
+	    __set_errno (-res);
 	    return -1;
 	  }
 

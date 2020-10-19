@@ -49,9 +49,7 @@ __posix_fadvise64_l64 (int fd, off64_t offset, off64_t len, int advise)
 				   __ALIGNMENT_ARG SYSCALL_LL64 (offset),
 				   SYSCALL_LL64 (len), advise);
 #endif
-  if (!INTERNAL_SYSCALL_ERROR_P (ret))
-    return 0;
-  return INTERNAL_SYSCALL_ERRNO (ret);
+  return INTERNAL_SYSCALL_ERROR_P (ret) ? -ret : 0;
 }
 
 /* The type of the len argument was changed from size_t to off_t in

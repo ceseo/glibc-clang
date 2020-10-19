@@ -1174,7 +1174,7 @@ __nptl_setxid (struct xid_command *cmdp)
   int error = 0;
   if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (result)))
     {
-      error = INTERNAL_SYSCALL_ERRNO (result);
+      error = -result;
       __set_errno (error);
       result = -1;
     }

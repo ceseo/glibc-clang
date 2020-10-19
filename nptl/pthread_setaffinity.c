@@ -34,7 +34,7 @@ __pthread_setaffinity_new (pthread_t th, size_t cpusetsize,
 			       cpuset);
 
   return (INTERNAL_SYSCALL_ERROR_P (res)
-	  ? INTERNAL_SYSCALL_ERRNO (res)
+	  ? -res
 	  : 0);
 }
 versioned_symbol (libpthread, __pthread_setaffinity_new,

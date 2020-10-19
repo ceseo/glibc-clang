@@ -38,7 +38,7 @@
 	sc_ret = INTERNAL_VSYSCALL_CALL (vdsop, nr, ##args);	      	      \
 	if (!INTERNAL_SYSCALL_ERROR_P (sc_ret))			      	      \
 	  goto out;							      \
-	if (INTERNAL_SYSCALL_ERRNO (sc_ret) != ENOSYS)		      	      \
+	if (sc_ret != -ENOSYS)		      	      			      \
 	  goto iserr;							      \
       }									      \
 									      \
@@ -46,7 +46,7 @@
     if (INTERNAL_SYSCALL_ERROR_P (sc_ret))			      	      \
       {									      \
       iserr:								      \
-        __set_errno (INTERNAL_SYSCALL_ERRNO (sc_ret));		      	      \
+        __set_errno (-sc_ret);		      	      			      \
         sc_ret = -1L;							      \
       }									      \
   out:									      \

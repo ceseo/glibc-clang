@@ -32,8 +32,8 @@ __posix_fallocate64_l64 (int fd, __off64_t offset, __off64_t len)
 				   SYSCALL_LL64 (offset), SYSCALL_LL64 (len));
   if (! INTERNAL_SYSCALL_ERROR_P (res))
     return 0;
-  if (INTERNAL_SYSCALL_ERRNO (res) != EOPNOTSUPP)
-    return INTERNAL_SYSCALL_ERRNO (res);
+  if (res != -EOPNOTSUPP)
+    return -res;
   return internal_fallocate64 (fd, offset, len);
 }
 libc_hidden_def (__posix_fallocate64_l64)

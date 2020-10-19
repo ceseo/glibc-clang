@@ -70,7 +70,7 @@ __pthread_cancel (pthread_t th)
 	  int val = INTERNAL_SYSCALL_CALL (tgkill, pid, pd->tid,
 					   SIGCANCEL);
 	  if (INTERNAL_SYSCALL_ERROR_P (val))
-	    result = INTERNAL_SYSCALL_ERRNO (val);
+	    result = -val;
 
 	  break;
 	}

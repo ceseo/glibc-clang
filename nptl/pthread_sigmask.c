@@ -42,7 +42,7 @@ __pthread_sigmask (int how, const sigset_t *newmask, sigset_t *oldmask)
 				      oldmask, __NSIG_BYTES);
 
   return (INTERNAL_SYSCALL_ERROR_P (result)
-	  ? INTERNAL_SYSCALL_ERRNO (result)
+	  ? -result
 	  : 0);
 }
 libc_hidden_def (__pthread_sigmask)

@@ -191,7 +191,7 @@ sighandler_setxid (int sig, siginfo_t *si, void *ctx)
 				 __xidcmd->id[1], __xidcmd->id[2]);
   int error = 0;
   if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (result)))
-    error = INTERNAL_SYSCALL_ERRNO (result);
+    error = -result;
   __nptl_setxid_error (__xidcmd, error);
 
   /* Reset the SETXID flag.  */

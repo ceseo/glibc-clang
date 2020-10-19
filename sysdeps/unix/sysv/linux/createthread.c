@@ -132,7 +132,7 @@ create_thread (struct pthread *pd, const struct pthread_attr *attr,
 	      pid_t pid = __getpid ();
 	      INTERNAL_SYSCALL_CALL (tgkill, pid, pd->tid, SIGCANCEL);
 
-	      return INTERNAL_SYSCALL_ERRNO (res);
+	      return -res;
 	    }
 	}
 

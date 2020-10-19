@@ -301,8 +301,7 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
 					   __lll_private_flag (FUTEX_TRYLOCK_PI,
 							       private), 0, 0);
 
-	    if (INTERNAL_SYSCALL_ERROR_P (e)
-		&& INTERNAL_SYSCALL_ERRNO (e) == EWOULDBLOCK)
+	    if (INTERNAL_SYSCALL_ERROR_P (e) && e == -EWOULDBLOCK)
 	      {
 		/* The kernel has not yet finished the mutex owner death.
 		   We do not need to ensure ordering wrt another memory

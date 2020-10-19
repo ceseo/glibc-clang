@@ -32,10 +32,9 @@ mq_unlink (const char *name)
      return just EACCES.  */
   if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (ret)))
     {
-      ret = INTERNAL_SYSCALL_ERRNO (ret);
-      if (ret == EPERM)
-	ret = EACCES;
-      return INLINE_SYSCALL_ERROR_RETURN_VALUE (ret);
+      if (ret == -EPERM)
+	ret = -EACCES;
+      return INLINE_SYSCALL_ERROR_RETURN_VALUE (-ret);
     }
 
   return ret;
