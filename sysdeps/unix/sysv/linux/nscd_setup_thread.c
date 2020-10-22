@@ -36,7 +36,7 @@ setup_thread (struct database_dyn *db)
      since none of the threads ever terminates.  */
   int r = INTERNAL_SYSCALL_CALL (set_tid_address,
 				 &db->head->nscd_certainly_running);
-  if (!INTERNAL_SYSCALL_ERROR_P (r))
+  if (r == 0)
     /* We know the kernel can reset this field when nscd terminates.
        So, set the field to a nonzero value which indicates that nscd
        is certainly running and clients can skip the test.  */

@@ -35,7 +35,7 @@
 	   that we are jumping *out* of the alternate stack. Note that	\
 	   the check for that is the same as that for _STACK_GROWS_UP	\
 	   as for _STACK_GROWS_DOWN.  */				\
-        if (!INTERNAL_SYSCALL_ERROR_P (result)				\
+        if (result == 0							\
             && ((oss.ss_flags & SS_ONSTACK) == 0			\
                 || ((unsigned long) oss.ss_sp + oss.ss_size		\
                     - (unsigned long) (sp)) < oss.ss_size))		\

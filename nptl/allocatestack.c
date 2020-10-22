@@ -1043,7 +1043,7 @@ setxid_signal_thread (struct xid_command *cmdp, struct pthread *t)
   val = INTERNAL_SYSCALL_CALL (tgkill, pid, t->tid, SIGSETXID);
 
   /* If this failed, it must have had not started yet or else exited.  */
-  if (!INTERNAL_SYSCALL_ERROR_P (val))
+  if (val == 0)
     {
       atomic_increment (&cmdp->cntr);
       return 1;
@@ -1172,7 +1172,7 @@ __nptl_setxid (struct xid_command *cmdp)
   result = INTERNAL_SYSCALL_NCS (cmdp->syscall_no, 3,
 				 cmdp->id[0], cmdp->id[1], cmdp->id[2]);
   int error = 0;
-  if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (result)))
+  if (__glibc_unlikely (result < 0))
     {
       error = -result;
       __set_errno (error);

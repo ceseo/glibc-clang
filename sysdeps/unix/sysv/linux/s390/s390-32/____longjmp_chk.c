@@ -40,7 +40,7 @@
 	{								\
 	  stack_t oss;							\
 	  int res = INTERNAL_SYSCALL_CALL (sigaltstack, NULL, &oss);	\
-	  if (!INTERNAL_SYSCALL_ERROR_P (res))				\
+	  if (res == 0)							\
 	    {								\
 	      if ((oss.ss_flags & SS_ONSTACK) == 0			\
 		  || ((uintptr_t) (oss.ss_sp + oss.ss_size) - new_sp	\

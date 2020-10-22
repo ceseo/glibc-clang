@@ -70,7 +70,7 @@ libc_hidden_proto (__feraiseexcept_soft)
 									\
       _spefscr = fegetenv_register ();					\
       _r = INTERNAL_SYSCALL_CALL (prctl, PR_GET_FPEXC, &_ftrapex);	\
-      if (INTERNAL_SYSCALL_ERROR_P (_r))				\
+      if (r < 0)							\
 	_ftrapex = 0;							\
     }									\
   while (0)

@@ -66,12 +66,7 @@
 # endif
 
 # define lll_futex_syscall(nargs, futexp, op, ...)                      \
-  ({                                                                    \
-    long int __ret = INTERNAL_SYSCALL (futex, nargs, futexp, op, 	\
-				       __VA_ARGS__);                    \
-    (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (__ret))         	\
-     ? __ret : 0);                     					\
-  })
+  INTERNAL_SYSCALL (futex, nargs, futexp, op, __VA_ARGS__)
 
 /* For most of these macros, the return value is never really used.
    Nevertheless, the protocol is that each one returns a negated errno

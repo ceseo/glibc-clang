@@ -40,7 +40,7 @@ _dl_get_origin (void)
 
   len = INTERNAL_SYSCALL_CALL (readlink, "/proc/self/exe", linkval,
 			       sizeof (linkval));
-  if (! INTERNAL_SYSCALL_ERROR_P (len) && len > 0 && linkval[0] != '[')
+  if (len > 0 && linkval[0] != '[')
     {
       /* We can use this value.  */
       assert (linkval[0] == '/');

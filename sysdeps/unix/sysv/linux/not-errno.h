@@ -25,23 +25,15 @@
 static inline int
 __access_noerrno (const char *pathname, int mode)
 {
-  int res;
 #ifdef __NR_access
-  res = INTERNAL_SYSCALL_CALL (access, pathname, mode);
+  return -INTERNAL_SYSCALL_CALL (access, pathname, mode);
 #else
-  res = INTERNAL_SYSCALL_CALL (faccessat, AT_FDCWD, pathname, mode);
+  return -INTERNAL_SYSCALL_CALL (faccessat, AT_FDCWD, pathname, mode);
 #endif
-  if (INTERNAL_SYSCALL_ERROR_P (res))
-    return -res;
-  return 0;
 }
 
 static inline int
 __kill_noerrno (pid_t pid, int sig)
 {
-  int res;
-  res = INTERNAL_SYSCALL_CALL (kill, pid, sig);
-  if (INTERNAL_SYSCALL_ERROR_P (res))
-    return -res;
-  return 0;
+  return -INTERNAL_SYSCALL_CALL (kill, pid, sig);
 }

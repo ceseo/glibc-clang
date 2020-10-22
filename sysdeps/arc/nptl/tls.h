@@ -78,10 +78,8 @@ typedef struct
 /* Code to initially initialize the thread pointer.  */
 # define TLS_INIT_TP(tcbp)					\
   ({                                            		\
-	long result_var;					\
 	__builtin_set_thread_pointer (tcbp);     		\
-	result_var = INTERNAL_SYSCALL_CALL (arc_settls, (tcbp));\
-	INTERNAL_SYSCALL_ERROR_P (result_var)			\
+	INTERNAL_SYSCALL_CALL (arc_settls, (tcbp)) < 0		\
 	  ? "settls syscall error" : NULL;			\
    })
 

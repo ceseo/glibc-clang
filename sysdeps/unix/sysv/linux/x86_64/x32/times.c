@@ -33,8 +33,4 @@
     (long long int) resultvar;						\
 })
 
-#undef INTERNAL_SYSCALL_ERROR_P
-#define INTERNAL_SYSCALL_ERROR_P(val) \
-  ((unsigned long long int) (val) >= -4095LL)
-
 #include <sysdeps/unix/sysv/linux/times.c>

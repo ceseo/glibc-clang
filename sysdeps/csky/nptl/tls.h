@@ -96,11 +96,9 @@ typedef struct
    special attention since 'errno' is not yet available and if the
    operation can cause a failure 'errno' must not be touched.  */
 # define TLS_INIT_TP(tcbp) \
-  ({ long int result_var;						\
-     result_var = INTERNAL_SYSCALL_CALL (set_thread_area, 		\
-                    (char *) (tcbp) + TLS_TCB_OFFSET);			\
-     INTERNAL_SYSCALL_ERROR_P (result_var)				\
-       ? "unknown error" : NULL; })
+  ({ result_var = INTERNAL_SYSCALL_CALL (set_thread_area, 		\
+                    (char *) (tcbp) + TLS_TCB_OFFSET) < 0 		\
+     ? "unknown error" : NULL; })
 
 /* Return the address of the dtv for the current thread.  */
 # define THREAD_DTV() \

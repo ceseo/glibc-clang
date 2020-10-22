@@ -30,9 +30,7 @@ __posix_fallocate64_l64 (int fd, __off64_t offset, __off64_t len)
 {
   int res = INTERNAL_SYSCALL_CALL (fallocate, fd, 0,
 				   SYSCALL_LL64 (offset), SYSCALL_LL64 (len));
-  if (! INTERNAL_SYSCALL_ERROR_P (res))
-    return 0;
-  if (res != -EOPNOTSUPP)
+  if (res == 0 || res != -EOPNOTSUPP)
     return -res;
   return internal_fallocate64 (fd, offset, len);
 }

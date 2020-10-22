@@ -80,9 +80,7 @@ __fstatat (int fd, const char *file, struct stat *buf, int flag)
 #  endif /* __nr_fstatat64  */
 # endif /* STAT_IS_KERNEL_STAT  */
 
-  return INTERNAL_SYSCALL_ERROR_P (r)
-	 ? INLINE_SYSCALL_ERROR_RETURN_VALUE (-r)
-	 : 0;
+  return r == 0 ? 0 : INLINE_SYSCALL_ERROR_RETURN_VALUE (-r);
 }
 
 weak_alias (__fstatat, fstatat)

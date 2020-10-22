@@ -124,7 +124,7 @@ timer_create (clockid_t clock_id, struct sigevent *evp, timer_t *timerid)
 	int res;
 	res = INTERNAL_SYSCALL_CALL (timer_create, syscall_clockid, &sev,
 				     &newp->ktimerid);
-	if (INTERNAL_SYSCALL_ERROR_P (res))
+	if (res < 0)
 	  {
 	    free (newp);
 	    __set_errno (-res);

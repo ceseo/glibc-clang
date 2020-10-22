@@ -35,9 +35,9 @@ shmat (int shmid, const void *shmaddr, int shmflg)
 
   resultvar = INTERNAL_SYSCALL_CALL (ipc, IPCOP_shmat, shmid, shmflg,
 				     &raddr, shmaddr);
-  if (INTERNAL_SYSCALL_ERROR_P (resultvar))
-    return (void *) INLINE_SYSCALL_ERROR_RETURN_VALUE (-resultvar);
+  if (resultvar == 0)
+    return raddr;
 
-  return raddr;
+  return (void *) INLINE_SYSCALL_ERROR_RETURN_VALUE (-resultvar);
 #endif
 }

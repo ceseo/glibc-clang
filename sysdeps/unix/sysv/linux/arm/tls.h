@@ -31,10 +31,8 @@
    special attention since 'errno' is not yet available and if the
    operation can cause a failure 'errno' must not be touched.  */
 # define TLS_INIT_TP(tcbp) \
-  ({ long int result_var;						\
-     result_var = INTERNAL_SYSCALL_CALL (set_tls, (tcbp));		\
-     INTERNAL_SYSCALL_ERROR_P (result_var)				\
-       ? "unknown error" : NULL; })
+  ({ INTERNAL_SYSCALL_CALL (set_tls, (tcbp)) < 0		\
+     ? "unknown error" : NULL; })
 
 #endif /* __ASSEMBLER__ */
 

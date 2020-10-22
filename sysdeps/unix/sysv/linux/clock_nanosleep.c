@@ -57,7 +57,7 @@ __clock_nanosleep_time64 (clockid_t clock_id, int flags, const struct __timespec
   struct timespec ts32 = valid_timespec64_to_timespec (*req);
   r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep, clock_id, flags,
                                &ts32, &tr32);
-  if (INTERNAL_SYSCALL_ERROR_P (r))
+  if (r < 0)
     {
       if (r == -EINTR && rem != NULL && (flags & TIMER_ABSTIME) == 0)
 	*rem = valid_timespec_to_timespec64 (tr32);

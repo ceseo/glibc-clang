@@ -123,7 +123,7 @@ create_thread (struct pthread *pd, const struct pthread_attr *attr,
 				       attr->extension->cpusetsize,
 				       attr->extension->cpuset);
 
-	  if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (res)))
+	  if (__glibc_unlikely (res < 0))
 	  err_out:
 	    {
 	      /* The operation failed.  We have to kill the thread.
@@ -144,7 +144,7 @@ create_thread (struct pthread *pd, const struct pthread_attr *attr,
 	  res = INTERNAL_SYSCALL_CALL (sched_setscheduler, pd->tid,
 				       pd->schedpolicy, &pd->schedparam);
 
-	  if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (res)))
+	  if (__glibc_unlikely (res < 0))
 	    goto err_out;
 	}
     }

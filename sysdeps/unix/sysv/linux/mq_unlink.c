@@ -30,7 +30,7 @@ mq_unlink (const char *name)
 
   /* While unlink can return either EPERM or EACCES, mq_unlink should
      return just EACCES.  */
-  if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (ret)))
+  if (ret < 0)
     {
       if (ret == -EPERM)
 	ret = -EACCES;

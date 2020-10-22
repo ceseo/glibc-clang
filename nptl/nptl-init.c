@@ -190,7 +190,7 @@ sighandler_setxid (int sig, siginfo_t *si, void *ctx)
   result = INTERNAL_SYSCALL_NCS (__xidcmd->syscall_no, 3, __xidcmd->id[0],
 				 __xidcmd->id[1], __xidcmd->id[2]);
   int error = 0;
-  if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (result)))
+  if (__glibc_unlikely (result < 0))
     error = -result;
   __nptl_setxid_error (__xidcmd, error);
 
@@ -242,7 +242,7 @@ __pthread_initialize_minimal_internal (void)
 						__data.__list.__next));
     int res = INTERNAL_SYSCALL_CALL (set_robust_list, &pd->robust_head,
 				     sizeof (struct robust_list_head));
-    if (INTERNAL_SYSCALL_ERROR_P (res))
+    if (res < 0)
       set_robust_list_not_avail ();
   }
 
