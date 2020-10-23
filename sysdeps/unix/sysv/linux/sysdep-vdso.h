@@ -28,29 +28,13 @@
 
 #define INLINE_VSYSCALL(name, nr, args...)				      \
   ({									      \
-    __label__ out;							      \
-    __label__ iserr;							      \
-    long int sc_ret;							      \
-									      \
+    long int sc_ret = -ENOSYS;						      \
     __typeof (GLRO(dl_vdso_##name)) vdsop = GLRO(dl_vdso_##name);	      \
     if (vdsop != NULL)							      \
-      {									      \
-	sc_ret = INTERNAL_VSYSCALL_CALL (vdsop, nr, ##args);	      	      \
-	if (sc_ret == 0)						      \
-	  goto out;							      \
-	if (sc_ret != -ENOSYS)		      	      			      \
-	  goto iserr;							      \
-      }									      \
-									      \
-    sc_ret = INTERNAL_SYSCALL_CALL (name, ##args);		      	      \
-    if (sc_ret < 0)						      	      \
-      {									      \
-      iserr:								      \
-        __set_errno (-sc_ret);		      	      			      \
-        sc_ret = -1L;							      \
-      }									      \
-  out:									      \
-    sc_ret;								      \
+      sc_ret = INTERNAL_VSYSCALL_CALL (vdsop, nr, ##args);	      	      \
+    if (sc_ret == -ENOSYS)						      \
+      sc_ret = INTERNAL_SYSCALL_CALL (name, ##args);		      	      \
+    syscall_ret (sc_ret);						      \
   })
 
 #endif /* SYSDEP_VDSO_LINUX_H  */

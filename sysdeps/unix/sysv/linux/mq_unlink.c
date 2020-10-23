@@ -30,12 +30,7 @@ mq_unlink (const char *name)
 
   /* While unlink can return either EPERM or EACCES, mq_unlink should
      return just EACCES.  */
-  if (ret < 0)
-    {
-      if (ret == -EPERM)
-	ret = -EACCES;
-      return INLINE_SYSCALL_ERROR_RETURN_VALUE (-ret);
-    }
-
-  return ret;
+  if (ret == -EPERM)
+    ret = -EACCES;
+  return syscall_ret (ret);
 }

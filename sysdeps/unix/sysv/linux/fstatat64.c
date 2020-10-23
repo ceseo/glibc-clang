@@ -102,7 +102,7 @@ __fstatat64_time64 (int fd, const char *file, struct __stat64_t64 *buf,
 # endif
 #endif
 
-  return r == 0 ? 0 : INLINE_SYSCALL_ERROR_RETURN_VALUE (-r);
+  return syscall_ret (r);
 }
 #if __TIMESIZE != 64
 hidden_def (__fstatat64_time64)
