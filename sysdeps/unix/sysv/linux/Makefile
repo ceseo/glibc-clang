@@ -41,7 +41,7 @@ update-syscall-lists: arch-syscall.h
 endif
 
 ifeq ($(subdir),csu)
-sysdep_routines += errno-loc
+sysdep_routines += errno-loc syscall_error
 endif
 
 ifeq ($(subdir),assert)
@@ -283,7 +283,8 @@ tests += tst-fallocate tst-fallocate64 tst-o_path-locks
 endif
 
 ifeq ($(subdir),elf)
-sysdep-rtld-routines += dl-brk dl-sbrk dl-getcwd dl-openat64 dl-opendir
+sysdep-rtld-routines += dl-brk dl-sbrk dl-getcwd dl-openat64 dl-opendir \
+			syscall_error
 
 libof-lddlibc4 = lddlibc4
 
@@ -295,6 +296,8 @@ endif
 ifeq ($(subdir),rt)
 CFLAGS-mq_send.c += -fexceptions
 CFLAGS-mq_receive.c += -fexceptions
+librt-routines += syscall_error
+librt-shared-only-routines += syscall_error
 endif
 
 ifeq ($(subdir),nscd)
@@ -303,5 +306,7 @@ CFLAGS-gai.c += -DNEED_NETLINK
 endif
 
 ifeq ($(subdir),nptl)
+libpthread-routines += syscall_error
+libpthread-shared-only-routines += syscall_error
 tests += tst-align-clone tst-getpid1
 endif

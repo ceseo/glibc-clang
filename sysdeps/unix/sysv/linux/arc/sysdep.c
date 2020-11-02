@@ -16,8 +16,10 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <sysdep.h>
 #include <errno.h>
+
+extern long int __syscall_error (long int);
+libc_hidden_proto (__syscall_error)
 
 /* All syscall handlers land here to avoid generated code bloat due to
    GOT reference  to errno_location or it's equivalent.  */
@@ -28,6 +30,4 @@ __syscall_error (long int err_no)
   return -1;
 }
 
-#if IS_IN (libc)
-hidden_def (__syscall_error)
-#endif
+libc_hidden_def (__syscall_error)

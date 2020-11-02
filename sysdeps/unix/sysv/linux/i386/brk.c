@@ -39,7 +39,7 @@ __brk (void *addr)
   void *newbrk = (void *) INTERNAL_SYSCALL_CALL (brk, addr);
   __curbrk = newbrk;
   if (newbrk < addr)
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (ENOMEM);
+    return __syscall_error (-ENOMEM);
   return 0;
 }
 weak_alias (__brk, brk)

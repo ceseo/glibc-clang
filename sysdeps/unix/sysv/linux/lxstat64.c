@@ -81,7 +81,7 @@ ___lxstat64 (int vers, const char *name, struct stat64 *buf)
 # endif /* STAT_IS_KERNEL_STAT  */
 #endif /* XSTAT_IS_XSTAT64  */
 
-  return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+  return __syscall_error (-EINVAL);
 }
 
 #if SHLIB_COMPAT(libc, GLIBC_2_1, GLIBC_2_2)

@@ -38,6 +38,6 @@ shmat (int shmid, const void *shmaddr, int shmflg)
   if (resultvar == 0)
     return raddr;
 
-  return (void *) INLINE_SYSCALL_ERROR_RETURN_VALUE (-resultvar);
+  return (void *) __syscall_error (resultvar);
 #endif
 }

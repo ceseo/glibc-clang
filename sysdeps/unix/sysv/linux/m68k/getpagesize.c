@@ -28,8 +28,6 @@
 int
 __getpagesize (void)
 {
-  int result;
-
   if (GLRO(dl_pagesize) != 0)
     return GLRO(dl_pagesize);
 

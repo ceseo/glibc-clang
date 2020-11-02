@@ -20,18 +20,36 @@
 
 #include <bits/wordsize.h>
 #include <kernel-features.h>
+#include <syscall_error.h>
 #include <endian.h>
 #include <errno.h>
 
 #ifndef __ASSEMBLER__
+/* The errno setting might be set either inline or with a helper function.
+   For some ABIs (x86_64 for instance), handling it inline might generate
+   less code; while for others (i686) a function call is preferable.
+
+   To use the helper function the ABI must define SYSCALL_ERROR_FUNC, it will
+   build a hidden function on each shared object that issue direct syscall
+   with {INLINE,INTERNAL}_SYSCALL_CALL.  */
+
+# if SYSCALL_ERROR_FUNC
+long int __syscall_error (long int err) attribute_hidden
+  SYSCALL_ERROR_FUNC_ATTR;
+# else
+static inline long int
+__syscall_error (long int err)
+{
+  __set_errno (-err);
+  return -1L;
+}
+# endif
+
 static inline long int
 syscall_ret (unsigned long int val)
 {
   if (val > -4096UL)
-    {
-      __set_errno (-val);
-      return -1;
-    }
+    return __syscall_error (val);
   return val;
 }
 
@@ -42,15 +60,6 @@ syscall_ret (unsigned long int val)
 #define INLINE_SYSCALL(...)				\
   syscall_ret (INTERNAL_SYSCALL (__VA_ARGS__))
 #endif
-
-/* Set error number and return -1.  A target may choose to return the
-   internal function, __syscall_error, which sets errno and returns -1.
-   We use -1l, instead of -1, so that it can be casted to (void *).  */
-#define INLINE_SYSCALL_ERROR_RETURN_VALUE(err)  \
-  ({						\
-    __set_errno (err);				\
-    -1l;					\
-  })
 
 /* Provide a dummy argument that can be used to force register
    alignment for register pairs if required by the syscall ABI.  */

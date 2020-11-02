@@ -41,7 +41,7 @@ __lxstat64 (int vers, const char *name, struct stat64 *buf)
 	int r = INTERNAL_SYSCALL_CALL (lstat, name, &kbuf);
 	if (r == 0)
 	  return __xstat_conv (vers, &kbuf, buf);
-	return INLINE_SYSCALL_ERROR_RETURN_VALUE (-r);
+	return __syscall_error (r);
       }
     }
 }

@@ -134,11 +134,6 @@ L (call_syscall_err):			ASM_LINE_SEP	\
 
 # define SINGLE_THREAD_BY_GLOBAL		1
 
-# if IS_IN (libc)
-extern long int __syscall_error (long int);
-hidden_proto (__syscall_error)
-# endif
-
 # define ARC_TRAP_INSN	"trap_s 0	\n\t"
 
 # undef INTERNAL_SYSCALL_NCS

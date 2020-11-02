@@ -35,7 +35,7 @@ __fstatat (int fd, const char *file, struct stat *buf, int flag)
   if (r == 0 && (buf->__st_ino_pad != 0
 		 || buf->__st_size_pad != 0
 		 || buf->__st_blocks_pad != 0))
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EOVERFLOW);
+    return __syscall_error (-EOVERFLOW);
 # else
 #  ifdef __NR_fstatat64
   /* Old KABIs with old non-LFS support, e.g. arm, i386, hppa, m68k, mips32,
@@ -47,7 +47,7 @@ __fstatat (int fd, const char *file, struct stat *buf, int flag)
       if (! in_ino_t_range (st64.st_ino)
 	  || ! in_off_t_range (st64.st_size)
 	  || ! in_blkcnt_t_range (st64.st_blocks))
-	return INLINE_SYSCALL_ERROR_RETURN_VALUE (EOVERFLOW);
+	return __syscall_error (-EOVERFLOW);
 
       /* Clear internal pad and reserved fields.  */
       memset (buf, 0, sizeof (*buf));

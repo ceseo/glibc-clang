@@ -24,7 +24,7 @@ int
 mq_unlink (const char *name)
 {
   if (name[0] != '/')
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+    return __syscall_error (-EINVAL);
 
   int ret = INTERNAL_SYSCALL_CALL (mq_unlink, name + 1);
 

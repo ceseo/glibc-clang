@@ -78,7 +78,7 @@ ___xstat64 (int vers, const char *name, struct stat64 *buf)
 # endif /* STAT_IS_KERNEL_STAT  */
 #endif /* XSTAT_IS_XSTAT64  */
 
-  return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+  return __syscall_error (-EINVAL);
 }
 
 #if XSTAT_IS_XSTAT64

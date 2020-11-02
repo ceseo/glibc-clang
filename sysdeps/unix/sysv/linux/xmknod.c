@@ -31,7 +31,7 @@ attribute_compat_text_section
 __xmknod (int vers, const char *path, mode_t mode, dev_t *dev)
 {
   if (vers != _MKNOD_VER)
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+    return __syscall_error (-EINVAL);
 
   return __mknodat (AT_FDCWD, path, mode, *dev);
 }

@@ -50,7 +50,7 @@ ___fxstat64 (int vers, int fd, struct stat64 *buf)
      and x86_64.  */
   if (vers == _STAT_VER_KERNEL || vers == _STAT_VER_LINUX)
     return INLINE_SYSCALL_CALL (fstat, fd, buf);
-  return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+  return __syscall_error (-EINVAL);
 # else
   /* New 32-bit kABIs with only 64-bit time_t support, e.g. arc, riscv32.  */
   struct statx tmp;

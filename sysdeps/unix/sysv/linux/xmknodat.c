@@ -28,7 +28,7 @@ int
 __xmknodat (int vers, int fd, const char *file, mode_t mode, dev_t *dev)
 {
   if (vers != _MKNOD_VER)
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+    return __syscall_error (-EINVAL);
 
   return __mknodat (fd, file, mode, *dev);
 }

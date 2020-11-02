@@ -34,7 +34,7 @@ faccessat (int fd, const char *file, int mode, int flag)
     return ret;
 
   if (flag & ~(AT_SYMLINK_NOFOLLOW | AT_EACCESS))
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+    return __syscall_error (-EINVAL);
 
   if ((flag == 0 || ((flag & ~AT_EACCESS) == 0 && ! __libc_enable_secure)))
     return INLINE_SYSCALL (faccessat, 3, fd, file, mode);
@@ -70,6 +70,6 @@ faccessat (int fd, const char *file, int mode, int flag)
   if (granted == mode)
     return 0;
 
-  return INLINE_SYSCALL_ERROR_RETURN_VALUE (EACCES);
+  return __syscall_error (-EACCES);
 #endif /* !__ASSUME_FACCESSAT2 */
 }

@@ -94,10 +94,9 @@ typedef struct
    special attention since 'errno' is not yet available and if the
    operation can cause a failure 'errno' must not be touched.  */
 # define TLS_INIT_TP(tcbp)						\
-  ({									\
-    INTERNAL_SYSCALL_CALL (set_thread_area,				\
-			   ((void *) (tcbp)) + TLS_TCB_OFFSET) < 0;	\
-    "unknown error" : NULL; })
+  ({ INTERNAL_SYSCALL_CALL (set_thread_area,				\
+			    ((void *) (tcbp)) + TLS_TCB_OFFSET) < 0	\
+     ? "unknown error" : NULL; })
 
 # define TLS_DEFINE_INIT_TP(tp, pd) \
   void *tp = (void *) (pd) + TLS_TCB_OFFSET + TLS_PRE_TCB_SIZE

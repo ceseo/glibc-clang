@@ -16,7 +16,6 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <sysdep.h>
 #include <errno.h>
 
 long __syscall_error (long err);

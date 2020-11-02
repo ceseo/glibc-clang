@@ -16,7 +16,6 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
-#include <sysdep.h>
 
 /* This routine is jumped to by all the syscall handlers, to stash
    an error number into errno.  ERROR is the negative error number

@@ -41,7 +41,7 @@ __fxstatat (int vers, int fd, const char *file, struct stat *st, int flag)
       int r = INLINE_SYSCALL_CALL (fstatat64, fd, file, st, flag);
       return r ?: stat_overflow (st);
     }
-  return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+  return __syscall_error (-EINVAL);
 #else
   /* Old kABIs with old non-LFS support, e.g. arm, i386, hppa, m68k, mips32,
      microblaze, s390, sh, powerpc32, and sparc32.  */

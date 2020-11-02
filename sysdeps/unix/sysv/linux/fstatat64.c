@@ -47,7 +47,7 @@ __fstatat64_time64 (int fd, const char *file, struct __stat64_t64 *buf,
       return 0;
     }
   if (-r != ENOSYS)
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (-r);
+    return __syscall_error (r);
 #endif
 
 #if XSTAT_IS_XSTAT64

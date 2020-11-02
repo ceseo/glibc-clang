@@ -33,7 +33,7 @@ mqd_t
 __mq_open (const char *name, int oflag, ...)
 {
   if (name[0] != '/')
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+    return __syscall_error (-EINVAL);
 
   mode_t mode = 0;
   struct mq_attr *attr = NULL;

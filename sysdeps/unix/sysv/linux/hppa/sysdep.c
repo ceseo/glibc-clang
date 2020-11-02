@@ -15,8 +15,6 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <stdarg.h>
-#include <sysdep.h>
 #include <errno.h>
 
 /* This routine is jumped to by all the syscall handlers, to stash

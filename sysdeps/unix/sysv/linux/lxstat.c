@@ -53,7 +53,7 @@ __lxstat (int vers, const char *name, struct stat *buf)
     default:
       {
 # if STAT_IS_KERNEL_STAT
-	return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+	return __syscall_error (-EINVAL);
 # else
 	struct stat64 buf64;
 	int r = INLINE_SYSCALL_CALL (lstat64, name, &buf64);

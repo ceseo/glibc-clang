@@ -98,7 +98,7 @@ __getdents (int fd, void *buf0, size_t nbytes)
               __lseek64 (fd, last_offset, SEEK_SET);
               return outp->b - buf;
             }
-	  return INLINE_SYSCALL_ERROR_RETURN_VALUE (EOVERFLOW);
+	  return __syscall_error (-EOVERFLOW);
         }
 
       last_offset = d_off;

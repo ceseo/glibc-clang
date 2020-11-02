@@ -35,7 +35,7 @@ __fxstatat64 (int vers, int fd, const char *file, struct stat64 *st, int flag)
       int r = INLINE_SYSCALL_CALL (newfstatat, fd, file, &kst, flag);;
       return r ?: __xstat64_conv (vers, &kst, st);
     }
-  return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+  return __syscall_error (-EINVAL);
 }
 
 compat_symbol (libc, __fxstatat64, __fxstatat64, GLIBC_2_4);

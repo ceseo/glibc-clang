@@ -63,7 +63,7 @@ __fxstatat64 (int vers, int fd, const char *file, struct stat64 *st, int flag)
   if (vers == _STAT_VER_LINUX)
     return INLINE_SYSCALL_CALL (fstatat64, fd, file, st, flag);
 #endif
-  return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+  return __syscall_error (-EINVAL);
 }
 
 compat_symbol (libc, __fxstatat64, __fxstatat64, GLIBC_2_4);

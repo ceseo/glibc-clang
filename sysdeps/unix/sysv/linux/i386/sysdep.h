@@ -236,9 +236,6 @@
 
 #else	/* !__ASSEMBLER__ */
 
-extern int __syscall_error (int)
-  attribute_hidden __attribute__ ((__regparm__ (1)));
-
 #ifndef OPTIMIZE_FOR_GCC_5
 /* We need some help from the assembler to generate optimal code.  We
    define some macros here which later will be used.  */

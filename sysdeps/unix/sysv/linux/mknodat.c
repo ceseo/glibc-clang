@@ -28,7 +28,7 @@ __mknodat (int fd, const char *path, mode_t mode, dev_t dev)
      32-bit.  */
   unsigned int k_dev = dev;
   if (k_dev != dev)
-    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+    return __syscall_error (-EINVAL);
 
   return INLINE_SYSCALL_CALL (mknodat, fd, path, mode, k_dev);
 }

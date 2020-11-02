@@ -1,4 +1,5 @@
-/* Copyright (C) 1997-2020 Free Software Foundation, Inc.
+/* Linux wrappers for setting errno.
+   Copyright (C) 2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,13 +16,17 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
+#ifndef _SYSCALL_ERROR_H
+#define _SYSCALL_ERROR_H
 
-/* This routine is jumped to by all the syscall handlers, to stash
-   an error number into errno.  */
-int
-__syscall_error (int err_no)
-{
-  __set_errno (err_no);
-  return -1;
-}
+/* Each architecture might how __syscall_error is called, either by defining
+   an inline function (default) or by calling a hidden function.  Check the
+   sysdep.h file for the implementation.  */
+#define SYSCALL_ERROR_FUNC        0
+
+/* Any function attribute used to define the __syscall_error in case of
+   __SYSCALL_ERROR_FUNC (for instance by using a different calling covention
+   for intra-DSO calls.  */
+#define SYSCALL_ERROR_FUNC_ATTR
+
+#endif
