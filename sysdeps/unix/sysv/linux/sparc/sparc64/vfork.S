@@ -26,6 +26,7 @@ ENTRY(__libc_vfork)
 	ta	0x6d
 	bcc,pt	%xcc, 2f
 	 mov	%o7, %g1
+	neg	%o0, %o0
 	call	__syscall_error
 	 mov	%g1, %o7
 2:	sub	%o1, 1, %o1

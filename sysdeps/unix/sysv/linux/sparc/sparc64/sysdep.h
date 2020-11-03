@@ -65,6 +65,7 @@ ENTRY(name);					\
 #ifndef PIC
 # define SYSCALL_ERROR_HANDLER			\
 	mov	%o7, %g1;			\
+	neg     %o0, %o0;			\
 	call	__syscall_error;		\
 	 mov	%g1, %o7;
 #else

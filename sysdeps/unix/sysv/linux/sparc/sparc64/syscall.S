@@ -32,6 +32,7 @@ ENTRY(syscall)
 
 	bcc,pt	%xcc, 1f
 	 mov	%o7, %g1
+	neg	%o0, %o0
 	call	__syscall_error
 	 mov	%g1, %o7
 1:	retl

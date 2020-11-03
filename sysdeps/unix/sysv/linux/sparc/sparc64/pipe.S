@@ -27,6 +27,7 @@ ENTRY(__libc_pipe)
 	ta	0x6d
 	bcc,pt	%xcc, 1f
 	 mov	%o7, %g1
+	neg	%o0, %o0
 	call	__syscall_error
 	 mov	%g1, %o7
 1:	st	%o0, [%o2]		/* PIPEDES[0] = %o0; */
