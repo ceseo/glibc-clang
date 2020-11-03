@@ -83,10 +83,11 @@ L(parent):
 	lmw	r28,16(r1)
 	addi	r1,r1,32
 	bnslr+
+	neg	r3,r3
 	b	__syscall_error@local
 
 L(badargs):
-	li	r3,EINVAL
+	li	r3,-EINVAL
 	b	__syscall_error@local
 
 	cfi_startproc

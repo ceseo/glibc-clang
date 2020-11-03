@@ -216,7 +216,7 @@ compat_symbol (libc, __novec_makecontext, makecontext, GLIBC_2_3_3)
 
 	compat_text_section
 ENTRY (__makecontext_stub)
-	li	r3,ENOSYS
+	li	r3,-ENOSYS
 	b	__syscall_error@local
 END (__makecontext_stub)
 	.previous

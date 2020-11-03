@@ -41,6 +41,7 @@ ENTRY (__getcontext)
 	li	r3,0
 	blr
 1:
+	neg	r3,r3
 	b	__syscall_error@local
 END(__getcontext)
 
@@ -69,6 +70,7 @@ compat_symbol (libc, __novec_getcontext, getcontext, GLIBC_2_3_3)
 	compat_text_section
 ENTRY (__getcontext_stub)
 	li	r3,ENOSYS
+	neg	r3,r3
 	b	__syscall_error@local
 END (__getcontext_stub)
 	.previous

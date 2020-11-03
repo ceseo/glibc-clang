@@ -3,11 +3,6 @@ abi-32-condition := __WORDSIZE == 32
 abi-64-v1-condition := __WORDSIZE == 64 && _CALL_ELF != 2
 abi-64-v2-condition := __WORDSIZE == 64 && _CALL_ELF == 2
 
-ifeq ($(subdir),rt)
-librt-routines += rt-sysdep
-librt-shared-only-routines += rt-sysdep
-endif
-
 ifeq ($(subdir),stdlib)
 gen-as-const-headers += ucontext_i.sym
 endif
@@ -31,8 +26,6 @@ tests += test-powerpc-linux-sysconf
 endif
 
 ifeq ($(subdir),nptl)
-libpthread-routines += sysdep
 libpthread-sysdep_routines += elision-lock elision-unlock elision-timed \
 			      elision-trylock
-libpthread-shared-only-routines += sysdep
 endif

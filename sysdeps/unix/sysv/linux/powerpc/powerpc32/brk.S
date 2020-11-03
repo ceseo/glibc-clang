@@ -46,6 +46,7 @@ ENTRY (__brk)
 	li	r3,0
 	blelr+
 	li      r3,ENOMEM
+	neg	r3,r3
 	b	__syscall_error@local
 END (__brk)
 

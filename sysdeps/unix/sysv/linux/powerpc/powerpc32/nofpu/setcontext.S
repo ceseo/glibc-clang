@@ -48,7 +48,7 @@ compat_symbol (libc, __novec_setcontext, setcontext, GLIBC_2_3_3)
 
 	compat_text_section
 ENTRY (__setcontext_stub)
-	li	r3,ENOSYS
+	li	r3,-ENOSYS
 	b	__syscall_error@local
 END (__setcontext_stub)
 	.previous

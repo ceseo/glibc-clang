@@ -113,6 +113,7 @@ GOT_LABEL:			;					      \
 
 #define PSEUDO_RET							      \
     bnslr+;								      \
+    neg 3,3;								      \
     b __syscall_error@local
 #define ret PSEUDO_RET
 

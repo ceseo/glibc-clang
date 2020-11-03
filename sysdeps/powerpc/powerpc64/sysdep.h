@@ -277,13 +277,13 @@ LT_LABELSUFFIX(name,_name_end): ; \
   DO_CALL (SYS_ify (syscall_name))
 
 #ifdef SHARED
-#define TAIL_CALL_SYSCALL_ERROR \
+#define _TAIL_CALL_SYSCALL_ERROR \
     b JUMPTARGET (NOTOC (__syscall_error))
 #else
 /* Static version might be linked into a large app with a toc exceeding
    64k.  We can't put a toc adjusting stub on a plain branch, so can't
    tail call __syscall_error.  */
-#define TAIL_CALL_SYSCALL_ERROR \
+#define _TAIL_CALL_SYSCALL_ERROR \
     .ifdef .Local_syscall_error; \
     b .Local_syscall_error; \
     .else; \
@@ -303,6 +303,9 @@ LT_LABELSUFFIX(name,_name_end): ; \
     blr; \
     .endif
 #endif
+#define TAIL_CALL_SYSCALL_ERROR \
+    neg 3,3; \
+    _TAIL_CALL_SYSCALL_ERROR
 
 #define PSEUDO_RET \
     bnslr+; \

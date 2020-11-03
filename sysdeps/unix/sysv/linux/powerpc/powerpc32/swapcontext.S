@@ -40,6 +40,7 @@ ENTRY (__swapcontext)
 	li	r3,0
 	blr
 1:
+	neg	r3,r3
 	b	__syscall_error@local
 END(__swapcontext)
 
@@ -68,7 +69,7 @@ compat_symbol (libc, __novec_swapcontext, swapcontext, GLIBC_2_3_3)
 
 	compat_text_section
 ENTRY (__swapcontext_stub)
-	li	r3,ENOSYS
+	li	r3,-ENOSYS
 	b	__syscall_error@local
 END (__swapcontext_stub)
 	.previous
