@@ -1,4 +1,4 @@
-/* ARC wrapper for setting errno.
+/* Linux wrappers for setting errno.  AArch64 version.
    Copyright (C) 2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -16,18 +16,10 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
+#ifndef _SYSCALL_ERROR_H
+#define _SYSCALL_ERROR_H
 
-extern long int __syscall_error (long int);
-libc_hidden_proto (__syscall_error)
+#define SYSCALL_ERROR_FUNC        1
+#define SYSCALL_ERROR_FUNC_ATTR
 
-/* All syscall handlers land here to avoid generated code bloat due to
-   GOT reference  to errno_location or it's equivalent.  */
-long int
-__syscall_error (long int err_no)
-{
-  __set_errno (-err_no);
-  return -1;
-}
-
-libc_hidden_def (__syscall_error)
+#endif

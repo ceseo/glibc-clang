@@ -103,22 +103,12 @@
 # define PSEUDO_END_ERRVAL(name)				\
   END (name)
 
-
-/* To reduce the code footprint, we confine the actual errno access
-   to single place in __syscall_error().
-   This takes raw kernel error value, sets errno and returns -1.  */
-# if IS_IN (libc)
-#  define CALL_ERRNO_SETTER_C	bl     PLTJMP(HIDDEN_JUMPTARGET(__syscall_error))
-# else
-#  define CALL_ERRNO_SETTER_C	bl     PLTJMP(__syscall_error)
-# endif
-
 # define SYSCALL_ERROR_HANDLER				\
 L (call_syscall_err):			ASM_LINE_SEP	\
     push_s   blink			ASM_LINE_SEP	\
     cfi_adjust_cfa_offset (4)		ASM_LINE_SEP	\
     cfi_rel_offset (blink, 0)		ASM_LINE_SEP	\
-    CALL_ERRNO_SETTER_C			ASM_LINE_SEP	\
+    bl __syscall_error			ASM_LINE_SEP	\
     pop_s  blink			ASM_LINE_SEP	\
     cfi_adjust_cfa_offset (-4)		ASM_LINE_SEP	\
     cfi_restore (blink)			ASM_LINE_SEP	\
