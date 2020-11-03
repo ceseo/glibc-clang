@@ -1,5 +1,5 @@
-/* Copyright (C) 2011-2020 Free Software Foundation, Inc.
-
+/* Linux wrappers for setting errno.  AArch64 version.
+   Copyright (C) 2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -13,20 +13,13 @@
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library.  If not, see
+   License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
+#ifndef _SYSCALL_ERROR_H
+#define _SYSCALL_ERROR_H
 
-long __syscall_error (long err);
-hidden_proto (__syscall_error)
+#define SYSCALL_ERROR_FUNC        1
+#define SYSCALL_ERROR_FUNC_ATTR
 
-/* This routine is jumped to by all the syscall handlers, to stash
-   an error number into errno.  */
-long
-__syscall_error (long err)
-{
-  __set_errno (- err);
-  return -1;
-}
-hidden_def (__syscall_error)
+#endif
