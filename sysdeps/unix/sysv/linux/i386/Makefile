@@ -28,22 +28,9 @@ gen-as-const-headers += ucontext_i.sym
 endif
 
 ifeq ($(subdir),csu)
-sysdep-dl-routines += sysdep
 ifeq (yes,$(build-shared))
 sysdep_routines += divdi3
 shared-only-routines += divdi3
 CPPFLAGS-divdi3.c = -Din_divdi3_c
 endif
-endif
-
-ifeq ($(subdir),nptl)
-# pull in __syscall_error routine
-libpthread-routines += sysdep
-libpthread-shared-only-routines += sysdep
-endif
-
-ifeq ($(subdir),rt)
-# pull in __syscall_error routine
-librt-routines += sysdep
-librt-shared-only-routines += sysdep
 endif
