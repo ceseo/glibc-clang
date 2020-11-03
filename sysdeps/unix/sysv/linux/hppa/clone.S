@@ -124,7 +124,8 @@ ENTRY(__clone)
 .LerrorRest:
 	/* Something bad happened -- no child created */
 	bl	__syscall_error, %rp
-	sub     %r0, %ret0, %arg0
+	 copy    %ret0, %arg0
+
 	ldw	-84(%sp), %rp
 	/* Return after setting errno, ret0 is set to -1 by __syscall_error. */
 	bv	%r0(%rp)
@@ -133,7 +134,8 @@ ENTRY(__clone)
 .LerrorSanity:
 	/* Sanity checks failed, return -1, and set errno to EINVAL. */
 	bl	__syscall_error, %rp
-	ldi     EINVAL, %arg0
+	 ldi     -EINVAL, %arg0
+
 	ldw	-84(%sp), %rp
 	bv	%r0(%rp)
 	ldwm	-64(%sp), %r4
