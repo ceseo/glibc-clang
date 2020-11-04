@@ -1,4 +1,5 @@
-/* Copyright (C) 1995-2020 Free Software Foundation, Inc.
+/* Linux wrappers for setting errno.  SH version.
+   Copyright (C) 2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,18 +16,10 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <sysdep.h>
+#ifndef _SYSCALL_ERROR_H
+#define _SYSCALL_ERROR_H
 
-/* The syscall stubs jump here when they detect an error.
-   The code for Linux is almost identical to the canonical Unix
-   code, except that the error number in R0 is negated.  */
+#define SYSCALL_ERROR_FUNC        1
+#define SYSCALL_ERROR_FUNC_ATTR
 
-#undef CALL_MCOUNT
-#define CALL_MCOUNT /* Don't insert the profiling call, it clobbers R0.  */
-
-ENTRY (__syscall_error)
-	neg r4, r0
-	cfi_endproc
-
-#define __syscall_error __syscall_error_1
-#include <sysdeps/unix/sh/sysdep.S>
+#endif
