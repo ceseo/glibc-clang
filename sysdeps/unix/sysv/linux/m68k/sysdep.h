@@ -45,11 +45,7 @@
 /* We don't want the label for the error handler to be visible in the symbol
    table when we define it here.  */
 #undef SYSCALL_ERROR_LABEL
-#ifdef PIC
 #define SYSCALL_ERROR_LABEL .Lsyscall_error
-#else
-#define SYSCALL_ERROR_LABEL __syscall_error
-#endif
 
 #undef PSEUDO
 #define	PSEUDO(name, syscall_name, args)				      \
@@ -137,7 +133,10 @@ SYSCALL_ERROR_LABEL:							      \
     rts;
 # endif /* _LIBC_REENTRANT */
 #else
-# define SYSCALL_ERROR_HANDLER	/* Nothing here; code in sysdep.S is used.  */
+# define SYSCALL_ERROR_HANDLER						      \
+SYSCALL_ERROR_LABEL:							      \
+    move.l %d0,4(%sp);							      \
+    bra.l __syscall_error
 #endif /* PIC */
 
 /* Linux takes system call arguments in registers:
