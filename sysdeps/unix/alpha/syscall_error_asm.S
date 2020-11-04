@@ -35,9 +35,9 @@
 #endif
 
 	.align 4
-	.globl	__syscall_error
-	.ent	__syscall_error
-__syscall_error:
+	.globl	__syscall_error_asm
+	.ent	__syscall_error_asm
+__syscall_error_asm:
 	/* When building a shared library, we branch here without having
 	   loaded the GP.  Nor, since it was a direct branch, have we
 	   loaded PV with our address.
@@ -62,4 +62,4 @@ __syscall_error:
 	stl	t0, 0(t1)
 	ret
 
-	.end __syscall_error
+	.end __syscall_error_asm

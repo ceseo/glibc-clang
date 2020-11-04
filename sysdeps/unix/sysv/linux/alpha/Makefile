@@ -31,8 +31,7 @@ libm-routines += multc3 divtc3
 endif   # math
 
 ifeq ($(subdir),nptl)
-# pull in __syscall_error routine, sigaction stubs.
-libpthread-routines += sysdep rt_sigaction
+libpthread-routines += rt_sigaction
 libpthread-shared-only-routines += sysdep rt_sigaction
 endif
 

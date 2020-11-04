@@ -102,14 +102,14 @@ $syscall_error:					\
 	ret
 # define SYSCALL_ERROR_FALLTHRU
 #elif defined(PIC)
-# define SYSCALL_ERROR_LABEL		__syscall_error !samegp
+# define SYSCALL_ERROR_LABEL		__syscall_error_asm !samegp
 # define SYSCALL_ERROR_HANDLER
 # define SYSCALL_ERROR_FALLTHRU		br SYSCALL_ERROR_LABEL
 #else
 # define SYSCALL_ERROR_LABEL		$syscall_error
 # define SYSCALL_ERROR_HANDLER			\
 $syscall_error:					\
-	jmp $31, __syscall_error
+	jmp $31, __syscall_error_asm
 # define SYSCALL_ERROR_FALLTHRU
 #endif /* RTLD_PRIVATE_ERRNO */
 
