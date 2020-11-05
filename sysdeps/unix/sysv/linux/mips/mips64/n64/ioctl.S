@@ -31,7 +31,8 @@ ENTRY (__ioctl)
 	ret
 
 L(error):
-	SETUP_GP64_REG (a0, __ioctl)
+	INT_SUBU a0, zero, v0
+	SETUP_GP64_REG (v0, __ioctl)
 	PTR_LA t9, __syscall_error
 	RESTORE_GP64_REG
 	jr t9

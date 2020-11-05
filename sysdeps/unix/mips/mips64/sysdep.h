@@ -30,6 +30,7 @@
   .set nomips16;							      \
   cfi_startproc;							      \
   99:;									      \
+  dsubu a0, zero, v0;							      \
   .set noat;								      \
   .cpsetup t9, $1, name;						      \
   cfi_register (gp, $1);						      \
@@ -51,7 +52,7 @@ L(syse1):
   .set nomips16;							      \
   cfi_startproc;							      \
   99: j __syscall_error;						      \
-  nop;                                                                        \
+   dsubu a0, zero, v0;							      \
   cfi_endproc;								      \
   ENTRY(name)								      \
   .set noreorder;							      \

@@ -26,7 +26,8 @@
   .align 2;								      \
   .set nomips16;							      \
   cfi_startproc;							      \
-  99: la t9,__syscall_error;						      \
+  99: subu a0, zero, v0;						      \
+  la t9,__syscall_error;						      \
   jr t9;								      \
   cfi_endproc;								      \
   ENTRY(name)								      \
@@ -44,7 +45,7 @@ L(syse1):
   .align 2;								      \
   cfi_startproc;							      \
   99: j __syscall_error;						      \
-  nop;									      \
+   subu a0, zero, v0;							      \
   cfi_endproc;								      \
   ENTRY(name)								      \
   .set noreorder;							      \

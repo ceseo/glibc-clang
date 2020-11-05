@@ -7,11 +7,6 @@ ifeq ($(subdir),setjmp)
 sysdep_routines += setjmp_aux
 endif
 
-ifeq ($(subdir),rt)
-librt-sysdep_routines += rt-sysdep
-librt-shared-only-routines += rt-sysdep
-endif
-
 ifeq ($(subdir),csu)
 CPPFLAGS-crti.S += $(pic-ccflag)
 CPPFLAGS-crtn.S += $(pic-ccflag)

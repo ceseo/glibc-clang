@@ -76,6 +76,7 @@ NESTED(__libc_vfork,FRAMESZ,sp)
 	/* Something bad happened -- no child created.  */
 L(error):
 	cfi_restore_state
+	INT_SUBU	a0, zero, v0
 #ifdef __PIC__
 	PTR_LA		t9, __syscall_error
 	RESTORE_GP64_REG

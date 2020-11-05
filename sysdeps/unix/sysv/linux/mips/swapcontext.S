@@ -200,6 +200,7 @@ NESTED (__swapcontext, FRAMESZ, ra)
 	jr	t9
 
 99:
+	INT_SUBU a0, zero, v0;
 #ifdef __PIC__
 	PTR_LA	t9, JUMPTARGET (__syscall_error)
 	RESTORE_GP64_STACK

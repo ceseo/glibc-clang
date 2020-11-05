@@ -55,7 +55,8 @@ NESTED (syscall, SZREG, ra)
 	ret
 
 L(error):
-	SETUP_GP64_REG (a0, syscall)
+	INT_SUBU a0, zero, v0
+	SETUP_GP64_REG (v0, syscall)
 	PTR_LA t9, __syscall_error
 	RESTORE_GP64_REG
 	jr t9

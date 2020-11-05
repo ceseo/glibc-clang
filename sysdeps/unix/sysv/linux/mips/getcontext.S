@@ -140,6 +140,7 @@ NESTED (__getcontext, FRAMESZ, ra)
 
 99:
 	cfi_restore_state
+	INT_SUBU a0, zero, v0
 #ifdef __PIC__
 	PTR_LA	t9, JUMPTARGET (__syscall_error)
 	RESTORE_GP64_STACK
