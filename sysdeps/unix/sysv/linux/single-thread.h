@@ -19,6 +19,8 @@
 #ifndef _SINGLE_THREAD_H
 #define _SINGLE_THREAD_H
 
+#include <tls.h>
+
 /* The default way to check if the process is single thread is by using the
    pthread_t 'multiple_threads' field.  However, for some architectures it is
    faster to either use an extra field on TCB or global variables (the TCB
