@@ -209,6 +209,116 @@ L (call_syscall_err):			ASM_LINE_SEP	\
 # undef HAVE_INTERNAL_BRK_ADDR_SYMBOL
 # define HAVE_INTERNAL_BRK_ADDR_SYMBOL  1
 
+static inline long int
+__internal_syscall0 (long int name)
+{
+  register long int sc asm ("r8") = name;
+  register long int r0 asm ("r0");
+  asm volatile (ARC_TRAP_INSN
+		: "+r" (r0)
+		: "r" (sc)
+		: "memory");
+  return r0;
+}
+
+static inline long int
+__internal_syscall1 (long int name, __syscall_arg_t arg1)
+{
+  register long int sc asm ("r8") = name;
+  register long int r0 asm ("r0") = arg1;
+  asm volatile (ARC_TRAP_INSN
+		: "+r" (r0)
+		: "r" (sc), "r" (r0)
+		: "memory");
+  return r0;
+}
+
+static inline long int
+__internal_syscall2 (long int name, __syscall_arg_t arg1,
+		     __syscall_arg_t arg2)
+{
+  register long int sc asm ("r8") = name;
+  register long int r0 asm ("r0") = arg1;
+  register long int r1 asm ("r1") = arg2;
+  asm volatile (ARC_TRAP_INSN
+		: "+r" (r0)
+		: "r" (sc), "r" (r0), "r" (r1)
+		: "memory");
+  return r0;
+}
+
+static inline long int
+__internal_syscall3 (long int name, __syscall_arg_t arg1,
+		     __syscall_arg_t arg2, __syscall_arg_t arg3)
+{
+  register long int sc asm ("r8") = name;
+  register long int r0 asm ("r0") = arg1;
+  register long int r1 asm ("r1") = arg2;
+  register long int r2 asm ("r2") = arg3;
+  asm volatile (ARC_TRAP_INSN
+		: "+r" (r0)
+		: "r" (sc), "r" (r0), "r" (r1), "r" (r2)
+		: "memory");
+  return r0;
+}
+
+static inline long int
+__internal_syscall4 (long int name, __syscall_arg_t arg1,
+		     __syscall_arg_t arg2, __syscall_arg_t arg3,
+		     __syscall_arg_t arg4)
+{
+  register long int sc asm ("r8") = name;
+  register long int r0 asm ("r0") = arg1;
+  register long int r1 asm ("r1") = arg2;
+  register long int r2 asm ("r2") = arg3;
+  register long int r3 asm ("r3") = arg4;
+  asm volatile (ARC_TRAP_INSN
+		: "+r" (r0)
+		: "r" (sc), "r" (r0), "r" (r1), "r" (r2), "r" (r3)
+		: "memory");
+  return r0;
+}
+
+static inline long int
+__internal_syscall5 (long int name, __syscall_arg_t arg1,
+		     __syscall_arg_t arg2, __syscall_arg_t arg3,
+		     __syscall_arg_t arg4, __syscall_arg_t arg5)
+{
+  register long int sc asm ("r8") = name;
+  register long int r0 asm ("r0") = arg1;
+  register long int r1 asm ("r1") = arg2;
+  register long int r2 asm ("r2") = arg3;
+  register long int r3 asm ("r3") = arg4;
+  register long int r4 asm ("r4") = arg5;
+  asm volatile (ARC_TRAP_INSN
+		: "+r" (r0)
+		: "r" (sc), "r" (r0), "r" (r1), "r" (r2), "r" (r3),
+		  "r" (r4)
+		: "memory");
+  return r0;
+}
+
+static inline long int
+__internal_syscall6 (long int name, __syscall_arg_t arg1,
+		     __syscall_arg_t arg2, __syscall_arg_t arg3,
+		     __syscall_arg_t arg4, __syscall_arg_t arg5,
+		     __syscall_arg_t arg6)
+{
+  register long int sc asm ("r8") = name;
+  register long int r0 asm ("r0") = arg1;
+  register long int r1 asm ("r1") = arg2;
+  register long int r2 asm ("r2") = arg3;
+  register long int r3 asm ("r3") = arg4;
+  register long int r4 asm ("r4") = arg5;
+  register long int r5 asm ("r5") = arg6;
+  asm volatile (ARC_TRAP_INSN
+		: "+r" (r0)
+		: "r" (sc), "r" (r0), "r" (r1), "r" (r2), "r" (r3),
+		  "r" (r4), "r" (r5)
+		: "memory");
+  return r0;
+}
+
 #endif /* !__ASSEMBLER__ */
 
 #endif /* linux/arc/sysdep.h */
