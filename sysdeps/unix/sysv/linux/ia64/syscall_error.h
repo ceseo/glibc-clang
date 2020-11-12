@@ -1,4 +1,4 @@
-/* Linux wrappers for setting errno.  SH version.
+/* Linux wrappers for setting errno.  IA64 version.
    Copyright (C) 2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -19,7 +19,7 @@
 #ifndef _SYSCALL_ERROR_H
 #define _SYSCALL_ERROR_H
 
-#define SYSCALL_ERROR_FUNC        1
+#define SYSCALL_ERROR_FUNC        0
 #define SYSCALL_ERROR_FUNC_ATTR
 
 #endif
