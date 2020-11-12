@@ -20,9 +20,9 @@
 #define _SYSCALL_ERROR_H
 
 /* Each architecture might how __syscall_error is called, either by defining
-   an inline function (default) or by calling a hidden function.  Check the
+   an inline function or by calling a hidden function (default).  Check the
    sysdep.h file for the implementation.  */
-#define SYSCALL_ERROR_FUNC        0
+#define SYSCALL_ERROR_FUNC        1
 
 /* Any function attribute used to define the __syscall_error in case of
    __SYSCALL_ERROR_FUNC (for instance by using a different calling covention
