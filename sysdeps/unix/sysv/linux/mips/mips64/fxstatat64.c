@@ -32,7 +32,7 @@ __fxstatat64 (int vers, int fd, const char *file, struct stat64 *st, int flag)
   if (vers == _STAT_VER_LINUX)
     {
       struct kernel_stat kst;
-      int r = INLINE_SYSCALL_CALL (newfstatat, fd, file, &kst, flag);;
+      int r = inline_syscall (__NR_newfstatat, fd, file, &kst, flag);;
       return r ?: __xstat64_conv (vers, &kst, st);
     }
   return __syscall_error (-EINVAL);

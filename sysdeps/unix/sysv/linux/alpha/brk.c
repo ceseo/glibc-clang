@@ -26,7 +26,7 @@ int
 __brk (void *addr)
 {
   /* Alpha brk returns -ENOMEM in case of failure.  */
-  __curbrk = (void *) INTERNAL_SYSCALL_CALL (brk, addr);
+  __curbrk = (void *) internal_syscall (__NR_brk, addr);
   if ((unsigned long) __curbrk == -ENOMEM)
     {
       __set_errno (ENOMEM);

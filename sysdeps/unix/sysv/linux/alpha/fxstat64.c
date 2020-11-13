@@ -32,12 +32,12 @@ __fxstat64 (int vers, int fd, struct stat64 *buf)
   switch (vers)
     {
     case _STAT_VER_KERNEL64:
-      return INLINE_SYSCALL_CALL (fstat64, fd, buf);
+      return inline_syscall (__NR_fstat64, fd, buf);
 
     default:
       {
         struct kernel_stat kbuf;
-	int r = INTERNAL_SYSCALL_CALL (fstat, fd, &kbuf);
+	int r = internal_syscall (__NR_fstat, fd, &kbuf);
 	if (r == 0)
 	  return __xstat_conv (vers, &kbuf, buf);
 	return __syscall_error (r);

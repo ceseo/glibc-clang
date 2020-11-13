@@ -38,8 +38,8 @@ __lseek64_syscall (long int name, int fd, off64_t offset, int whence)
   return a3 != 0 ? syscall_ret (-v0) : v0;
 }
 
-#undef INLINE_SYSCALL_CALL
-#define INLINE_SYSCALL_CALL(name, ...) \
-  __lseek64_syscall(__NR_##name, __VA_ARGS__)
+#undef inline_syscall
+#define inline_syscall(name, ...) \
+  __lseek64_syscall(name, __VA_ARGS__)
 
 #include <sysdeps/unix/sysv/linux/lseek64.c>

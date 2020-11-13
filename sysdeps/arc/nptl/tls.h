@@ -79,7 +79,7 @@ typedef struct
 # define TLS_INIT_TP(tcbp)					\
   ({                                            		\
 	__builtin_set_thread_pointer (tcbp);     		\
-	INTERNAL_SYSCALL_CALL (arc_settls, (tcbp)) < 0		\
+	internal_syscall (__NR_arc_settls, (tcbp)) < 0		\
 	  ? "settls syscall error" : NULL;			\
    })
 

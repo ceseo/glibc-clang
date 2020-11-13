@@ -31,7 +31,7 @@ __getpagesize (void)
   if (GLRO(dl_pagesize) != 0)
     return GLRO(dl_pagesize);
 
-  return INTERNAL_SYSCALL_CALL (getpagesize);
+  return internal_syscall (__NR_getpagesize);
 }
 libc_hidden_def (__getpagesize)
 weak_alias (__getpagesize, getpagesize)

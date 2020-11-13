@@ -66,9 +66,9 @@ __futex_abstimed_wait32 (unsigned int* futex_word,
   if (abstime != NULL)
     ts32 = valid_timespec64_to_timespec (*abstime);
 
-  return INTERNAL_SYSCALL_CALL (futex, futex_word, op, expected,
-                                abstime != NULL ? &ts32 : NULL,
-                                NULL /* Unused.  */, FUTEX_BITSET_MATCH_ANY);
+  return internal_syscall (__NR_futex, futex_word, op, expected,
+                           abstime != NULL ? &ts32 : NULL,
+                           NULL /* Unused.  */, FUTEX_BITSET_MATCH_ANY);
 }
 
 static int
@@ -87,9 +87,9 @@ __futex_clock_wait_bitset32 (int *futexp, int val, clockid_t clockid,
   if (abstime != NULL)
     ts32 = valid_timespec64_to_timespec (*abstime);
 
-  return INTERNAL_SYSCALL_CALL (futex, futexp, op, val,
-                                abstime != NULL ? &ts32 : NULL,
-                                NULL /* Unused.  */, FUTEX_BITSET_MATCH_ANY);
+  return internal_syscall (__NR_futex, futexp, op, val,
+                           abstime != NULL ? &ts32 : NULL,
+                           NULL /* Unused.  */, FUTEX_BITSET_MATCH_ANY);
 }
 #endif /* ! __ASSUME_TIME64_SYSCALLS */
 
@@ -163,9 +163,9 @@ __futex_abstimed_wait64 (unsigned int* futex_word, unsigned int expected,
   clockbit = (clockid == CLOCK_REALTIME) ? FUTEX_CLOCK_REALTIME : 0;
   int op = __lll_private_flag (FUTEX_WAIT_BITSET | clockbit, private);
 
-  err = INTERNAL_SYSCALL_CALL (futex_time64, futex_word, op, expected,
-                               abstime, NULL /* Unused.  */,
-                               FUTEX_BITSET_MATCH_ANY);
+  err = internal_syscall (__NR_futex_time64, futex_word, op, expected,
+                          abstime, NULL /* Unused.  */,
+                          FUTEX_BITSET_MATCH_ANY);
 #ifndef __ASSUME_TIME64_SYSCALLS
   if (err == -ENOSYS)
     err = __futex_abstimed_wait32 (futex_word, expected,
@@ -222,9 +222,9 @@ __futex_clocklock_wait64 (int *futex, int val, clockid_t clockid,
       tsp = &ts;
     }
 
-  int err = INTERNAL_SYSCALL_CALL (futex_time64, futex,
-                                   __lll_private_flag (FUTEX_WAIT, private),
-                                   val, tsp);
+  int err = internal_syscall (__NR_futex_time64, futex,
+                              __lll_private_flag (FUTEX_WAIT, private),
+                              val, tsp);
 #ifndef __ASSUME_TIME64_SYSCALLS
   if (err == -ENOSYS)
     {
@@ -235,9 +235,9 @@ __futex_clocklock_wait64 (int *futex, int val, clockid_t clockid,
       if (tsp != NULL)
         ts32 = valid_timespec64_to_timespec (*tsp);
 
-      err = INTERNAL_SYSCALL_CALL (futex, futex,
-                                   __lll_private_flag (FUTEX_WAIT, private),
-                                   val, tsp != NULL ? &ts32 : NULL);
+      err = internal_syscall (__NR_futex, futex,
+                              __lll_private_flag (FUTEX_WAIT, private),
+                              val, tsp != NULL ? &ts32 : NULL);
     }
 #endif
 
@@ -259,7 +259,7 @@ __futex_clock_wait_bitset64 (int *futexp, int val, clockid_t clockid,
     (clockid == CLOCK_REALTIME) ? FUTEX_CLOCK_REALTIME : 0;
   const int op = __lll_private_flag (FUTEX_WAIT_BITSET | clockbit, private);
 
-  ret = INTERNAL_SYSCALL_CALL (futex_time64, futexp, op, val,
+  ret = internal_syscall (__NR_futex_time64, futexp, op, val,
                                abstime, NULL /* Unused.  */,
                                FUTEX_BITSET_MATCH_ANY);
 #ifndef __ASSUME_TIME64_SYSCALLS

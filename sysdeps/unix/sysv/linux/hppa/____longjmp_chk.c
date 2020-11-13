@@ -28,7 +28,7 @@
     if ((unsigned long) (sp) > this_sp)					\
       {									\
         stack_t oss;							\
-        int result = INTERNAL_SYSCALL_CALL (sigaltstack, NULL, &oss);\
+        int result = internal_syscall (__NR_sigaltstack, NULL, &oss);   \
 	/* If we aren't using an alternate stack then we have already	\
 	   shown that we are jumping to a frame that doesn't exist so	\
 	   error out. If we are using an alternate stack we must prove	\

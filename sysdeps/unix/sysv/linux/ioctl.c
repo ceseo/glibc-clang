@@ -30,7 +30,7 @@ __ioctl (int fd, unsigned long int request, ...)
   arg = va_arg (va, void *);
   va_end (va);
 
-  return INLINE_SYSCALL_CALL (ioctl, fd, request, arg);
+  return inline_syscall (__NR_ioctl, fd, request, arg);
 }
 libc_hidden_def (__ioctl)
 weak_alias (__ioctl, ioctl)

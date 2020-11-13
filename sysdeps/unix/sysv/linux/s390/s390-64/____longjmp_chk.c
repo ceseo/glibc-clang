@@ -39,7 +39,7 @@
       if (new_sp < cur_sp)						\
 	{								\
 	  stack_t oss;							\
-	  int res = INTERNAL_SYSCALL_CALL (sigaltstack, NULL, &oss);	\
+	  int res = internal_syscall (__NR_sigaltstack, NULL, &oss);	\
 	  if (res == 0)							\
 	    {								\
 	      if ((oss.ss_flags & SS_ONSTACK) == 0			\

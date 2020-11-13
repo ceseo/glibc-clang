@@ -26,6 +26,6 @@ __setcontext (const ucontext_t *ucp)
      from the ucontext_t into the sigcontext structure.  */
   ucontext_t *ucp_noconst = (ucontext_t *) ucp;
   ucp_noconst->uc_mcontext.sc_mask = *((long int *)&ucp_noconst->uc_sigmask);
-  return INLINE_SYSCALL_CALL (__NR_sigreturn, &ucp->uc_mcontext);
+  return inline_syscall (__NR_sigreturn, &ucp->uc_mcontext);
 }
 weak_alias (__setcontext, setcontext)

@@ -31,9 +31,9 @@ __lseek64_syscall (long int name, int fd, off64_t offset, int whence)
   return resultvar < 0 ? syscall_ret (resultvar) : resultvar;
 }
 
-#undef INLINE_SYSCALL_CALL
-#define INLINE_SYSCALL_CALL(name, ...) \
-  __lseek64_syscall(__NR_##name, __VA_ARGS__)
+#undef inline_syscall
+#define inline_syscall(name, ...) \
+  __lseek64_syscall(name, __VA_ARGS__)
 
 /* Disable the llseek compat symbol.  */
 #undef SHLIB_COMPAT

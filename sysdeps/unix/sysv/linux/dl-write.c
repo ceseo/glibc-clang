@@ -23,5 +23,5 @@
 ssize_t
 _dl_write (int fd, const void *buffer, size_t length)
 {
-  return INTERNAL_SYSCALL_CALL (write, fd, buffer, length);
+  return internal_syscall (__NR_write, fd, buffer, length);
 }

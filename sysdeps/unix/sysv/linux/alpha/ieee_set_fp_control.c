@@ -22,8 +22,8 @@
 void
 __ieee_set_fp_control (unsigned long int env)
 {
-  INLINE_SYSCALL_CALL (osf_setsysinfo, SSI_IEEE_FP_CONTROL, &env, 0,
-		       0, 0);
+  inline_syscall (__NR_osf_setsysinfo, SSI_IEEE_FP_CONTROL, &env, 0,
+		  0, 0);
 }
 libc_hidden_def (__ieee_set_fp_control)
 weak_alias (__ieee_set_fp_control, ieee_set_fp_control)

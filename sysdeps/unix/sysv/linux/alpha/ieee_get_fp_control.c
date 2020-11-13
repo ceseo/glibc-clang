@@ -23,8 +23,8 @@ unsigned long int
 __ieee_get_fp_control (void)
 {
   unsigned long int env;
-  int r = INLINE_SYSCALL_CALL (osf_getsysinfo, GSI_IEEE_FP_CONTROL, &env, 0,
-			       0, 0);
+  int r = inline_syscall (__NR_osf_getsysinfo, GSI_IEEE_FP_CONTROL, &env, 0,
+			  0, 0);
   if (r != 0)
     return r;
   return env;

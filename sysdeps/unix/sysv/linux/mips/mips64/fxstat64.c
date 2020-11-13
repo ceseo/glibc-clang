@@ -31,7 +31,7 @@ attribute_compat_text_section
 __fxstat64 (int vers, int fd, struct stat64 *buf)
 {
   struct kernel_stat kbuf;
-  int r = INLINE_SYSCALL_CALL (fstat, fd, &kbuf);
+  int r = inline_syscall (__NR_fstat, fd, &kbuf);
   return r ?: __xstat64_conv (vers, &kbuf, buf);
 
 }

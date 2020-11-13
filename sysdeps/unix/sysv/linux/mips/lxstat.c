@@ -33,12 +33,12 @@ __lxstat (int vers, const char *name, struct stat *buf)
   switch (vers)
     {
     case _STAT_VER_KERNEL:
-      return INLINE_SYSCALL_CALL (lstat, name, buf);
+      return inline_syscall (__NR_lstat, name, buf);
 
     default:
       {
 	struct kernel_stat kbuf;
-	int r = INTERNAL_SYSCALL_CALL (lstat, name, &kbuf);
+	int r = internal_syscall (__NR_lstat, name, &kbuf);
 	return r ?: __xstat_conv (vers, &kbuf, buf);
       }
     }

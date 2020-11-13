@@ -31,7 +31,7 @@
    special attention since 'errno' is not yet available and if the
    operation can cause a failure 'errno' must not be touched.  */
 # define TLS_INIT_TP(tcbp) \
-  ({ INTERNAL_SYSCALL_CALL (set_tls, (tcbp)) < 0		\
+  ({ internal_syscall (__NR_set_tls, (tcbp)) < 0		\
      ? "unknown error" : NULL; })
 
 #endif /* __ASSEMBLER__ */

@@ -27,7 +27,7 @@ __timer_settime_new (timer_t timerid, int flags, const struct itimerspec *value,
 {
   kernel_timer_t ktimerid = timerid_to_kernel_timer (timerid);
 
-  return INLINE_SYSCALL_CALL (timer_settime, ktimerid, flags, value, ovalue);
+  return inline_syscall (__NR_timer_settime, ktimerid, flags, value, ovalue);
 }
 versioned_symbol (librt, __timer_settime_new, timer_settime, GLIBC_2_3_3);
 

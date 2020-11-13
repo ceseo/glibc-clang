@@ -33,7 +33,7 @@
      int r;
      if (supports_time64 ())
        {
-         r = INLINE_SYSCALL_CALL (symbol, ...);
+         r = inline_syscall (symbol, ...);
          if (r == 0 || errno != ENOSYS)
 	   return r;
 

@@ -24,8 +24,8 @@ int
 __fanotify_mark (int fd, unsigned int flags, uint64_t mask, int dirfd,
 	         const char *pathname)
 {
-  return INLINE_SYSCALL_CALL (fanotify_mark, fd, flags, SYSCALL_LL64 (mask),
-			      dirfd, pathname);
+  return inline_syscall (__NR_fanotify_mark, fd, flags, SYSCALL_LL64 (mask),
+			 dirfd, pathname);
 }
 #ifdef VERSION_fanotify_mark
 # include <shlib-compat.h>

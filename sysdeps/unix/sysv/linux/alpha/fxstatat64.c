@@ -30,7 +30,7 @@ int
 attribute_compat_text_section
 __fxstatat64 (int vers, int fd, const char *file, struct stat64 *st, int flag)
 {
-  return INLINE_SYSCALL_CALL (fstatat64, fd, file, st, flag);
+  return inline_syscall (__NR_fstatat64, fd, file, st, flag);
 }
 strong_alias (__fxstatat64, __fxstatat_compat)
 compat_symbol (libc, __fxstatat_compat, __fxstatat, GLIBC_2_4);

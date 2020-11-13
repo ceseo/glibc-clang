@@ -34,8 +34,8 @@ __mremap (void *addr, size_t old_len, size_t new_len, int flags, ...)
       va_end (va);
     }
 
-  return (void *) INLINE_SYSCALL_CALL (mremap, addr, old_len, new_len, flags,
-				       new_addr);
+  return (void *) inline_syscall (__NR_mremap, addr, old_len, new_len, flags,
+				  new_addr);
 }
 libc_hidden_def (__mremap)
 weak_alias (__mremap, mremap)

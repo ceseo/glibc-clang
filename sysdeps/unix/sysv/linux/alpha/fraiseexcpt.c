@@ -22,8 +22,8 @@
 int
 __feraiseexcept (int excepts)
 {
-  return -INTERNAL_SYSCALL_CALL (osf_setsysinfo, SSI_IEEE_RAISE_EXCEPTION,
-				 &excepts, 0, 0, 0);
+  return -internal_syscall (__NR_osf_setsysinfo, SSI_IEEE_RAISE_EXCEPTION,
+			    &excepts, 0, 0, 0);
 }
 #if IS_IN (libm)
 # include <shlib-compat.h>

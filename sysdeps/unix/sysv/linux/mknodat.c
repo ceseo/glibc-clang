@@ -30,7 +30,7 @@ __mknodat (int fd, const char *path, mode_t mode, dev_t dev)
   if (k_dev != dev)
     return __syscall_error (-EINVAL);
 
-  return INLINE_SYSCALL_CALL (mknodat, fd, path, mode, k_dev);
+  return inline_syscall (__NR_mknodat, fd, path, mode, k_dev);
 }
 libc_hidden_def (__mknodat)
 weak_alias (__mknodat, mknodat)

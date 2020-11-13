@@ -26,7 +26,7 @@
 int
 faccessat (int fd, const char *file, int mode, int flag)
 {
-  int ret = INLINE_SYSCALL_CALL (faccessat2, fd, file, mode, flag);
+  int ret = inline_syscall (__NR_faccessat2, fd, file, mode, flag);
 #if __ASSUME_FACCESSAT2
   return ret;
 #else

@@ -39,8 +39,8 @@ __fstatat64_time64 (int fd, const char *file, struct __stat64_t64 *buf,
   /* 32-bit kABI with default 64-bit time_t, e.g. arc, riscv32.   Also
      64-bit time_t support is done through statx syscall.  */
   struct statx tmp;
-  r = INTERNAL_SYSCALL_CALL (statx, fd, file, AT_NO_AUTOMOUNT | flag,
-			     STATX_BASIC_STATS, &tmp);
+  r = internal_syscall (__NR_statx, fd, file, AT_NO_AUTOMOUNT | flag,
+			STATX_BASIC_STATS, &tmp);
   if (r == 0)
     {
       __cp_stat64_t64_statx (buf, &tmp);
@@ -54,15 +54,15 @@ __fstatat64_time64 (int fd, const char *file, struct __stat64_t64 *buf,
 # ifdef __NR_newfstatat
   /* 64-bit kABI, e.g. aarch64, ia64, powerpc64*, s390x, riscv64, and
      x86_64.  */
-  r = INTERNAL_SYSCALL_CALL (newfstatat, fd, file, buf, flag);
+  r = internal_syscall (__NR_newfstatat, fd, file, buf, flag);
 # elif defined __NR_fstatat64
 #  if STAT64_IS_KERNEL_STAT64
   /* 64-bit kABI outlier, e.g. alpha  */
-  r = INTERNAL_SYSCALL_CALL (fstatat64, fd, file, buf, flag);
+  r = internal_syscall (__NR_fstatat64, fd, file, buf, flag);
 #  else
   /* 64-bit kABI outlier, e.g. sparc64.  */
   struct kernel_stat64 kst64;
-  r = INTERNAL_SYSCALL_CALL (fstatat64, fd, file, &kst64, flag);
+  r = internal_syscall (__NR_fstatat64, fd, file, &kst64, flag);
   if (r == 0)
     __cp_stat64_kstat64 (buf, &kst64);
 #  endif
@@ -73,7 +73,7 @@ __fstatat64_time64 (int fd, const char *file, struct __stat64_t64 *buf,
      e.g. arm, csky, i386, hppa, m68k, microblaze, nios2, sh, powerpc32,
      and sparc32.  */
   struct stat64 st64;
-  r = INTERNAL_SYSCALL_CALL (fstatat64, fd, file, &st64, flag);
+  r = internal_syscall (__NR_fstatat64, fd, file, &st64, flag);
   if (r == 0)
     {
       /* Clear both pad and reserved fields.  */
@@ -96,7 +96,7 @@ __fstatat64_time64 (int fd, const char *file, struct __stat64_t64 *buf,
 # else
   /* 64-bit kabi outlier, e.g. mips64 and mips64-n32.  */
   struct kernel_stat kst;
-  r = INTERNAL_SYSCALL_CALL (newfstatat, fd, file, &kst, flag);
+  r = internal_syscall (__NR_newfstatat, fd, file, &kst, flag);
   if (r == 0)
     __cp_kstat_stat64_t64 (&kst, buf);
 # endif

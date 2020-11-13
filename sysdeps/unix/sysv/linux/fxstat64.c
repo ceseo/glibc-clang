@@ -38,7 +38,7 @@ ___fxstat64 (int vers, int fd, struct stat64 *buf)
 # ifdef __NR_fstat64
   /* 64-bit kABI outlier, e.g. sparc64.  */
   if (vers == _STAT_VER_KERNEL)
-    return INLINE_SYSCALL_CALL (fstat, fd, buf);
+    return inline_syscall (__NR_fstat, fd, buf);
   else
     {
       struct stat64 st64;

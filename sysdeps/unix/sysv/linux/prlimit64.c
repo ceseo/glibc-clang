@@ -25,8 +25,8 @@ int
 __prlimit64 (pid_t pid, enum __rlimit_resource resource,
 	     const struct rlimit64 *new_rlimit, struct rlimit64 *old_rlimit)
 {
-  return INLINE_SYSCALL_CALL (prlimit64, pid, resource, new_rlimit,
-			      old_rlimit);
+  return inline_syscall (__NR_prlimit64, pid, resource, new_rlimit,
+			 old_rlimit);
 }
 #ifdef VERSION_prlimit64
 # include <shlib-compat.h>

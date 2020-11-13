@@ -442,9 +442,9 @@ static __always_inline int
 futex_lock_pi64 (int *futex_word, const struct __timespec64 *abstime,
                  int private)
 {
-  int err = INTERNAL_SYSCALL_CALL (futex_time64, futex_word,
-                                   __lll_private_flag
-                                   (FUTEX_LOCK_PI, private), 0, abstime);
+  int err = internal_syscall (__NR_futex_time64, futex_word,
+                              __lll_private_flag
+                              (FUTEX_LOCK_PI, private), 0, abstime);
 #ifndef __ASSUME_TIME64_SYSCALLS
   if (err == -ENOSYS)
     {
@@ -455,9 +455,9 @@ futex_lock_pi64 (int *futex_word, const struct __timespec64 *abstime,
       if (abstime != NULL)
         ts32 = valid_timespec64_to_timespec (*abstime);
 
-      err = INTERNAL_SYSCALL_CALL (futex, futex_word, __lll_private_flag
-                                   (FUTEX_LOCK_PI, private), 0,
-                                   abstime != NULL ? &ts32 : NULL);
+      err = internal_syscall (__NR_futex, futex_word, __lll_private_flag
+                              (FUTEX_LOCK_PI, private), 0,
+                              abstime != NULL ? &ts32 : NULL);
     }
 #endif
   switch (err)
