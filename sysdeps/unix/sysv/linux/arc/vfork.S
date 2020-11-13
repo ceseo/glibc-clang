@@ -36,7 +36,7 @@ ENTRY (__vfork)
 	jge	[blink]	; child continues
 
 	b   __syscall_error
-PSEUDO_END (__vfork)
+END (__vfork)
 libc_hidden_def (__vfork)
 
 weak_alias (__vfork, vfork)

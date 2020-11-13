@@ -60,5 +60,6 @@ ENTRY (__getcontext)
 	j.d	[blink]
 	mov r0, 0	/* Success, error handled in .Lcall_syscall_err.  */
 
-PSEUDO_END (__getcontext)
+	SYSCALL_ERROR_HANDLER
+END (__getcontext)
 weak_alias (__getcontext, getcontext)

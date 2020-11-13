@@ -90,5 +90,6 @@ ENTRY (__swapcontext)
 
 	j    [blink]
 
-PSEUDO_END (__swapcontext)
+	SYSCALL_ERROR_HANDLER
+END (__swapcontext)
 weak_alias (__swapcontext, swapcontext)

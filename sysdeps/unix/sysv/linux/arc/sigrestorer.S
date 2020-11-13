@@ -26,4 +26,4 @@ ENTRY (__default_rt_sa_restorer)
 	mov r8, __NR_rt_sigreturn
 	ARC_TRAP_INSN
 	j_s     [blink]
-PSEUDO_END_NOERRNO (__default_rt_sa_restorer)
+END (__default_rt_sa_restorer)

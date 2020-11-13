@@ -30,4 +30,5 @@ ENTRY (syscall)
 	ARC_TRAP_INSN
 	brhi	r0, -4096, L (call_syscall_err)
 	j	[blink]
-PSEUDO_END (syscall)
+	SYSCALL_ERROR_HANDLER
+END (syscall)

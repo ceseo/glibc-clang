@@ -88,6 +88,6 @@ L (__sys_err2):
 	   (4) No need to route __syscall_error via PLT, B is inherently
 	       position independent.  */
 	b   __syscall_error
-PSEUDO_END (__clone)
+END (__clone)
 libc_hidden_def (__clone)
 weak_alias (__clone, clone)

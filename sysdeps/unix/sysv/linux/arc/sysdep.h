@@ -51,58 +51,6 @@
 
 #ifdef __ASSEMBLER__
 
-/* This is a "normal" system call stub: if there is an error,
-   it returns -1 and sets errno.  */
-
-# undef PSEUDO
-# define PSEUDO(name, syscall_name, args)			\
-  PSEUDO_NOERRNO(name, syscall_name, args)	ASM_LINE_SEP	\
-    brhi   r0, -4096, L (call_syscall_err)	ASM_LINE_SEP
-
-# define ret	j_s  [blink]
-
-# undef PSEUDO_END
-# define PSEUDO_END(name)					\
-  SYSCALL_ERROR_HANDLER				ASM_LINE_SEP	\
-  END (name)
-
-/* --------- Helper for SYSCALL_NOERRNO -----------
-   This kind of system call stub never returns an error.
-   We return the return value register to the caller unexamined.  */
-
-# undef PSEUDO_NOERRNO
-# define PSEUDO_NOERRNO(name, syscall_name, args)		\
-  .text						ASM_LINE_SEP	\
-  ENTRY (name)					ASM_LINE_SEP	\
-    DO_CALL (syscall_name, args)		ASM_LINE_SEP	\
-
-/* Return the return value register unexamined. Since r0 is both
-   syscall return reg and function return reg, no work needed.  */
-# define ret_NOERRNO						\
-  j_s  [blink]		ASM_LINE_SEP
-
-# undef PSEUDO_END_NOERRNO
-# define PSEUDO_END_NOERRNO(name)				\
-  END (name)
-
-/* --------- Helper for SYSCALL_ERRVAL -----------
-   This kind of system call stub returns the errno code as its return
-   value, or zero for success.  We may massage the kernel's return value
-   to meet that ABI, but we never set errno here.  */
-
-# undef PSEUDO_ERRVAL
-# define PSEUDO_ERRVAL(name, syscall_name, args)		\
-  PSEUDO_NOERRNO(name, syscall_name, args)	ASM_LINE_SEP
-
-/* Don't set errno, return kernel error (in errno form) or zero.  */
-# define ret_ERRVAL						\
-  rsub   r0, r0, 0				ASM_LINE_SEP	\
-  ret_NOERRNO
-
-# undef PSEUDO_END_ERRVAL
-# define PSEUDO_END_ERRVAL(name)				\
-  END (name)
-
 # define SYSCALL_ERROR_HANDLER				\
 L (call_syscall_err):			ASM_LINE_SEP	\
     push_s   blink			ASM_LINE_SEP	\
@@ -114,13 +62,9 @@ L (call_syscall_err):			ASM_LINE_SEP	\
     cfi_restore (blink)			ASM_LINE_SEP	\
     j_s      [blink]
 
-# define DO_CALL(syscall_name, args)			\
-    mov    r8, __NR_##syscall_name	ASM_LINE_SEP	\
-    ARC_TRAP_INSN			ASM_LINE_SEP
-
 # define ARC_TRAP_INSN	trap_s 0
 
-#else  /* !__ASSEMBLER__ */
+#else
 
 # define SINGLE_THREAD_BY_GLOBAL		1
 
