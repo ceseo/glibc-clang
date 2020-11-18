@@ -219,7 +219,7 @@ __internal_syscall4 (long int name, __syscall_arg_t arg1,
 		MOVE32 "\t%0, %2\n\t"
 		"syscall\n\t"
 		".set reorder"
-		: "=r" (v0), "=r" (a3)
+		: "=r" (v0), "+r" (a3)
 		: "r" (s0), "r" (a0), "r" (a1), "r" (a2)
 		: __SYSCALL_CLOBBERS);
   return a3 != 0 ? -v0 : v0;
