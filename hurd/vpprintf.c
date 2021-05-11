@@ -42,13 +42,9 @@ vpprintf (io_t port, const char *format, va_list arg)
   struct locked_FILE
   {
     struct _IO_cookie_file cfile;
-#ifdef _IO_MTSAFE_IO
     _IO_lock_t lock;
-#endif
   } temp_f;
-#ifdef _IO_MTSAFE_IO
   temp_f.cfile.__fp.file._lock = &temp_f.lock;
-#endif
 
   _IO_cookie_init (&temp_f.cfile, _IO_NO_READS,
 		   (void *) port, (cookie_io_functions_t) { write: do_write });

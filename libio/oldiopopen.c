@@ -47,7 +47,6 @@ typedef struct _IO_proc_file _IO_proc_file;
 
 static struct _IO_proc_file *old_proc_file_chain;
 
-#ifdef _IO_MTSAFE_IO
 static _IO_lock_t proc_file_chain_lock = _IO_lock_initializer;
 
 static void
@@ -55,7 +54,6 @@ unlock (void *not_used)
 {
   _IO_lock_unlock (proc_file_chain_lock);
 }
-#endif
 
 FILE *
 attribute_compat_text_section
@@ -118,16 +116,12 @@ _IO_old_proc_open (FILE *fp, const char *command, const char *mode)
   _IO_fileno (fp) = parent_end;
 
   /* Link into old_proc_file_chain. */
-#ifdef _IO_MTSAFE_IO
   _IO_cleanup_region_start_noarg (unlock);
   _IO_lock_lock (proc_file_chain_lock);
-#endif
   ((_IO_proc_file *) fp)->next = old_proc_file_chain;
   old_proc_file_chain = (_IO_proc_file *) fp;
-#ifdef _IO_MTSAFE_IO
   _IO_lock_unlock (proc_file_chain_lock);
   _IO_cleanup_region_end (0);
-#endif
 
   _IO_mask_flags (fp, read_or_write, _IO_NO_READS|_IO_NO_WRITES);
   return fp;
@@ -140,18 +134,14 @@ _IO_old_popen (const char *command, const char *mode)
   struct locked_FILE
   {
     struct _IO_proc_file fpx;
-#ifdef _IO_MTSAFE_IO
     _IO_lock_t lock;
-#endif
   } *new_f;
   FILE *fp;
 
   new_f = (struct locked_FILE *) malloc (sizeof (struct locked_FILE));
   if (new_f == NULL)
     return NULL;
-#ifdef _IO_MTSAFE_IO
   new_f->fpx.file.file._file._lock = &new_f->lock;
-#endif
   fp = &new_f->fpx.file.file._file;
   _IO_old_init (fp, 0);
   _IO_JUMPS_FILE_plus (&new_f->fpx.file) = &_IO_old_proc_jumps;
@@ -174,10 +164,8 @@ _IO_old_proc_close (FILE *fp)
   int status = -1;
 
   /* Unlink from old_proc_file_chain. */
-#ifdef _IO_MTSAFE_IO
   _IO_cleanup_region_start_noarg (unlock);
   _IO_lock_lock (proc_file_chain_lock);
-#endif
   for ( ; *ptr != NULL; ptr = &(*ptr)->next)
     {
       if (*ptr == (_IO_proc_file *) fp)
@@ -187,10 +175,8 @@ _IO_old_proc_close (FILE *fp)
 	  break;
 	}
     }
-#ifdef _IO_MTSAFE_IO
   _IO_lock_unlock (proc_file_chain_lock);
   _IO_cleanup_region_end (0);
-#endif
 
   if (status < 0 || __close (_IO_fileno(fp)) < 0)
     return -1;

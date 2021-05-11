@@ -523,9 +523,7 @@ __vstrfmon_l_internal (char *s, size_t maxsize, locale_t loc,
 	  out_string (sign_string);
 
       /* Print the number.  */
-#ifdef _IO_MTSAFE_IO
       f._sbf._f._lock = NULL;
-#endif
       _IO_init_internal (&f._sbf._f, 0);
       _IO_JUMPS (&f._sbf) = &_IO_str_jumps;
       _IO_str_init_static_internal (&f, dest, (s + maxsize) - dest, dest);

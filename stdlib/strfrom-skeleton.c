@@ -37,9 +37,7 @@ int
 STRFROM (char *dest, size_t size, const char *format, FLOAT f)
 {
   _IO_strnfile sfile;
-#ifdef _IO_MTSAFE_IO
   sfile.f._sbf._f._lock = NULL;
-#endif
 
   int done;
 

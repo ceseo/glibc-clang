@@ -103,8 +103,6 @@ CFLAGS-isoc99_fwscanf.c += -fexceptions
 CFLAGS-isoc99_vwscanf.c += -fexceptions
 CFLAGS-isoc99_vfwscanf.c += -fexceptions
 
-CPPFLAGS += $(libio-mtsafe)
-
 # We need to find the default version of strtold_l in stdlib.
 CPPFLAGS-wcstold_l.c += -I../stdlib
 

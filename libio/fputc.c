@@ -39,8 +39,3 @@ fputc (int c, FILE *fp)
   _IO_release_lock (fp);
   return result;
 }
-
-#ifndef _IO_MTSAFE_IO
-#undef fputc_unlocked
-weak_alias (fputc, fputc_unlocked)
-#endif

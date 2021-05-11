@@ -357,8 +357,6 @@ CFLAGS-tst-gets.c += -Wno-deprecated-declarations
 # the fortified version had the same bug.
 CFLAGS-tst-bz11319-fortify2.c += -D_FORTIFY_SOURCE=2
 
-CPPFLAGS += $(libio-mtsafe)
-
 $(objpfx)tst-setvbuf1.out: /dev/null $(objpfx)tst-setvbuf1
 	$(test-program-cmd) > $@ 2>&1; \
 	$(evaluate-test)

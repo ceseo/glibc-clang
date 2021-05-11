@@ -42,7 +42,3 @@ _IO_ferror (FILE *fp)
 
 weak_alias (_IO_ferror, ferror)
 
-#ifndef _IO_MTSAFE_IO
-#undef ferror_unlocked
-weak_alias (_IO_ferror, ferror_unlocked)
-#endif

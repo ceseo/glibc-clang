@@ -37,9 +37,7 @@ _IO_new_fdopen (int fd, const char *mode)
   struct locked_FILE
   {
     struct _IO_FILE_plus fp;
-#ifdef _IO_MTSAFE_IO
     _IO_lock_t lock;
-#endif
     struct _IO_wide_data wd;
   } *new_f;
   int i;
@@ -122,9 +120,7 @@ _IO_new_fdopen (int fd, const char *mode)
   new_f = (struct locked_FILE *) malloc (sizeof (struct locked_FILE));
   if (new_f == NULL)
     return NULL;
-#ifdef _IO_MTSAFE_IO
   new_f->fp.file._lock = &new_f->lock;
-#endif
   _IO_no_init (&new_f->fp.file, 0, 0, &new_f->wd,
 #if _G_HAVE_MMAP
 	       (use_mmap && (read_write & _IO_NO_WRITES))
