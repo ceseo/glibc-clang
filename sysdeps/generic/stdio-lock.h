@@ -47,17 +47,14 @@ __libc_lock_define_recursive (typedef, _IO_lock_t)
 
 #if defined _LIBC && IS_IN (libc)
 
-# ifdef __EXCEPTIONS
 # define _IO_acquire_lock(_fp) \
   do {									      \
-    FILE *_IO_acquire_lock_file						      \
-	__attribute__((cleanup (_IO_acquire_lock_fct)))			      \
-	= (_fp);							      \
-    _IO_flockfile (_IO_acquire_lock_file);
-# else
-#  define _IO_acquire_lock(_fp) _IO_acquire_lock_needs_exceptions_enabled
-# endif
-# define _IO_release_lock(_fp) ; } while (0)
+    _IO_cleanup_region_start((void (*) (void *)) &_IO_funlockfile, _fp);      \
+    _IO_flockfile (_fp);
+# define _IO_release_lock(_fp) \
+    _IO_funlockfile (_fp);						      \
+    _IO_cleanup_region_end (0);						      \
+  } while (0)
 
 #endif
 
