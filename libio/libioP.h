@@ -804,33 +804,18 @@ extern int __vfwscanf_internal (FILE *fp, const wchar_t *format, va_list argp,
 
 extern int _IO_vscanf (const char *, va_list) __THROW;
 
-#ifdef _IO_MTSAFE_IO
 /* check following! */
-# ifdef _IO_USE_OLD_IO_FILE
-#  define FILEBUF_LITERAL(CHAIN, FLAGS, FD, WDP) \
+#ifdef _IO_USE_OLD_IO_FILE
+# define FILEBUF_LITERAL(CHAIN, FLAGS, FD, WDP) \
        { _IO_MAGIC+_IO_LINKED+_IO_IS_FILEBUF+FLAGS, \
 	 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (FILE *) CHAIN, FD, \
 	 0, _IO_pos_BAD, 0, 0, { 0 }, &_IO_stdfile_##FD##_lock }
-# else
-#  define FILEBUF_LITERAL(CHAIN, FLAGS, FD, WDP) \
+#else
+# define FILEBUF_LITERAL(CHAIN, FLAGS, FD, WDP) \
        { _IO_MAGIC+_IO_LINKED+_IO_IS_FILEBUF+FLAGS, \
 	 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (FILE *) CHAIN, FD, \
 	 0, _IO_pos_BAD, 0, 0, { 0 }, &_IO_stdfile_##FD##_lock, _IO_pos_BAD,\
 	 NULL, WDP, 0 }
-# endif
-#else
-# ifdef _IO_USE_OLD_IO_FILE
-#  define FILEBUF_LITERAL(CHAIN, FLAGS, FD, WDP) \
-       { _IO_MAGIC+_IO_LINKED+_IO_IS_FILEBUF+FLAGS, \
-	 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (FILE *) CHAIN, FD, \
-	 0, _IO_pos_BAD }
-# else
-#  define FILEBUF_LITERAL(CHAIN, FLAGS, FD, WDP) \
-       { _IO_MAGIC+_IO_LINKED+_IO_IS_FILEBUF+FLAGS, \
-	 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (FILE *) CHAIN, FD, \
-	 0, _IO_pos_BAD, 0, 0, { 0 }, 0, _IO_pos_BAD, \
-	 NULL, WDP, 0 }
-# endif
 #endif
 
 #if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_1)
@@ -884,13 +869,6 @@ _IO_acquire_lock_fct (FILE **p)
   if ((fp->_flags & _IO_USER_LOCK) == 0)
     _IO_funlockfile (fp);
 }
-
-#if !defined _IO_MTSAFE_IO && IS_IN (libc)
-# define _IO_acquire_lock(_fp)						      \
-  do {
-# define _IO_release_lock(_fp)						      \
-  } while (0)
-#endif
 
 /* Collect all vtables in a special section for vtable verification.
    These symbols cover the extent of this section.  */

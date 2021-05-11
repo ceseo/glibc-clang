@@ -29,8 +29,3 @@ putchar (int c)
   _IO_release_lock (stdout);
   return result;
 }
-
-#if defined weak_alias && !defined _IO_MTSAFE_IO
-#undef putchar_unlocked
-weak_alias (putchar, putchar_unlocked)
-#endif

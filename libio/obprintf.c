@@ -128,9 +128,7 @@ __obstack_vprintf_internal (struct obstack *obstack, const char *format,
   int size;
   int room;
 
-#ifdef _IO_MTSAFE_IO
   new_f.ofile.file.file._lock = NULL;
-#endif
 
   _IO_no_init (&new_f.ofile.file.file, _IO_USER_LOCK, -1, NULL, NULL);
   _IO_JUMPS (&new_f.ofile.file) = &_IO_obstack_jumps;

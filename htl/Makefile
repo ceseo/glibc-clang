@@ -176,8 +176,6 @@ install-lib-ldscripts := libpthread_syms.a
 
 include ../Makeconfig
 
-CFLAGS-lockfile.c = -D_IO_MTSAFE_IO
-
 all: # Make this the default target; it will be defined in Rules.
 
 subdir_install: $(inst_libdir)/libpthread2.a $(inst_libdir)/libpthread_syms.a

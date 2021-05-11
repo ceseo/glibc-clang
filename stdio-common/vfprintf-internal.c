@@ -2175,9 +2175,7 @@ struct helper_file
     struct _IO_wide_data _wide_data;
 #endif
     FILE *_put_stream;
-#ifdef _IO_MTSAFE_IO
     _IO_lock_t lock;
-#endif
   };
 
 static int
@@ -2285,9 +2283,7 @@ buffered_vfprintf (FILE *s, const CHAR_T *format, va_list args,
 #if _IO_JUMPS_OFFSET
   hp->_vtable_offset = 0;
 #endif
-#ifdef _IO_MTSAFE_IO
   hp->_lock = NULL;
-#endif
   hp->_flags2 = s->_flags2;
   _IO_JUMPS (&helper._f) = (struct _IO_jump_t *) &_IO_helper_jumps;
 

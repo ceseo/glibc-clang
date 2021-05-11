@@ -45,9 +45,7 @@ __vasprintf_internal (char **result_ptr, const char *format, va_list args,
   string = (char *) malloc (init_string_size);
   if (string == NULL)
     return -1;
-#ifdef _IO_MTSAFE_IO
   sf._sbf._f._lock = NULL;
-#endif
   _IO_no_init (&sf._sbf._f, _IO_USER_LOCK, -1, NULL, NULL);
   _IO_JUMPS (&sf._sbf) = &_IO_str_jumps;
   _IO_str_init_static_internal (&sf, string, init_string_size, string);

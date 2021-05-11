@@ -95,9 +95,7 @@ __vswprintf_internal (wchar_t *string, size_t maxlen, const wchar_t *format,
   _IO_wstrnfile sf;
   int ret;
   struct _IO_wide_data wd;
-#ifdef _IO_MTSAFE_IO
   sf.f._sbf._f._lock = NULL;
-#endif
 
   if (maxlen == 0)
     /* Since we have to write at least the terminating L'\0' a buffer

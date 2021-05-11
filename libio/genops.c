@@ -32,13 +32,10 @@
 #include <stdbool.h>
 #include <sched.h>
 
-#ifdef _IO_MTSAFE_IO
 static _IO_lock_t list_all_lock = _IO_lock_initializer;
-#endif
 
 static FILE *run_fp;
 
-#ifdef _IO_MTSAFE_IO
 static void
 flush_cleanup (void *not_used)
 {
@@ -46,7 +43,6 @@ flush_cleanup (void *not_used)
     _IO_funlockfile (run_fp);
   _IO_lock_unlock (list_all_lock);
 }
-#endif
 
 void
 _IO_un_link (struct _IO_FILE_plus *fp)
@@ -54,12 +50,10 @@ _IO_un_link (struct _IO_FILE_plus *fp)
   if (fp->file._flags & _IO_LINKED)
     {
       FILE **f;
-#ifdef _IO_MTSAFE_IO
       _IO_cleanup_region_start_noarg (flush_cleanup);
       _IO_lock_lock (list_all_lock);
       run_fp = (FILE *) fp;
       _IO_flockfile ((FILE *) fp);
-#endif
       if (_IO_list_all == NULL)
 	;
       else if (fp == _IO_list_all)
@@ -72,12 +66,10 @@ _IO_un_link (struct _IO_FILE_plus *fp)
 	      break;
 	    }
       fp->file._flags &= ~_IO_LINKED;
-#ifdef _IO_MTSAFE_IO
       _IO_funlockfile ((FILE *) fp);
       run_fp = NULL;
       _IO_lock_unlock (list_all_lock);
       _IO_cleanup_region_end (0);
-#endif
     }
 }
 libc_hidden_def (_IO_un_link)
@@ -88,20 +80,16 @@ _IO_link_in (struct _IO_FILE_plus *fp)
   if ((fp->file._flags & _IO_LINKED) == 0)
     {
       fp->file._flags |= _IO_LINKED;
-#ifdef _IO_MTSAFE_IO
       _IO_cleanup_region_start_noarg (flush_cleanup);
       _IO_lock_lock (list_all_lock);
       run_fp = (FILE *) fp;
       _IO_flockfile ((FILE *) fp);
-#endif
       fp->file._chain = (FILE *) _IO_list_all;
       _IO_list_all = fp;
-#ifdef _IO_MTSAFE_IO
       _IO_funlockfile ((FILE *) fp);
       run_fp = NULL;
       _IO_lock_unlock (list_all_lock);
       _IO_cleanup_region_end (0);
-#endif
     }
 }
 libc_hidden_def (_IO_link_in)
@@ -551,10 +539,8 @@ _IO_old_init (FILE *fp, int flags)
 #if _IO_JUMPS_OFFSET
   fp->_vtable_offset = 0;
 #endif
-#ifdef _IO_MTSAFE_IO
   if (fp->_lock != NULL)
     _IO_lock_init (*fp->_lock);
-#endif
 }
 
 void
@@ -617,10 +603,8 @@ _IO_default_finish (FILE *fp, int dummy)
 
   _IO_un_link ((struct _IO_FILE_plus *) fp);
 
-#ifdef _IO_MTSAFE_IO
   if (fp->_lock != NULL)
     _IO_lock_fini (*fp->_lock);
-#endif
 }
 libc_hidden_def (_IO_default_finish)
 
@@ -687,10 +671,8 @@ _IO_flush_all_lockp (int do_lock)
   int result = 0;
   FILE *fp;
 
-#ifdef _IO_MTSAFE_IO
   _IO_cleanup_region_start_noarg (flush_cleanup);
   _IO_lock_lock (list_all_lock);
-#endif
 
   for (fp = (FILE *) _IO_list_all; fp != NULL; fp = fp->_chain)
     {
@@ -711,10 +693,8 @@ _IO_flush_all_lockp (int do_lock)
       run_fp = NULL;
     }
 
-#ifdef _IO_MTSAFE_IO
   _IO_lock_unlock (list_all_lock);
   _IO_cleanup_region_end (0);
-#endif
 
   return result;
 }
@@ -733,10 +713,8 @@ _IO_flush_all_linebuffered (void)
 {
   FILE *fp;
 
-#ifdef _IO_MTSAFE_IO
   _IO_cleanup_region_start_noarg (flush_cleanup);
   _IO_lock_lock (list_all_lock);
-#endif
 
   for (fp = (FILE *) _IO_list_all; fp != NULL; fp = fp->_chain)
     {
@@ -750,10 +728,8 @@ _IO_flush_all_linebuffered (void)
       run_fp = NULL;
     }
 
-#ifdef _IO_MTSAFE_IO
   _IO_lock_unlock (list_all_lock);
   _IO_cleanup_region_end (0);
-#endif
 }
 libc_hidden_def (_IO_flush_all_linebuffered)
 weak_alias (_IO_flush_all_linebuffered, _flushlbf)
@@ -782,10 +758,8 @@ _IO_unbuffer_all (void)
 {
   FILE *fp;
 
-#ifdef _IO_MTSAFE_IO
   _IO_cleanup_region_start_noarg (flush_cleanup);
   _IO_lock_lock (list_all_lock);
-#endif
 
   for (fp = (FILE *) _IO_list_all; fp; fp = fp->_chain)
     {
@@ -800,7 +774,6 @@ _IO_unbuffer_all (void)
 	  /* Iff stream is un-orientated, it wasn't used. */
 	  && (legacy || fp->_mode != 0))
 	{
-#ifdef _IO_MTSAFE_IO
 	  int cnt;
 #define MAXTRIES 2
 	  for (cnt = 0; cnt < MAXTRIES; ++cnt)
@@ -810,7 +783,6 @@ _IO_unbuffer_all (void)
 	      /* Give the other thread time to finish up its use of the
 		 stream.  */
 	      __sched_yield ();
-#endif
 
 	  if (! legacy && ! dealloc_buffers && !(fp->_flags & _IO_USER_BUF))
 	    {
@@ -826,10 +798,8 @@ _IO_unbuffer_all (void)
 	  if (! legacy && fp->_mode > 0)
 	    _IO_wsetb (fp, NULL, NULL, 0);
 
-#ifdef _IO_MTSAFE_IO
 	  if (cnt < MAXTRIES && fp->_lock != NULL)
 	    _IO_lock_unlock (*fp->_lock);
-#endif
 	}
 
       /* Make sure that never again the wide char functions can be
@@ -838,10 +808,8 @@ _IO_unbuffer_all (void)
 	fp->_mode = -1;
     }
 
-#ifdef _IO_MTSAFE_IO
   _IO_lock_unlock (list_all_lock);
   _IO_cleanup_region_end (0);
-#endif
 }
 
 
@@ -1092,27 +1060,21 @@ libc_hidden_def (_IO_iter_file)
 void
 _IO_list_lock (void)
 {
-#ifdef _IO_MTSAFE_IO
   _IO_lock_lock (list_all_lock);
-#endif
 }
 libc_hidden_def (_IO_list_lock)
 
 void
 _IO_list_unlock (void)
 {
-#ifdef _IO_MTSAFE_IO
   _IO_lock_unlock (list_all_lock);
-#endif
 }
 libc_hidden_def (_IO_list_unlock)
 
 void
 _IO_list_resetlock (void)
 {
-#ifdef _IO_MTSAFE_IO
   _IO_lock_init (list_all_lock);
-#endif
 }
 libc_hidden_def (_IO_list_resetlock)
 

@@ -254,7 +254,6 @@ tests += tst-affinity tst-affinity-pid
 tests-static := tst-affinity-static
 tests += $(tests-static)
 
-CFLAGS-fork.c = $(libio-mtsafe)
 CFLAGS-getpid.o = -fomit-frame-pointer
 CFLAGS-getpid.os = -fomit-frame-pointer
 endif

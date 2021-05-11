@@ -25,7 +25,7 @@
 
 
 /* Mutex type.  */
-#if defined _LIBC || defined _IO_MTSAFE_IO
+#if defined _LIBC
 # if (!IS_IN (libc) && !IS_IN (libpthread)) || !defined _LIBC
 typedef struct { pthread_mutex_t mutex; } __libc_lock_recursive_t;
 # else

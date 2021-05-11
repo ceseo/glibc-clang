@@ -1342,8 +1342,6 @@ endif
 # A sysdeps Makeconfig fragment may set libc-reentrant to yes.
 ifeq (yes,$(libc-reentrant))
 defines += -D_LIBC_REENTRANT
-
-libio-mtsafe = -D_IO_MTSAFE_IO
 endif
 
 # The name to give to a test in test results summaries.

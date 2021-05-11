@@ -40,8 +40,3 @@ getchar (void)
   _IO_release_lock (stdin);
   return result;
 }
-
-#ifndef _IO_MTSAFE_IO
-#undef getchar_unlocked
-weak_alias (getchar, getchar_unlocked)
-#endif

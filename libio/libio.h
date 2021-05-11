@@ -37,7 +37,7 @@
 
 #include <stdio.h>
 
-#if defined _IO_MTSAFE_IO && !defined _IO_lock_t_defined
+#if !defined _IO_lock_t_defined
 # error "Someone forgot to include stdio-lock.h"
 #endif
 
@@ -199,10 +199,13 @@ extern void _IO_flockfile (FILE *) __THROW;
 extern void _IO_funlockfile (FILE *) __THROW;
 extern int _IO_ftrylockfile (FILE *) __THROW;
 
-#define _IO_peekc(_fp) _IO_peekc_unlocked (_fp)
-#define _IO_flockfile(_fp) /**/
-#define _IO_funlockfile(_fp) ((void) 0)
-#define _IO_ftrylockfile(_fp) /**/
+#define _IO_peekc(_fp) _IO_peekc_locked (_fp)
+#define _IO_flockfile(_fp) \
+  if (((_fp)->_flags & _IO_USER_LOCK) == 0) _IO_lock_lock (*(_fp)->_lock)
+#define _IO_funlockfile(_fp) \
+  if (((_fp)->_flags & _IO_USER_LOCK) == 0) _IO_lock_unlock (*(_fp)->_lock)
+#define _IO_ftrylockfile(__fp) \
+  if (((_fp)->_flags & _IO_USER_LOCK) == 0) _IO_lock_trylock (*(_fp)->_lock)
 #ifndef _IO_cleanup_region_start
 #define _IO_cleanup_region_start(_fct, _fp) /**/
 #endif
@@ -274,18 +277,5 @@ libc_hidden_proto (_IO_free_wbackup_area)
 libc_hidden_proto (_IO_padn)
 libc_hidden_proto (_IO_putc)
 libc_hidden_proto (_IO_sgetn)
-
-#ifdef _IO_MTSAFE_IO
-# undef _IO_peekc
-# undef _IO_flockfile
-# undef _IO_funlockfile
-# undef _IO_ftrylockfile
-
-# define _IO_peekc(_fp) _IO_peekc_locked (_fp)
-# define _IO_flockfile(_fp) \
-  if (((_fp)->_flags & _IO_USER_LOCK) == 0) _IO_lock_lock (*(_fp)->_lock)
-# define _IO_funlockfile(_fp) \
-  if (((_fp)->_flags & _IO_USER_LOCK) == 0) _IO_lock_unlock (*(_fp)->_lock)
-#endif /* _IO_MTSAFE_IO */
 
 #endif /* _LIBIO_H */

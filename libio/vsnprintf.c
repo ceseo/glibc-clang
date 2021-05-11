@@ -95,9 +95,7 @@ __vsnprintf_internal (char *string, size_t maxlen, const char *format,
 {
   _IO_strnfile sf;
   int ret;
-#ifdef _IO_MTSAFE_IO
   sf.f._sbf._f._lock = NULL;
-#endif
 
   /* We need to handle the special case where MAXLEN is 0.  Use the
      overflow buffer right from the start.  */

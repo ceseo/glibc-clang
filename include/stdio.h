@@ -1,5 +1,5 @@
 #ifndef _STDIO_H
-# if !defined _ISOMAC && defined _IO_MTSAFE_IO
+# if !defined _ISOMAC
 #  include <stdio-lock.h>
 # endif
 
