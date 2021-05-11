@@ -92,8 +92,6 @@ routines += clearerr_u feof_u ferror_u fputc_u getc_u getchar_u		      \
 	    iofputs_u
 endif
 
-CPPFLAGS += $(libio-mtsafe)
-
 # Support for exception handling.
 CFLAGS-fileops.c += -fexceptions
 CFLAGS-fputc.c += -fexceptions

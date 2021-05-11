@@ -35,9 +35,7 @@ __vdprintf_internal (int d, const char *format, va_list arg,
   struct _IO_wide_data wd;
   int done;
 
-#ifdef _IO_MTSAFE_IO
   tmpfil.file._lock = NULL;
-#endif
   _IO_no_init (&tmpfil.file, _IO_USER_LOCK, 0, &wd, &_IO_wfile_jumps);
   _IO_JUMPS (&tmpfil) = &_IO_file_jumps;
   _IO_new_file_init_internal (&tmpfil);

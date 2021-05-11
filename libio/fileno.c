@@ -46,6 +46,6 @@ libc_hidden_weak (fileno)
 
 /* The fileno implementation for libio does not require locking because
    it only accesses once a single variable and this is already atomic
-   (at least at thread level).  Therefore we don't test _IO_MTSAFE_IO here.  */
+   (at least at thread level).  */
 
 weak_alias (__fileno, fileno_unlocked)

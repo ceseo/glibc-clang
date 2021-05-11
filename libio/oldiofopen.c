@@ -39,16 +39,12 @@ _IO_old_fopen (const char *filename, const char *mode)
   struct locked_FILE
   {
     struct _IO_FILE_complete_plus fp;
-#ifdef _IO_MTSAFE_IO
     _IO_lock_t lock;
-#endif
   } *new_f = (struct locked_FILE *) malloc (sizeof (struct locked_FILE));
 
   if (new_f == NULL)
     return NULL;
-#ifdef _IO_MTSAFE_IO
   new_f->fp.file._file._lock = &new_f->lock;
-#endif
   _IO_old_init (&new_f->fp.file._file, 0);
   _IO_JUMPS_FILE_plus (&new_f->fp) = &_IO_old_file_jumps;
   _IO_old_file_init_internal ((struct _IO_FILE_plus *) &new_f->fp);

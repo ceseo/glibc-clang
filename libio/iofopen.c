@@ -58,17 +58,13 @@ __fopen_internal (const char *filename, const char *mode, int is32)
   struct locked_FILE
   {
     struct _IO_FILE_plus fp;
-#ifdef _IO_MTSAFE_IO
     _IO_lock_t lock;
-#endif
     struct _IO_wide_data wd;
   } *new_f = (struct locked_FILE *) malloc (sizeof (struct locked_FILE));
 
   if (new_f == NULL)
     return NULL;
-#ifdef _IO_MTSAFE_IO
   new_f->fp.file._lock = &new_f->lock;
-#endif
   _IO_no_init (&new_f->fp.file, 0, 0, &new_f->wd, &_IO_wfile_jumps);
   _IO_JUMPS (&new_f->fp) = &_IO_file_jumps;
   _IO_new_file_init_internal (&new_f->fp);

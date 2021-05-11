@@ -185,10 +185,8 @@ _IO_wdefault_finish (FILE *fp, int dummy)
       fp->_IO_save_base = NULL;
     }
 
-#ifdef _IO_MTSAFE_IO
   if (fp->_lock != NULL)
     _IO_lock_fini (*fp->_lock);
-#endif
 
   _IO_un_link ((struct _IO_FILE_plus *) fp);
 }

@@ -52,8 +52,8 @@ CFLAGS-getgrnam_r.c += -fexceptions
 CFLAGS-getgrent_r.c += -fexceptions
 CFLAGS-getgrent.c += -fexceptions
 CFLAGS-fgetgrent.c += -fexceptions
-CFLAGS-fgetgrent_r.c += -fexceptions $(libio-mtsafe)
-CFLAGS-putgrent.c += -fexceptions $(libio-mtsafe)
+CFLAGS-fgetgrent_r.c += -fexceptions
+CFLAGS-putgrent.c += -fexceptions
 CFLAGS-initgroups.c += -fexceptions
 CFLAGS-getgrgid.c += -fexceptions
 

@@ -24,6 +24,7 @@
    This exception applies to code released by its copyright holders
    in files containing the exception.  */
 
+#include <stdio.h>
 #include "libioP.h"
 
 size_t
@@ -49,10 +50,5 @@ _IO_fwrite (const void *buf, size_t size, size_t count, FILE *fp)
 }
 libc_hidden_def (_IO_fwrite)
 
-# include <stdio.h>
 weak_alias (_IO_fwrite, fwrite)
 libc_hidden_weak (fwrite)
-# ifndef _IO_MTSAFE_IO
-weak_alias (_IO_fwrite, fwrite_unlocked)
-libc_hidden_weak (fwrite_unlocked)
-# endif

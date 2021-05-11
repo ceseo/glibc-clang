@@ -46,9 +46,3 @@ _IO_getc (FILE *fp)
 
 weak_alias (_IO_getc, getc)
 weak_alias (_IO_getc, fgetc)
-
-#ifndef _IO_MTSAFE_IO
-#undef getc_unlocked
-weak_alias (_IO_getc, getc_unlocked)
-weak_alias (_IO_getc, fgetc_unlocked)
-#endif

@@ -73,9 +73,7 @@ __vsprintf_internal (char *string, size_t maxlen,
   _IO_strfile sf;
   int ret;
 
-#ifdef _IO_MTSAFE_IO
   sf._sbf._f._lock = NULL;
-#endif
   _IO_no_init (&sf._sbf._f, _IO_USER_LOCK, -1, NULL, NULL);
   /* When called from fortified sprintf/vsprintf, erase the destination
      buffer and try to detect overflows.  When called from regular
