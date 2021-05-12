@@ -568,9 +568,6 @@ __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
         collect_default_sched (pd);
     }
 
-  if (__glibc_unlikely (__nptl_nthreads == 1))
-    _IO_enable_locks ();
-
   /* Pass the descriptor to the caller.  */
   *newthread = (pthread_t) pd;
 

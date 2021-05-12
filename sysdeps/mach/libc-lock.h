@@ -106,9 +106,9 @@ typedef struct __libc_lock_recursive_opaque__ __libc_lock_recursive_t;
      __libc_lock_recursive_t *const __lock = &(NAME);   \
      void *__self = __libc_lock_owner_self ();   \
      int __r = 0;   \
-     if (__self == __lock->owner)   \
+     if (!SINGLE_THREAD_P && __self == __lock->owner)   \
        ++__lock->cnt;   \
-     else if ((__r = lll_trylock (__lock->lock)) == 0)   \
+     else if (!SINGLE_THREAD_P && (__r = lll_trylock (__lock->lock)) == 0)   \
        __lock->owner = __self, __lock->cnt = 1;   \
      __r;   \
    })
@@ -117,7 +117,7 @@ typedef struct __libc_lock_recursive_opaque__ __libc_lock_recursive_t;
   ({   \
      __libc_lock_recursive_t *const __lock = &(NAME);   \
      void *__self = __libc_lock_owner_self ();   \
-     if (__self != __lock->owner)   \
+     if (!SINGLE_THREAD_P && __self != __lock->owner)   \
        {   \
          lll_lock (__lock->lock, 0);   \
          __lock->owner = __self;   \
@@ -132,7 +132,8 @@ typedef struct __libc_lock_recursive_opaque__ __libc_lock_recursive_t;
      if (--__lock->cnt == 0)   \
        {   \
          __lock->owner = 0;   \
-         lll_unlock (__lock->lock, 0);   \
+         if (!SINGLE_THREAD_P) \
+           lll_unlock (__lock->lock, 0);   \
        }   \
    })
 

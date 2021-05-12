@@ -92,9 +92,6 @@ __open_memstream (char **bufloc, size_t *sizeloc)
   new_f->fp.bufloc = bufloc;
   new_f->fp.sizeloc = sizeloc;
 
-  /* Disable single thread optimization.  BZ 21735.  */
-  new_f->fp._sf._sbf._f._flags2 |= _IO_FLAGS2_NEED_LOCK;
-
   return (FILE *) &new_f->fp._sf._sbf;
 }
 libc_hidden_def (__open_memstream)
