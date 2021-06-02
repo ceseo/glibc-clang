@@ -48,7 +48,7 @@ __syscall_cancel_arch (volatile int *ch, __syscall_arg_t nr,
     __label ":\n");
 
   ADD_LABEL ("__syscall_cancel_arch_start");
-  if (__glibc_unlikely (*ch) == 1)
+  if (__glibc_unlikely (*ch) != 0)
     __do_cancel ();
 
   long int result = INTERNAL_SYSCALL_NCS_CALL (nr, a1, a2, a3, a4, a5, a6);
