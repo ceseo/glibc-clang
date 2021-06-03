@@ -283,7 +283,8 @@ static int create_thread (struct pthread *pd, const struct pthread_attr *attr,
 # define ARCH_CLONE __clone
 #endif
   if (__glibc_unlikely (ARCH_CLONE (&start_thread, STACK_VARIABLES_ARGS,
-				    clone_flags, pd, &pd->tid, tp, &pd->tid)
+				    clone_flags, pd, &pd->tid, tp,
+				    &pd->joinstate)
 			== -1))
     return errno;
 
@@ -343,7 +344,7 @@ start_thread (void *arg)
          and free any resource prior return to the pthread_create caller.  */
       setup_failed = pd->setup_failed == 1;
       if (setup_failed)
-	pd->joinid = NULL;
+	pd->joinstate = THREAD_STATE_JOINABLE;
 
       /* And give it up right away.  */
       lll_unlock (pd->lock, LLL_PRIVATE);
@@ -473,9 +474,20 @@ start_thread (void *arg)
      the breakpoint reports TD_THR_RUN state rather than TD_THR_ZOMBIE.  */
   atomic_bit_set (&pd->cancelhandling, EXITING_BIT);
 
-  if (__glibc_unlikely (atomic_decrement_and_test (&__nptl_nthreads)))
-    /* This was the last thread.  */
-    exit (0);
+
+  /* CONCURRENCY NOTES:
+
+     Concurrent pthread_detach() will either set state to
+     THREAD_STATE_DETACHED or wait the thread to terminate.  The exiting state
+     set here is set so a pthread_join() wait until all the required cleanup
+     steps are done.
+
+     The 'joinstate' field will be used to determine who is responsible to
+     call __nptl_free_tcb below.  */
+
+  unsigned int joinstate = THREAD_STATE_JOINABLE;
+  atomic_compare_exchange_weak_acquire (&pd->joinstate, &joinstate,
+					THREAD_STATE_EXITING);
 
 #ifndef __ASSUME_SET_ROBUST_LIST
   /* We let the kernel do the notification if it is able to do so on the exit
@@ -511,6 +523,10 @@ start_thread (void *arg)
     }
 #endif
 
+  if (__glibc_unlikely (atomic_decrement_and_test (&__nptl_nthreads)))
+    /* This was the last thread.  */
+    exit (0);
+
   if (!pd->user_stack)
     advise_stack_range (pd->stackblock, pd->stackblock_size, (uintptr_t) pd,
 			pd->guardsize);
@@ -531,9 +547,7 @@ start_thread (void *arg)
       pd->setxid_futex = 0;
     }
 
-  /* If the thread is detached free the TCB.  */
-  if (IS_DETACHED (pd))
-    /* Free the TCB.  */
+  if (joinstate == THREAD_STATE_DETACHED)
     __nptl_free_tcb (pd);
 
 out:
@@ -541,7 +555,7 @@ out:
 
      The 'exit' implementation in the kernel will signal when the
      process is really dead since 'clone' got passed the CLONE_CHILD_CLEARTID
-     flag.  The 'tid' field in the TCB will be set to zero.
+     flag.  The 'joinstate' field in the TCB will be set to zero.
 
      The exit code is zero since in case all threads exit by calling
      'pthread_exit' the exit status must be 0 (zero).  */
@@ -635,10 +649,9 @@ __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
   pd->flags = ((iattr->flags & ~(ATTR_FLAG_SCHED_SET | ATTR_FLAG_POLICY_SET))
 	       | (self->flags & (ATTR_FLAG_SCHED_SET | ATTR_FLAG_POLICY_SET)));
 
-  /* Initialize the field for the ID of the thread which is waiting
-     for us.  This is a self-reference in case the thread is created
-     detached.  */
-  pd->joinid = iattr->flags & ATTR_FLAG_DETACHSTATE ? pd : NULL;
+  pd->joinstate = iattr->flags & ATTR_FLAG_DETACHSTATE
+		  ? THREAD_STATE_DETACHED
+		  : THREAD_STATE_JOINABLE;
 
   /* The debug events are inherited from the parent.  */
   pd->eventbuf = self->eventbuf;
@@ -797,10 +810,11 @@ __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
 
 	  /* Similar to pthread_join, but since thread creation has failed at
 	     startup there is no need to handle all the steps.  */
-	  pid_t tid;
-	  while ((tid = atomic_load_acquire (&pd->tid)) != 0)
-	    __futex_abstimed_wait_cancelable64 ((unsigned int *) &pd->tid,
-						tid, 0, NULL, LLL_SHARED);
+	  unsigned int state;
+	  while ((state = atomic_load_acquire (&pd->joinstate))
+                 != THREAD_STATE_EXITED)
+	    __futex_abstimed_wait_cancelable64 (&pd->joinstate, state, 0,
+                                                NULL, LLL_SHARED);
         }
 
       /* State (c) or (d) and we have ownership of PD (see CONCURRENCY
