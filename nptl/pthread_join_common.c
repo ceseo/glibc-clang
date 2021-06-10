@@ -33,14 +33,10 @@ check_for_deadlock (int state, struct pthread *pd)
 {
   struct pthread *self = THREAD_SELF;
   return ((pd == self
-	   || (atomic_load_acquire (&self->joinstate) == THREAD_STATE_DETACHED
-	       && (pd->cancelhandling
-		   & (CANCELED_BITMASK | EXITING_BITMASK
-		      | TERMINATED_BITMASK)) == 0))
+	   || (atomic_load_acquire (&self->joinstate)
+	       == THREAD_STATE_DETACHED))
 	   && !(self->cancelstate == PTHREAD_CANCEL_ENABLE
-		&& (pd->cancelhandling & (CANCELED_BITMASK | EXITING_BITMASK
-					  | TERMINATED_BITMASK))
-		== CANCELED_BITMASK));
+		&& atomic_load_relaxed (&self->cancelstatus) == 1));
 }
 
 int
