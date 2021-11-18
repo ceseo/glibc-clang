@@ -36,7 +36,8 @@ dl-routines	= $(addprefix dl-,load lookup object reloc deps \
 				  exception sort-maps lookup-direct \
 				  call-libc-early-init write \
 				  thread_gscope_wait tls_init_tp \
-				  debug-symbols minimal-malloc)
+				  debug-symbols minimal-malloc \
+				  check)
 ifeq (yes,$(use-ldconfig))
 dl-routines += dl-cache
 endif
@@ -239,7 +240,8 @@ tests-internal += loadtest unload unload2 circleload1 \
 	 tst-ptrguard1 tst-stackguard1 \
 	 tst-create_format1 tst-tls-surplus tst-dl-hwcaps_split
 tests-container += tst-pldd tst-dlopen-tlsmodid-container \
-  tst-dlopen-self-container tst-preload-pthread-libc
+  tst-dlopen-self-container tst-preload-pthread-libc \
+  tst-elf-check
 test-srcs = tst-pathopt
 ifeq (yes,$(have-fpie))
 tests-pie += tst-align3
@@ -497,6 +499,8 @@ tests-special += $(objpfx)order-cmp.out $(objpfx)tst-array1-cmp.out \
 		 $(objpfx)tst-initorder2-cmp.out $(objpfx)tst-unused-dep.out \
 		 $(objpfx)tst-unused-dep-cmp.out
 endif
+
+tst-elf-check-ARGS = -- $(host-test-program-cmd)
 
 ifndef avoid-generated
 # DSO sorting tests:

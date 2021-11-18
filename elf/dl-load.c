@@ -74,19 +74,9 @@ struct filebuf
 #include <dl-machine-reject-phdr.h>
 #include <dl-sysdep-open.h>
 #include <dl-prop.h>
+#include <dl-check.h>
 #include <not-cancel.h>
 
-#include <endian.h>
-#if BYTE_ORDER == BIG_ENDIAN
-# define byteorder ELFDATA2MSB
-#elif BYTE_ORDER == LITTLE_ENDIAN
-# define byteorder ELFDATA2LSB
-#else
-# error "Unknown BYTE_ORDER " BYTE_ORDER
-# define byteorder ELFDATANONE
-#endif
-
-#define STRING(x) __STRING (x)
 
 
 int __stack_prot attribute_hidden attribute_relro
@@ -1600,25 +1590,6 @@ open_verify (const char *name, int fd,
   /* This is the expected ELF header.  */
 #define ELF32_CLASS ELFCLASS32
 #define ELF64_CLASS ELFCLASS64
-#ifndef VALID_ELF_HEADER
-# define VALID_ELF_HEADER(hdr,exp,size)	(memcmp (hdr, exp, size) == 0)
-# define VALID_ELF_OSABI(osabi)		(osabi == ELFOSABI_SYSV)
-# define VALID_ELF_ABIVERSION(osabi,ver) (ver == 0)
-#elif defined MORE_ELF_HEADER_DATA
-  MORE_ELF_HEADER_DATA;
-#endif
-  static const unsigned char expected[EI_NIDENT] =
-  {
-    [EI_MAG0] = ELFMAG0,
-    [EI_MAG1] = ELFMAG1,
-    [EI_MAG2] = ELFMAG2,
-    [EI_MAG3] = ELFMAG3,
-    [EI_CLASS] = ELFW(CLASS),
-    [EI_DATA] = byteorder,
-    [EI_VERSION] = EV_CURRENT,
-    [EI_OSABI] = ELFOSABI_SYSV,
-    [EI_ABIVERSION] = 0
-  };
   static const struct
   {
     ElfW(Word) vendorlen;
@@ -1711,83 +1682,26 @@ open_verify (const char *name, int fd,
 	}
 
       /* See whether the ELF header is what we expect.  */
-      if (__glibc_unlikely (! VALID_ELF_HEADER (ehdr->e_ident, expected,
-						EI_ABIVERSION)
-			    || !VALID_ELF_ABIVERSION (ehdr->e_ident[EI_OSABI],
-						      ehdr->e_ident[EI_ABIVERSION])
-			    || memcmp (&ehdr->e_ident[EI_PAD],
-				       &expected[EI_PAD],
-				       EI_NIDENT - EI_PAD) != 0))
+      int err = _dl_elfhdr_check (ehdr);
+      switch (err)
 	{
-	  /* Something is wrong.  */
-	  const Elf32_Word *magp = (const void *) ehdr->e_ident;
-	  if (*magp !=
-#if BYTE_ORDER == LITTLE_ENDIAN
-	      ((ELFMAG0 << (EI_MAG0 * 8))
-	       | (ELFMAG1 << (EI_MAG1 * 8))
-	       | (ELFMAG2 << (EI_MAG2 * 8))
-	       | (ELFMAG3 << (EI_MAG3 * 8)))
-#else
-	      ((ELFMAG0 << (EI_MAG3 * 8))
-	       | (ELFMAG1 << (EI_MAG2 * 8))
-	       | (ELFMAG2 << (EI_MAG1 * 8))
-	       | (ELFMAG3 << (EI_MAG0 * 8)))
-#endif
-	      )
-	    errstring = N_("invalid ELF header");
-	  else if (ehdr->e_ident[EI_CLASS] != ELFW(CLASS))
-	    {
-	      /* This is not a fatal error.  On architectures where
-		 32-bit and 64-bit binaries can be run this might
-		 happen.  */
-	      *found_other_class = true;
-	      goto close_and_out;
-	    }
-	  else if (ehdr->e_ident[EI_DATA] != byteorder)
-	    {
-	      if (BYTE_ORDER == BIG_ENDIAN)
-		errstring = N_("ELF file data encoding not big-endian");
-	      else
-		errstring = N_("ELF file data encoding not little-endian");
-	    }
-	  else if (ehdr->e_ident[EI_VERSION] != EV_CURRENT)
-	    errstring
-	      = N_("ELF file version ident does not match current one");
-	  /* XXX We should be able so set system specific versions which are
-	     allowed here.  */
-	  else if (!VALID_ELF_OSABI (ehdr->e_ident[EI_OSABI]))
-	    errstring = N_("ELF file OS ABI invalid");
-	  else if (!VALID_ELF_ABIVERSION (ehdr->e_ident[EI_OSABI],
-					  ehdr->e_ident[EI_ABIVERSION]))
-	    errstring = N_("ELF file ABI version invalid");
-	  else if (memcmp (&ehdr->e_ident[EI_PAD], &expected[EI_PAD],
-			   EI_NIDENT - EI_PAD) != 0)
-	    errstring = N_("nonzero padding in e_ident");
-	  else
-	    /* Otherwise we don't know what went wrong.  */
-	    errstring = N_("internal error");
+	case DL_ELFHDR_OK:
+	  break;
 
+	case DL_ELFHDR_ERR_CLASS32:
+	case DL_ELFHDR_ERR_CLASS64:
+	  /* This is not a fatal error.  On architectures where 32-bit and
+	     64-bit binaries can be run this might happen.  */
+	  *found_other_class = true;
+	  goto close_and_out;
+
+	default:
+	  errstring = _dl_elfhdr_errstr (err);
 	  goto lose;
 	}
 
-      if (__glibc_unlikely (ehdr->e_version != EV_CURRENT))
-	{
-	  errstring = N_("ELF file version does not match current one");
-	  goto lose;
-	}
       if (! __glibc_likely (elf_machine_matches_host (ehdr)))
 	goto close_and_out;
-      else if (__glibc_unlikely (ehdr->e_type != ET_DYN
-				 && ehdr->e_type != ET_EXEC))
-	{
-	  errstring = N_("only ET_DYN and ET_EXEC can be loaded");
-	  goto lose;
-	}
-      else if (__glibc_unlikely (ehdr->e_phentsize != sizeof (ElfW(Phdr))))
-	{
-	  errstring = N_("ELF file's phentsize not the expected size");
-	  goto lose;
-	}
 
       maplength = ehdr->e_phnum * sizeof (ElfW(Phdr));
       if (ehdr->e_phoff + maplength <= (size_t) fbp->len)

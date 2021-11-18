@@ -51,6 +51,7 @@
 #include <dl-tunables.h>
 #include <get-dynamic-info.h>
 #include <dl-execve.h>
+#include <dl-elf-check.h>
 
 #include <assert.h>
 
@@ -1152,6 +1153,7 @@ dl_main (const ElfW(Phdr) *phdr,
 	 ElfW(Addr) *user_entry,
 	 ElfW(auxv_t) *auxv)
 {
+  const ElfW(Ehdr) *ehdr = NULL;
   const ElfW(Phdr) *ph;
   struct link_map *main_map;
   size_t file_size;
@@ -1558,6 +1560,9 @@ dl_main (const ElfW(Phdr) *phdr,
 	  if (main_map->l_map_start > mapstart)
 	    main_map->l_map_start = mapstart;
 
+	  if (ph->p_offset == 0 && ph->p_memsz > 0)
+	    ehdr = (void *) mapstart;
+
 	  /* Also where it ends.  */
 	  allocend = main_map->l_addr + ph->p_vaddr + ph->p_memsz;
 	  if (main_map->l_map_end < allocend)
@@ -1610,6 +1615,9 @@ dl_main (const ElfW(Phdr) *phdr,
 	_dl_process_pt_gnu_property (main_map, -1, &ph[-1]);
 	break;
       }
+
+  if (ehdr != NULL)
+    _dl_check_ehdr (ehdr);
 
   /* Adjust the address of the TLS initialization image in case
      the executable is actually an ET_DYN object.  */
