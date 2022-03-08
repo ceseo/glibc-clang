@@ -27,29 +27,35 @@
 #include <sys/wait.h>
 #include <time.h>
 
-/* Non cancellable open syscall.  */
-__typeof (open) __open_nocancel;
-
-/* Non cancellable open syscall (LFS version).  */
-__typeof (open64) __open64_nocancel;
-
-/* Non cancellable openat syscall.  */
-__typeof (openat) __openat_nocancel;
-
+#if IS_IN (libc) || IS_IN (rtld)
+/* Non cacellable open syscall (LFS version).  */
+hidden_proto2 (open, __open_nocancel)
+/* Non cacellable open syscall (LFS version).  */
+hidden_proto2 (open64, __open64_nocancel)
 /* Non cacellable openat syscall (LFS version).  */
-__typeof (openat64) __openat64_nocancel;
-
+hidden_proto2 (openat, __openat_nocancel)
+/* Non cacellable openat syscall (LFS version).  */
+hidden_proto2 (openat64, __openat64_nocancel)
 /* Non cancellable read syscall.  */
-__typeof (__read) __read_nocancel;
-
+hidden_proto2 (read, __read_nocancel)
 /* Non cancellable pread syscall (LFS version).  */
-__typeof (__pread64) __pread64_nocancel;
-
+hidden_proto2 (pread64, __pread64_nocancel)
 /* Uncancelable write.  */
-__typeof (__write) __write_nocancel;
-
+hidden_proto2 (write, __write_nocancel)
 /* Uncancelable close.  */
-__typeof (__close) __close_nocancel;
+hidden_proto2 (close, __close_nocancel)
+/* Uncancelable fcntl.  */
+hidden_proto2 (fcntl64, __fcntl64_nocancel)
+#else
+__typeof (open) __open_nocancel;
+__typeof (open64) __open64_nocancel;
+__typeof (openat) __openat_nocancel;
+__typeof (openat64) __openat64_nocancel;
+__typeof (read) __read_nocancel;
+__typeof (pread64) __pread64_nocancel;
+__typeof (write) __write_nocancel;
+__typeof (close) __close_nocancel;
+#endif
 
 /* Non cancellable close syscall that does not also set errno in case of
    failure.  */
@@ -69,17 +75,5 @@ __writev_nocancel_nostatus (int fd, const struct iovec *iov, int iovcnt)
 
 /* Uncancelable fcntl.  */
 __typeof (__fcntl) __fcntl64_nocancel;
-
-#if IS_IN (libc) || IS_IN (rtld)
-hidden_proto (__open_nocancel)
-hidden_proto (__open64_nocancel)
-hidden_proto (__openat_nocancel)
-hidden_proto (__openat64_nocancel)
-hidden_proto (__read_nocancel)
-hidden_proto (__pread64_nocancel)
-hidden_proto (__write_nocancel)
-hidden_proto (__close_nocancel)
-hidden_proto (__fcntl64_nocancel)
-#endif
 
 #endif /* NOT_CANCEL_H  */
