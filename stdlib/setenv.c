@@ -19,12 +19,14 @@
 # include <config.h>
 #endif
 
+#if _LIBC
+# include <libc-diag.h>
 /* Pacify GCC; see the commentary about VALLEN below.  This is needed
    at least through GCC 4.9.2.  Pacify GCC for the entire file, as
    there seems to be no way to pacify GCC selectively, only for the
-   place where it's needed.  Do not use DIAG_IGNORE_NEEDS_COMMENT
-   here, as it's not defined yet.  */
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+   place where it's needed.  */
+DIAG_IGNORE_NEEDS_COMMENT (4.9, "-Wmaybe-uninitialized");
+#endif
 
 #include <errno.h>
 #if !_LIBC
