@@ -25,7 +25,7 @@
    at least through GCC 4.9.2.  Pacify GCC for the entire file, as
    there seems to be no way to pacify GCC selectively, only for the
    place where it's needed.  */
-DIAG_IGNORE_NEEDS_COMMENT (4.9, "-Wmaybe-uninitialized");
+DIAG_IGNORE_NEEDS_COMMENT_GCC (4.9, "-Wmaybe-uninitialized");
 #endif
 
 #include <errno.h>
