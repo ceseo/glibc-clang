@@ -19,13 +19,14 @@
 
 #include <pthread.h>
 #include <stdlib.h>
+#include <libc-diag.h>
 
 /* Turn uninitialized warnings into errors to detect the problem.
    See BZ #27714.  */
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic error "-Wmaybe-uninitialized"
-#pragma GCC diagnostic error "-Wuninitialized"
+DIAG_PUSH_NEEDS_COMMENT;
+DIAG_IGNORE_NEEDS_COMMENT_GCC (6, "-Wmaybe-uninitialized");
+DIAG_IGNORE_NEEDS_COMMENT (6, "-Wuninitialized");
 
 int do_test (void)
 {
@@ -37,7 +38,7 @@ int do_test (void)
   return p == q;
 }
 
-#pragma GCC diagnostic pop
+DIAG_POP_NEEDS_COMMENT;
 
 #define TEST_FUNCTION do_test ()
 #include "../test-skeleton.c"
