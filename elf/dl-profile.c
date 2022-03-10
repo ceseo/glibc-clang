@@ -548,24 +548,24 @@ _dl_mcount (ElfW(Addr) frompc, ElfW(Addr) selfpc)
 	      size_t newfromidx;
 	      to_index = (data[narcs].self_pc
 			  / (HASHFRACTION * sizeof (*tos)));
-	      newfromidx = catomic_exchange_and_add (&fromidx, 1) + 1;
+	      newfromidx = atomic_fetch_and_acquire (&fromidx, 1) + 1;
 	      froms[newfromidx].here = &data[narcs];
 	      froms[newfromidx].link = tos[to_index];
 	      tos[to_index] = newfromidx;
-	      catomic_increment (&narcs);
+	      atomic_fetch_and_acquire (&narcs, 1);
 	    }
 
 	  /* If we still have no entry stop searching and insert.  */
 	  if (*topcindex == 0)
 	    {
-	      unsigned int newarc = catomic_exchange_and_add (narcsp, 1);
+	      unsigned int newarc = atomic_exchange_and_add (narcsp, 1) + 1;
 
 	      /* In rare cases it could happen that all entries in FROMS are
 		 occupied.  So we cannot count this anymore.  */
 	      if (newarc >= fromlimit)
 		goto done;
 
-	      *topcindex = catomic_exchange_and_add (&fromidx, 1) + 1;
+	      *topcindex = atomic_fetch_and_acquire (&fromidx, 1) + 1;
 	      fromp = &froms[*topcindex];
 
 	      fromp->here = &data[newarc];
@@ -573,7 +573,7 @@ _dl_mcount (ElfW(Addr) frompc, ElfW(Addr) selfpc)
 	      data[newarc].self_pc = selfpc;
 	      data[newarc].count = 0;
 	      fromp->link = 0;
-	      catomic_increment (&narcs);
+	      atomic_fetch_and_acquire (&narcs, 1);
 
 	      break;
 	    }
@@ -586,7 +586,7 @@ _dl_mcount (ElfW(Addr) frompc, ElfW(Addr) selfpc)
     }
 
   /* Increment the counter.  */
-  catomic_increment (&fromp->here->count);
+  atomic_fetch_and_acquire (&fromp->here->count, 1);
 
  done:
   ;
