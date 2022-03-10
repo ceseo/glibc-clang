@@ -21,5 +21,14 @@ AC_DEFINE(PI_STATIC_AND_HIDDEN)
 dnl Static PIE is supported.
 AC_DEFINE(SUPPORT_STATIC_PIE)
 
+dnl Check if compiler supports -msse2avx
+AC_CACHE_CHECK(-msse2avx, libc_cv_cc_msse2avx, [dnl
+LIBC_TRY_CC_OPTION([-msse2avx],
+		   [libc_cv_cc_msse2avx=-msse2avx],
+		   [libc_cv_cc_msse2avx=])
+])
+LIBC_CONFIG_VAR([config-cflags-msse2avx],
+		[$libc_cv_cc_msse2avx])
+
 test -n "$critic_missing" && AC_MSG_ERROR([
 *** $critic_missing])
