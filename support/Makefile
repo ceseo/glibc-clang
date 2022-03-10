@@ -233,8 +233,8 @@ CFLAGS-support_paths.c = \
 # being withing the observed range.  The code uses double internally
 # in support_timespec_check_in_range and for that computation we use
 # -fexcess-precision=standard.
-CFLAGS-timespec.c += -fexcess-precision=standard
-CFLAGS-timespec-time64.c += -fexcess-precision=standard
+CFLAGS-timespec.c += $(config-cflags-fexcess-precision-standard)
+CFLAGS-timespec-time64.c += $(config-cflags-fexcess-precision-standard)
 
 ifeq (,$(CXX))
 LINKS_DSO_PROGRAM = links-dso-program-c

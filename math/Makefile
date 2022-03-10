@@ -455,9 +455,9 @@ CFLAGS-test-math-iszero.cc += -std=gnu++11
 CFLAGS-test-math-issignaling.cc += -std=gnu++11
 CFLAGS-test-math-iscanonical.cc += -std=gnu++11
 
-CFLAGS-test-iszero-excess-precision.c += -fexcess-precision=standard
-CFLAGS-test-iseqsig-excess-precision.c += -fexcess-precision=standard
-CFLAGS-test-flt-eval-method.c += -fexcess-precision=standard
+CFLAGS-test-iszero-excess-precision.c += $(config-cflags-fexcess-precision-standard)
+CFLAGS-test-iseqsig-excess-precision.c += $(config-cflags-fexcess-precision-standard)
+CFLAGS-test-flt-eval-method.c += $(config-cflags-fexcess-precision-standard)
 
 CFLAGS-test-fe-snans-always-signal.c += $(config-cflags-signaling-nans)
 
@@ -783,6 +783,16 @@ CFLAGS-s_modf.c += $(config-cflags-signaling-nans)
 CFLAGS-s_modff.c += $(config-cflags-signaling-nans)
 CFLAGS-s_modfl.c += $(config-cflags-signaling-nans)
 CFLAGS-s_modff128.c += $(config-cflags-signaling-nans)
+
+CFLAGS-s_llround.c += -Wno-incompatible-library-redeclaration
+CFLAGS-s_fabsl.c += -Wno-ignored-attributes
+CFLAGS-s_fabsf128.c += -Wno-ignored-attributes
+CFLAGS-fraiseexcpt.c += -Wno-ignored-attributes
+CFLAGS-fegetround.c += -Wno-ignored-attributes
+CFLAGS-fesetround.c += -Wno-ignored-attributes
+CFLAGS-fegetenv.c += -Wno-ignored-attributes
+CFLAGS-fesetenv.c += -Wno-ignored-attributes
+CFLAGS-feholdexcpt.c += -Wno-ignored-attributes
 
 $(addprefix $(objpfx),\
 	    $(filter-out $(tests-static) $(libm-tests-vector),\
