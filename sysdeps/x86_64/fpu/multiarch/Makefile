@@ -13,6 +13,8 @@ libm-sysdep_routines += e_exp-fma e_log-fma e_pow-fma s_atan-fma \
 			e_asin-fma e_atan2-fma s_sin-fma s_tan-fma \
 			s_sincos-fma
 
+CFLAGS-s_sincos.c += $(config-cflags-wno-ignored-attributes)
+
 CFLAGS-e_asin-fma.c = -mfma -mavx2
 CFLAGS-e_atan2-fma.c = -mfma -mavx2
 CFLAGS-e_exp-fma.c = -mfma -mavx2
