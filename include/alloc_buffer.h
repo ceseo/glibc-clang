@@ -83,6 +83,10 @@
 #include <stdlib.h>
 #include <sys/param.h>
 
+#ifdef _ISOMAC
+# define libc_hidden_proto3(name, proto) name proto
+#endif
+
 /* struct alloc_buffer objects refer to a region of bytes in memory of a
    fixed size.  The functions below can be used to allocate single
    objects and arrays from this memory region, or write to its end.
@@ -113,7 +117,8 @@ enum
   };
 
 /* Internal function.  Terminate the process using __libc_fatal.  */
-void __libc_alloc_buffer_create_failure (void *start, size_t size);
+void libc_hidden_proto3 (__libc_alloc_buffer_create_failure,
+			 (void *start, size_t size));
 
 /* Create a new allocation buffer.  The byte range from START to START
    + SIZE - 1 must be valid, and the allocation buffer allocates
@@ -130,7 +135,8 @@ alloc_buffer_create (void *start, size_t size)
 }
 
 /* Internal function.  See alloc_buffer_allocate below.  */
-struct alloc_buffer __libc_alloc_buffer_allocate (size_t size, void **pptr)
+struct alloc_buffer libc_hidden_proto3 (__libc_alloc_buffer_allocate,
+					(size_t size, void **pptr))
   __attribute__ ((nonnull (2)));
 
 /* Allocate a buffer of SIZE bytes using malloc.  The returned buffer
@@ -329,9 +335,9 @@ __alloc_buffer_next (struct alloc_buffer *buf, size_t align)
    (buf, __alloc_buffer_assert_align (__alignof__ (type))))
 
 /* Internal function.  Allocate an array.  */
-void * __libc_alloc_buffer_alloc_array (struct alloc_buffer *buf,
-					size_t size, size_t align,
-					size_t count)
+void * libc_hidden_proto3 (__libc_alloc_buffer_alloc_array,
+			   (struct alloc_buffer *buf, size_t size, size_t align,
+			    size_t count))
   __attribute__ ((nonnull (1)));
 
 /* Obtain a TYPE * pointer to an array of COUNT objects in BUF of
@@ -346,8 +352,9 @@ void * __libc_alloc_buffer_alloc_array (struct alloc_buffer *buf,
     count))
 
 /* Internal function.  See alloc_buffer_copy_bytes below.  */
-struct alloc_buffer __libc_alloc_buffer_copy_bytes (struct alloc_buffer,
-						    const void *, size_t)
+struct alloc_buffer libc_hidden_proto3 (__libc_alloc_buffer_copy_bytes,
+					(struct alloc_buffer, const void *,
+					 size_t))
   __attribute__ ((nonnull (2)));
 
 /* Copy SIZE bytes starting at SRC into the buffer.  If there is not
@@ -360,8 +367,8 @@ alloc_buffer_copy_bytes (struct alloc_buffer *buf, const void *src, size_t size)
 }
 
 /* Internal function.  See alloc_buffer_copy_string below.  */
-struct alloc_buffer __libc_alloc_buffer_copy_string (struct alloc_buffer,
-						     const char *)
+struct alloc_buffer libc_hidden_proto3 (__libc_alloc_buffer_copy_string,
+					(struct alloc_buffer, const char *))
   __attribute__ ((nonnull (2)));
 
 /* Copy the string at SRC into the buffer, including its null
@@ -376,13 +383,5 @@ alloc_buffer_copy_string (struct alloc_buffer *buf, const char *src)
     result = NULL;
   return result;
 }
-
-#ifndef _ISOMAC
-libc_hidden_proto (__libc_alloc_buffer_alloc_array)
-libc_hidden_proto (__libc_alloc_buffer_allocate)
-libc_hidden_proto (__libc_alloc_buffer_copy_bytes)
-libc_hidden_proto (__libc_alloc_buffer_copy_string)
-libc_hidden_proto (__libc_alloc_buffer_create_failure)
-#endif
 
 #endif /* _ALLOC_BUFFER_H */

@@ -536,6 +536,10 @@ for linking")
   __hidden_proto (name, , __GI_##name, ##attrs)
 #  define hidden_proto2(type, name, attrs...) \
   __hidden_proto2 (type, name, , __GI_##name, ##attrs)
+#  define __hidden_proto3(internal) \
+  __asm__(__hidden_asmname (#internal))
+#  define hidden_proto3(name, proto, attrs...) \
+  name proto __hidden_proto3 (__GI_##name) __hidden_proto_hiddenattr (##attrs)
 #  define hidden_tls_proto(name, attrs...) \
   __hidden_proto (name, __thread, __GI_##name, ##attrs)
 #  define __hidden_proto(name, thread, internal, attrs...)	     \
@@ -607,8 +611,12 @@ for linking")
   __hidden_proto (name, __thread, name, ##attrs)
 #  define __hidden_proto(name, thread, internal, attrs...)	     \
   extern thread __typeof (name) name __hidden_proto_hiddenattr (attrs);
+# define hidden_proto3(name, proto, attrs...) \
+  name proto __hidden_proto_hiddenattr (##attrs)
 # else
 #   define hidden_proto(name, attrs...)
+#   define hidden_proto3(name, proto, attrs...) name proto
+#   define hidden_proto_alias(name, alias, attrs...)
 #   define hidden_tls_proto(name, attrs...)
 # endif
 # define __hidden_proto2(type, name, thread, attrs...)     \
@@ -630,6 +638,7 @@ for linking")
 
 #if IS_IN (libc)
 # define libc_hidden_proto(name, attrs...) hidden_proto (name, ##attrs)
+# define libc_hidden_proto3(name, proto, attrs...) hidden_proto3 (name, proto, ##attrs)
 # define libc_hidden_tls_proto(name, attrs...) hidden_tls_proto (name, ##attrs)
 # define libc_hidden_def(name) hidden_def (name)
 # define libc_hidden_weak(name) hidden_weak (name)
@@ -641,6 +650,7 @@ for linking")
 # define libc_hidden_data_ver(local, name) hidden_data_ver (local, name)
 #else
 # define libc_hidden_proto(name, attrs...)
+# define libc_hidden_proto3(name, proto, attrs...) name proto
 # define libc_hidden_tls_proto(name, attrs...)
 # define libc_hidden_def(name)
 # define libc_hidden_weak(name)
