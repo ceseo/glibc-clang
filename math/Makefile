@@ -769,6 +769,14 @@ CFLAGS-s_y1.c += -fno-builtin-y1l
 CFLAGS-s_yn.c += -fno-builtin-ynl
 endif
 
+CFLAGS-s_fabsf128.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-fraiseexcpt.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-fegetround.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-fesetround.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-fegetenv.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-fesetenv.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-feholdexcpt.c += $(config-cflags-wno-ignored-attributes)
+
 # These files quiet sNaNs in a way that is optimized away without
 # -fsignaling-nans.
 CFLAGS-s_modf.c += $(config-cflags-signaling-nans)
