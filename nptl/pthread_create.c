@@ -45,8 +45,7 @@
 
 
 /* Globally enabled events.  */
-td_thr_events_t __nptl_threads_events;
-libc_hidden_proto (__nptl_threads_events)
+td_thr_events_t hidden_proto3 (__nptl_threads_events, );
 libc_hidden_data_def (__nptl_threads_events)
 
 /* Pointer to descriptor with the last event.  */
