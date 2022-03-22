@@ -337,7 +337,11 @@ gaih_inet (const char *name, const struct gaih_service *service,
 
   /* Reserve stack memory for the scratch buffer in the getaddrinfo
      function.  */
+  /* clang warns alloca_used is set but not used.  */
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wunused-but-set-variable");
   size_t alloca_used = sizeof (struct scratch_buffer);
+  DIAG_POP_NEEDS_COMMENT_CLANG;
 
   if (req->ai_protocol || req->ai_socktype)
     {
@@ -1906,6 +1910,11 @@ gaiconf_init (void)
 		  unsigned long int val;
 		  char *endp;
 
+		  /* clang warns that endp is used uninitialized whenever '||'
+		     condition is true, however it will be evaluated after
+		     strtoul call.  */
+		  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+		  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wsometimes-uninitialized");
 		  bits = 32;
 		  __set_errno (0);
 		  cp = strchr (val1, '/');
@@ -1963,6 +1972,7 @@ gaiconf_init (void)
 		      bits += 96;
 		      goto new_scope;
 		    }
+		  DIAG_POP_NEEDS_COMMENT_CLANG;
 		}
 	      break;
 
