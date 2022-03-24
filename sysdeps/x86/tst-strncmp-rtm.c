@@ -38,7 +38,7 @@
 CHAR string1[STRING_SIZE];
 CHAR string2[STRING_SIZE];
 
-__attribute__ ((noinline, noclone))
+__attribute__ ((noinline)) __attribute_noclone__
 static int
 prepare (void)
 {
@@ -50,7 +50,7 @@ prepare (void)
     return EXIT_FAILURE;
 }
 
-__attribute__ ((noinline, noclone))
+__attribute__ ((noinline)) __attribute_noclone__
 static int
 function (void)
 {
@@ -60,7 +60,7 @@ function (void)
     return 1;
 }
 
-__attribute__ ((noinline, noclone))
+__attribute__ ((noinline)) __attribute_noclone__
 static int
 function_overflow (void)
 {
