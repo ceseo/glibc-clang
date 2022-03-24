@@ -165,10 +165,6 @@ CFLAGS-iofputs_u.c += $(config-cflags-wno-ignored-attributes)
 
 CFLAGS-tst_putwc.c += -DOBJPFX=\"$(objpfx)\"
 
-# These test cases intentionally use overlapping arguments
-CFLAGS-tst-sprintf-ub.c += -Wno-restrict
-CFLAGS-tst-sprintf-chk-ub.c += -Wno-restrict
-
 LDFLAGS-tst-bz24228 = -Wl,--version-script=tst-bz24228.map
 
 tst_wprintf2-ARGS = "Some Text"
