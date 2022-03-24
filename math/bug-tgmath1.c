@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <tgmath.h>
+#include <libc-diag.h>
 
 
 int
@@ -29,12 +30,16 @@ main (void)
   TEST (cimag (1.0f), sizeof (float));
   TEST (cimag (1.0f + 1.0fi), sizeof (float));
 
+  /* TODO: add why clang requires this.  */
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wabsolute-value");
   TEST (fabs (1.0), sizeof (double));
   TEST (fabs (1.0 + 1.0i), sizeof (double));
   TEST (fabs (1.0l), sizeof (long double));
   TEST (fabs (1.0l + 1.0li), sizeof (long double));
   TEST (fabs (1.0f), sizeof (float));
   TEST (fabs (1.0f + 1.0fi), sizeof (float));
+  DIAG_POP_NEEDS_COMMENT_CLANG;
 
   TEST (carg (1.0), sizeof (double));
   TEST (carg (1.0 + 1.0i), sizeof (double));
