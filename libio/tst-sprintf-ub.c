@@ -16,8 +16,14 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <libc-diag.h>
 #include <stdarg.h>
+/* This is required to disable the overlap warnings for the fortify
+   test.  */
+DIAG_PUSH_NEEDS_COMMENT;
+DIAG_IGNORE_NEEDS_COMMENT_GCC (5, "-Wrestrict");
 #include <stdio.h>
+DIAG_POP_NEEDS_COMMENT;
 #include <string.h>
 
 #include <support/check.h>
@@ -54,7 +60,11 @@ do_one_test (int function, char *buf, ...)
       /* The regular sprintf and vsprintf functions do not override the
          destination buffer, even if source and destination overlap.  */
       case FUNCTION_SPRINTF:
+	/* This intentionally use overlapping arguments.  */
+	DIAG_PUSH_NEEDS_COMMENT;
+	DIAG_IGNORE_NEEDS_COMMENT_GCC (5, "-Wrestrict");
         sprintf (buf, "%sCD", buf);
+	DIAG_POP_NEEDS_COMMENT;
         TEST_COMPARE_STRING (buf, expected);
         break;
       case FUNCTION_VSPRINTF:
@@ -66,7 +76,11 @@ do_one_test (int function, char *buf, ...)
       /* On the other hand, snprint and vsnprint override overlapping
          source and destination buffers.  */
       case FUNCTION_SNPRINF:
+	/* This intentionally use overlapping arguments.  */
+	DIAG_PUSH_NEEDS_COMMENT;
+	DIAG_IGNORE_NEEDS_COMMENT_GCC (5, "-Wrestrict");
         snprintf (buf, 3, "%sCD", buf);
+	DIAG_POP_NEEDS_COMMENT;
         TEST_COMPARE_STRING (buf, "CD");
         break;
       case FUNCTION_VSNPRINTF:
