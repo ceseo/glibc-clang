@@ -387,7 +387,7 @@ tests += tst-cancelx7 tst-cancelx17
 ifeq ($(build-shared),yes)
 tests += tst-compat-forwarder tst-audit-threads
 tests-internal += tst-tls3 tst-tls3-malloc tst-tls5 tst-stackguard1
-ifeq ($(have-z-execstack),yes)
+ifeq ($(have-z-execstack)$(have-cc-trampoline),yesyes)
 tests += tst-execstack
 endif
 endif
@@ -395,9 +395,11 @@ endif
 modules-names = tst-tls3mod \
 		tst-tls5mod tst-tls5moda tst-tls5modb tst-tls5modc \
 		tst-tls5modd tst-tls5mode tst-tls5modf tst-stack4mod \
-		tst-execstack-mod \
 		tst-compat-forwarder-mod tst-audit-threads-mod1 \
 		tst-audit-threads-mod2
+ifeq ($(have-z-execstack)$(have-cc-trampoline),yesyes)
+modules-names += tst-execstack-mod
+endif
 extra-test-objs += $(addsuffix .os,$(strip $(modules-names))) \
 		   tst-cleanup4aux.o tst-cleanupx4aux.o
 test-extras += tst-cleanup4aux tst-cleanupx4aux
