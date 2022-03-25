@@ -6330,6 +6330,38 @@ if test $libc_cv_cc_loop_to_function = yes; then
 fi
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if $CC has support for trampolines" >&5
+$as_echo_n "checking if $CC has support for trampolines... " >&6; }
+if ${libc_cv_cc_trampoline+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat > conftest.c <<EOF
+void bar (void (*callback) (void));
+int foo (void)
+{
+  int var = 0;
+  void callback (void) { var = 1; }
+  bar (callback);
+  return var;
+}
+EOF
+libc_cv_cc_trampoline=no
+if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -Werror -c conftest.c'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then
+  libc_cv_cc_trampoline=yes
+fi
+rm -f conftest*
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_cc_trampoline" >&5
+$as_echo "$libc_cv_cc_trampoline" >&6; }
+config_vars="$config_vars
+have-cc-trampoline = $libc_cv_cc_trampoline"
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libgd" >&5
 $as_echo_n "checking for libgd... " >&6; }
 if test "$with_gd" != "no"; then
