@@ -543,6 +543,7 @@ $(objpfx)check-installed-headers-c.out: \
     scripts/check-installed-headers.sh $(headers)
 	$(SHELL) $(..)scripts/check-installed-headers.sh c \
 	  "$(CC) $(filter-out -std=%,$(CFLAGS)) -D_ISOMAC $(+includes)" \
+	  $(config-cflags-charset-ascii) \
 	  $(headers) > $@; \
 	$(evaluate-test)
 
@@ -553,6 +554,7 @@ $(objpfx)check-installed-headers-cxx.out: \
     scripts/check-installed-headers.sh $(headers)
 	$(SHELL) $(..)scripts/check-installed-headers.sh c++ \
 	  "$(CXX) $(filter-out -std=%,$(CXXFLAGS)) -D_ISOMAC $(+includes)" \
+	  $(config-cflags-charset-ascii) \
 	  $(headers) > $@; \
 	$(evaluate-test)
 endif # $(CXX)
