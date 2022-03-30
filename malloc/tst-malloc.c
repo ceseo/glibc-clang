@@ -46,6 +46,7 @@ do_test (void)
   p = malloc (-1);
   DIAG_POP_NEEDS_COMMENT;
   save = errno;
+  asm volatile("" ::: "memory");
 
   if (p != NULL)
     merror ("malloc (-1) succeeded.");
