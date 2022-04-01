@@ -1012,7 +1012,8 @@ enum
 
 /* Return nonzero value if X is positive or negative infinity.  */
 # if __HAVE_DISTINCT_FLOAT128 && !__GNUC_PREREQ (7,0) \
-     && !defined __SUPPORT_SNAN__ && !defined __cplusplus
+     && !defined __SUPPORT_SNAN__ && !defined __cplusplus \
+     && !defined __clang__
    /* Since __builtin_isinf_sign is broken for float128 before GCC 7.0,
       use the helper function, __isinff128, with older compilers.  This is
       only provided for C mode, because in C++ mode, GCC has no support
@@ -1021,8 +1022,7 @@ enum
 #  define isinf(x) \
     (__builtin_types_compatible_p (__typeof (x), _Float128) \
      ? __isinff128 (x) : __builtin_isinf_sign (x))
-# elif (__GNUC_PREREQ (4,4) && !defined __SUPPORT_SNAN__) \
-       || __glibc_clang_prereq (3,7)
+# elif (__GNUC_PREREQ (4,4) && !defined __SUPPORT_SNAN__)
 #  define isinf(x) __builtin_isinf_sign (x)
 # else
 #  define isinf(x) __MATH_TG ((x), __isinf, (x))
