@@ -43,7 +43,7 @@ routines	:=							      \
 	vfscanf-internal vfwscanf-internal iovfscanf			      \
 	vfprintf-internal vfwprintf-internal
 
-aux	:= errlist errname siglist printf-parsemb printf-parsewc fxprintf
+aux	:= errlist errlist-data errname siglist printf-parsemb printf-parsewc fxprintf
 
 tests := tstscanf test_rdwr test-popen tstgetln test-fseek \
 	 temptest tst-fileno test-fwrite tst-ungetc tst-ferror \
@@ -75,6 +75,10 @@ tests := tstscanf test_rdwr test-popen tstgetln test-fseek \
 	 tst-sprintf-errno \
 	 # tests
 
+generated += \
+  errlist-data-aux-shared.S \
+  errlist-data-aux.S \
+  # generated
 
 test-srcs = tst-unbputc tst-printf tst-printfsz-islongdouble
 
@@ -98,6 +102,20 @@ endif
 tests-special += $(objpfx)tst-errno-manual.out
 
 include ../Rules
+
+# The errlist.c is built in two phases because compiler might reorder the
+# compat_symbol directive prior the object itself and on binutils older
+# than 2.29 it might generate object sizes different than the expected ones.
+$(objpfx)errlist-data-aux-shared.S: errlist-data-gen.c
+	$(make-target-directory)
+	$(compile-command.c) $(pic-cppflags) $(pic-ccflag) $(no-stack-protector) -S
+
+$(objpfx)errlist-data-aux.S: errlist-data-gen.c
+	$(make-target-directory)
+	$(compile-command.c) $(pie-default) $(no-stack-protector) -S
+
+$(objpfx)errlist-data.os: $(objpfx)errlist-data-aux-shared.S
+$(objpfx)errlist-data.o: $(objpfx)errlist-data-aux.S
 
 ifeq ($(run-built-tests),yes)
 LOCALES := de_DE.ISO-8859-1 de_DE.UTF-8 en_US.ISO-8859-1 ja_JP.EUC-JP
@@ -181,7 +199,6 @@ CFLAGS-isoc99_vfscanf.c += -fexceptions
 CFLAGS-isoc99_vscanf.c += -fexceptions
 CFLAGS-isoc99_fscanf.c += -fexceptions
 CFLAGS-isoc99_scanf.c += -fexceptions
-CFLAGS-errlist.c += $(fno-unit-at-a-time)
 CFLAGS-siglist.c += $(fno-unit-at-a-time)
 
 # scanf14a.c and scanf16a.c test a deprecated extension which is no
