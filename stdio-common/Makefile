@@ -43,7 +43,7 @@ routines	:=							      \
 	vfscanf-internal vfwscanf-internal iovfscanf			      \
 	vfprintf-internal vfwprintf-internal
 
-aux	:= errlist siglist printf-parsemb printf-parsewc fxprintf
+aux	:= errlist errname siglist printf-parsemb printf-parsewc fxprintf
 
 tests := tstscanf test_rdwr test-popen tstgetln test-fseek \
 	 temptest tst-fileno test-fwrite tst-ungetc tst-ferror \
