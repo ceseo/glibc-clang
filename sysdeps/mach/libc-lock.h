@@ -19,8 +19,6 @@
 #ifndef _LIBC_LOCK_H
 #define _LIBC_LOCK_H 1
 
-#ifdef _LIBC
-
 #include <tls.h>
 #include <lowlevellock.h>
 
@@ -37,11 +35,6 @@ typedef __libc_lock_recursive_t __rtld_lock_recursive_t;
 extern char __libc_lock_self0[0];
 #define __libc_lock_owner_self()   \
   (__LIBC_NO_TLS () ? (void *)&__libc_lock_self0 : THREAD_SELF)
-
-#else
-typedef struct __libc_lock_opaque__ __libc_lock_t;
-typedef struct __libc_lock_recursive_opaque__ __libc_lock_recursive_t;
-#endif
 
 /* Define a lock variable NAME with storage class CLASS.  The lock must be
    initialized with __libc_lock_init before it can be used (or define it
@@ -214,7 +207,6 @@ struct __libc_once
 /* Get once control variable.  */
 #define __libc_once_get(ONCE_CONTROL)	((ONCE_CONTROL).done != 0)
 
-#ifdef _LIBC
 /* We need portable names for some functions.  E.g., when they are
    used as argument to __libc_cleanup_region_start.  */
 #define __libc_mutex_unlock __libc_lock_unlock
@@ -222,6 +214,5 @@ struct __libc_once
 /* Hide the definitions which are only supposed to be used inside libc in
    a separate file.  This file is not present in the installation!  */
 # include <libc-lockP.h>
-#endif
 
 #endif	/* libc-lock.h */
