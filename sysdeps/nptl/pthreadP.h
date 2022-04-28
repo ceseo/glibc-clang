@@ -403,6 +403,7 @@ libc_hidden_proto (__pthread_getattr_default_np)
 extern int __pthread_rwlock_init (pthread_rwlock_t *__restrict __rwlock,
 				  const pthread_rwlockattr_t *__restrict
 				  __attr);
+libc_hidden_proto (__pthread_rwlock_init)
 extern int __pthread_rwlock_destroy (pthread_rwlock_t *__rwlock);
 extern int __pthread_rwlock_rdlock (pthread_rwlock_t *__rwlock);
 libc_hidden_proto (__pthread_rwlock_rdlock)
@@ -411,6 +412,7 @@ extern int __pthread_rwlock_wrlock (pthread_rwlock_t *__rwlock);
 libc_hidden_proto (__pthread_rwlock_wrlock)
 extern int __pthread_rwlock_trywrlock (pthread_rwlock_t *__rwlock);
 extern int __pthread_rwlock_unlock (pthread_rwlock_t *__rwlock);
+libc_hidden_proto (__pthread_rwlock_unlock)
 extern int __pthread_cond_broadcast (pthread_cond_t *cond);
 libc_hidden_proto (__pthread_cond_broadcast)
 extern int __pthread_cond_destroy (pthread_cond_t *cond);
@@ -523,6 +525,8 @@ extern int __pthread_join (pthread_t threadid, void **thread_return);
 libc_hidden_proto (__pthread_join)
 extern int __pthread_setcanceltype (int type, int *oldtype);
 libc_hidden_proto (__pthread_setcanceltype)
+extern int __pthread_setcancelstate (int state, int *oldstate);
+libc_hidden_proto (__pthread_setcancelstate)
 extern void __pthread_testcancel (void);
 libc_hidden_proto (__pthread_testcancel)
 extern int __pthread_clockjoin_ex (pthread_t, void **, clockid_t,
@@ -530,11 +534,6 @@ extern int __pthread_clockjoin_ex (pthread_t, void **, clockid_t,
   attribute_hidden;
 extern int __pthread_sigmask (int, const sigset_t *, sigset_t *);
 libc_hidden_proto (__pthread_sigmask);
-
-
-#if IS_IN (libpthread)
-hidden_proto (__pthread_rwlock_unlock)
-#endif
 
 extern int __pthread_cond_broadcast_2_0 (pthread_cond_2_0_t *cond);
 extern int __pthread_cond_destroy_2_0 (pthread_cond_2_0_t *cond);
@@ -566,20 +565,9 @@ extern void __pthread_cleanup_push (struct _pthread_cleanup_buffer *buffer,
 				    void (*routine) (void *), void *arg);
 libc_hidden_proto (__pthread_cleanup_push)
 
-/* Replace cleanup macros defined in <pthread.h> with internal
-   versions that don't depend on unwind info and better support
-   cancellation.  */
-# undef pthread_cleanup_push
-# define pthread_cleanup_push(routine,arg)              \
-  { struct _pthread_cleanup_buffer _buffer;             \
-  __pthread_cleanup_push (&_buffer, (routine), (arg));
-
 extern void __pthread_cleanup_pop (struct _pthread_cleanup_buffer *buffer,
 				   int execute);
 libc_hidden_proto (__pthread_cleanup_pop)
-# undef pthread_cleanup_pop
-# define pthread_cleanup_pop(execute)                   \
-  __pthread_cleanup_pop (&_buffer, (execute)); }
 
 #if defined __EXCEPTIONS && !defined __cplusplus
 /* Structure to hold the cleanup handler information.  */

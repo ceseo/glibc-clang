@@ -172,7 +172,8 @@ __new_sem_wait_slow64 (struct new_sem *sem, clockid_t clockid,
   uint64_t d = atomic_fetch_add_relaxed (&sem->data,
       (uint64_t) 1 << SEM_NWAITERS_SHIFT);
 
-  pthread_cleanup_push (__sem_wait_cleanup, sem);
+  struct _pthread_cleanup_buffer cb;
+  __pthread_cleanup_push (&cb, __sem_wait_cleanup, sem);
 
   /* Wait for a token to be available.  Retry until we can grab one.  */
   for (;;)
@@ -220,7 +221,7 @@ __new_sem_wait_slow64 (struct new_sem *sem, clockid_t clockid,
 	}
     }
 
-  pthread_cleanup_pop (0);
+  __pthread_cleanup_pop (&cb, 0);
 #else
   /* The main difference to the 64b-atomics implementation is that we need to
      access value and nwaiters in separate steps, and that the nwaiters bit
@@ -253,7 +254,8 @@ __new_sem_wait_slow64 (struct new_sem *sem, clockid_t clockid,
      property (2) above.  */
   atomic_fetch_add_acquire (&sem->nwaiters, 1);
 
-  pthread_cleanup_push (__sem_wait_cleanup, sem);
+  struct _pthread_cleanup_buffer cb;
+  __pthread_cleanup_push (&cb, __sem_wait_cleanup, sem);
 
   /* Wait for a token to be available.  Retry until we can grab one.  */
   /* We do not need any ordering wrt. to this load's reads-from, so relaxed
@@ -304,7 +306,7 @@ __new_sem_wait_slow64 (struct new_sem *sem, clockid_t clockid,
       &v, v - (1 << SEM_VALUE_SHIFT)));
 
 error:
-  pthread_cleanup_pop (0);
+  __pthread_cleanup_pop (&cb, 0);
 
   __sem_wait_32_finish (sem);
 #endif

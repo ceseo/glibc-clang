@@ -86,7 +86,8 @@ __pthread_clockjoin_ex (pthread_t threadid, void **thread_return,
       /* During the wait we change to asynchronous cancellation.  If we
 	 are cancelled the thread we are waiting for must be marked as
 	 un-wait-ed for again.  */
-      pthread_cleanup_push (cleanup, &pd->joinid);
+      struct _pthread_cleanup_buffer cb;
+      __pthread_cleanup_push (&cb, cleanup, &pd->joinid);
 
       /* We need acquire MO here so that we synchronize with the
          kernel's store to 0 when the clone terminates. (see above)  */
@@ -108,7 +109,7 @@ __pthread_clockjoin_ex (pthread_t threadid, void **thread_return,
 	    }
 	}
 
-      pthread_cleanup_pop (0);
+      __pthread_cleanup_pop (&cb, 0);
     }
 
   void *pd_result = pd->result;
