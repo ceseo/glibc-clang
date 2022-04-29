@@ -23,57 +23,68 @@
 #include <lowlevellock.h>
 
 
-typedef struct { int lock; int cnt; void *owner; } _IO_lock_t;
+typedef struct
+{
+  int lock;
+  int cnt;
+  void *owner;
+} _IO_lock_t;
 #define _IO_lock_t_defined 1
 
 #define _IO_lock_initializer { LLL_LOCK_INITIALIZER, 0, NULL }
 
-#define _IO_lock_init(_name) \
-  ((void) ((_name) = (_IO_lock_t) _IO_lock_initializer))
+static inline void
+nptl_io_lock_init (_IO_lock_t *l)
+{
+  *l = (_IO_lock_t) _IO_lock_initializer;
+}
 
-#define _IO_lock_fini(_name) \
-  ((void) 0)
+static inline void
+nptl_io_lock_lock (_IO_lock_t *l)
+{
+  void *self = THREAD_SELF;
+  if (l->owner != self)
+    {
+      lll_lock (l->lock, LLL_PRIVATE);
+      l->owner = self;
+    }
+  ++l->cnt;
+}
 
-#define _IO_lock_lock(_name) \
-  do {									      \
-    void *__self = THREAD_SELF;						      \
-    if ((_name).owner != __self)					      \
-      {									      \
-	lll_lock ((_name).lock, LLL_PRIVATE);				      \
-        (_name).owner = __self;						      \
-      }									      \
-    ++(_name).cnt;							      \
-  } while (0)
+static inline int
+nptl_io_lock_trylock (_IO_lock_t *l)
+{
+  void *self = THREAD_SELF;
+  if (l->owner != self)
+    {
+      if (lll_trylock (l->lock) == 0)
+	{
+	  l->owner = self;
+	  l->cnt = 1;
+	}
+      else
+	return EBUSY;
+    }
+  else
+    ++l->cnt;
+  return 0;
+}
 
-#define _IO_lock_trylock(_name) \
-  ({									      \
-    int __result = 0;							      \
-    void *__self = THREAD_SELF;						      \
-    if ((_name).owner != __self)					      \
-      {									      \
-        if (lll_trylock ((_name).lock) == 0)				      \
-          {								      \
-            (_name).owner = __self;					      \
-            (_name).cnt = 1;						      \
-          }								      \
-        else								      \
-          __result = EBUSY;						      \
-      }									      \
-    else								      \
-      ++(_name).cnt;							      \
-    __result;								      \
-  })
+static inline void
+nptl_io_lock_unlock (_IO_lock_t *l)
+{
+  if (--l->cnt == 0)
+    {
+      l->owner = NULL;
+      lll_unlock (l->lock, LLL_PRIVATE);
+    }
+}
 
-#define _IO_lock_unlock(_name) \
-  do {									      \
-    if (--(_name).cnt == 0)						      \
-      {									      \
-        (_name).owner = NULL;						      \
-	lll_unlock ((_name).lock, LLL_PRIVATE);				      \
-      }									      \
-  } while (0)
-
-
+#define _IO_lock_init(__l)		nptl_io_lock_init (&(__l))
+#define _IO_lock_fini(__l)		/* Not required.  */
+#define _IO_lock_lock(__l)		nptl_io_lock_lock (&(__l))
+#define _IO_lock_trylock(__l)		nptl_io_lock_trylock (&(__l))
+#define _IO_lock_unlock(__l)		nptl_io_lock_unlock (&(__l))
 
 #define _IO_cleanup_region_start(_fct, _fp) \
   __libc_cleanup_region_start (((_fp)->_flags & _IO_USER_LOCK) == 0, _fct, _fp)
