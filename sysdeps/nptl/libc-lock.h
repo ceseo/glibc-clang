@@ -19,10 +19,7 @@
 #ifndef _LIBC_LOCK_H
 #define _LIBC_LOCK_H 1
 
-#include <pthread.h>
-#define __need_NULL
-#include <stddef.h>
-
+#include <lowlevellock.h>
 
 /* Mutex type.  */
 typedef struct { int lock; int cnt; void *owner; } __libc_lock_recursive_t;
@@ -45,54 +42,68 @@ typedef struct { int lock; int cnt; void *owner; } __libc_lock_recursive_t;
   { LLL_LOCK_INITIALIZER, 0, NULL }
 
 /* Initialize a recursive mutex.  */
-#define __libc_lock_init_recursive(NAME) \
-  ((void) ((NAME) = (__libc_lock_recursive_t) _LIBC_LOCK_RECURSIVE_INITIALIZER))
+static inline void
+__libc_lock_init_rec(__libc_lock_recursive_t *l)
+{
+  *l = (__libc_lock_recursive_t) _LIBC_LOCK_RECURSIVE_INITIALIZER;
+}
 
 /* Finalize recursive named lock.  */
-#define __libc_lock_fini_recursive(NAME) ((void) 0)
+static inline void
+__libc_lock_fini_rec (__libc_lock_recursive_t *l)
+{
+}
 
 /* Lock the recursive named lock variable.  */
-#define __libc_lock_lock_recursive(NAME) \
-  do {									      \
-    void *self = THREAD_SELF;						      \
-    if ((NAME).owner != self)						      \
-      {									      \
-	lll_lock ((NAME).lock, LLL_PRIVATE);				      \
-	(NAME).owner = self;						      \
-      }									      \
-    ++(NAME).cnt;							      \
-  } while (0)
+static inline void
+__libc_lock_lock_rec (__libc_lock_recursive_t *l)
+{
+  void *self = THREAD_SELF;
+  if (l->owner != self)
+    {
+      lll_lock (l->lock, LLL_PRIVATE);
+      l->owner = self;
+    }
+  ++l->cnt;
+}
 
 /* Try to lock the recursive named lock variable.  */
-#define __libc_lock_trylock_recursive(NAME) \
-  ({									      \
-    int result = 0;							      \
-    void *self = THREAD_SELF;						      \
-    if ((NAME).owner != self)						      \
-      {									      \
-	if (lll_trylock ((NAME).lock) == 0)				      \
-	  {								      \
-	    (NAME).owner = self;					      \
-	    (NAME).cnt = 1;						      \
-	  }								      \
-	else								      \
-	  result = EBUSY;						      \
-      }									      \
-    else								      \
-      ++(NAME).cnt;							      \
-    result;								      \
-  })
+static inline int
+__libc_lock_trylock_rec (__libc_lock_recursive_t *l)
+{
+  void *self = THREAD_SELF;
+  if (l->owner != self)
+    {
+      if (lll_trylock (l->lock) == 0)
+	{
+	  l->owner = self;
+	  l->cnt = 1;
+	}
+      else
+	return EBUSY;
+    }
+  ++l->cnt;
+  return 0;
+}
 
 /* Unlock the recursive named lock variable.  */
 /* We do no error checking here.  */
-#define __libc_lock_unlock_recursive(NAME) \
-  do {									      \
-    if (--(NAME).cnt == 0)						      \
-      {									      \
-	(NAME).owner = NULL;						      \
-	lll_unlock ((NAME).lock, LLL_PRIVATE);				      \
-      }									      \
-  } while (0)
+static inline void
+__libc_lock_unlock_rec (__libc_lock_recursive_t *l)
+{
+  if (--l->cnt == 0)
+    {
+      l->owner = NULL;
+      lll_unlock (l->lock, LLL_PRIVATE);
+    }
+}
+
+#define __libc_lock_init_recursive(__l)     __libc_lock_init_rec (&__l)
+#define __libc_lock_fini_recursive(__l)     __libc_lock_fini_rec (&__l)
+#define __libc_lock_lock_recursive(__l)     __libc_lock_lock_rec (&__l)
+#define __libc_lock_trylock_recursive(__l)  __libc_lock_trylock_rec (&__l)
+#define __libc_lock_unlock_recursive(__l)   __libc_lock_unlock_rec (&__l)
+
 
 /* Put the unwind buffer BUFFER on the per-thread callback stack.  The
    caller must fill BUFFER->__routine and BUFFER->__arg before calling
