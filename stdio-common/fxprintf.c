@@ -67,9 +67,10 @@ __vfxprintf (FILE *fp, const char *fmt, va_list ap,
 {
   if (fp == NULL)
     fp = stderr;
-  _IO_flockfile (fp);
-  int res = locked_vfxprintf (fp, fmt, ap, mode_flags);
-  _IO_funlockfile (fp);
+  int res;
+  _IO_acquire_lock (fp);
+  res = locked_vfxprintf (fp, fmt, ap, mode_flags);
+  _IO_release_lock (fp);
   return res;
 }
 
@@ -91,14 +92,15 @@ __fxprintf_nocancel (FILE *fp, const char *fmt, ...)
 
   va_list ap;
   va_start (ap, fmt);
-  _IO_flockfile (fp);
+  int res;
+  _IO_acquire_lock (fp);
   int save_flags2 = fp->_flags2;
   fp->_flags2 |= _IO_FLAGS2_NOTCANCEL;
 
-  int res = locked_vfxprintf (fp, fmt, ap, 0);
+  res = locked_vfxprintf (fp, fmt, ap, 0);
 
   fp->_flags2 = save_flags2;
-  _IO_funlockfile (fp);
+  _IO_release_lock (fp);
   va_end (ap);
   return res;
 }

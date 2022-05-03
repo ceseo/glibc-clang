@@ -22,7 +22,7 @@ void
 clearerr (FILE *fp)
 {
   CHECK_FILE (fp, /*nothing*/);
-  _IO_flockfile (fp);
+  _IO_acquire_lock (fp);
   _IO_clearerr (fp);
-  _IO_funlockfile (fp);
+  _IO_release_lock (fp);
 }

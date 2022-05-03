@@ -37,9 +37,6 @@ static char sccsid[] = "@(#)getttyent.c	8.1 (Berkeley) 6/4/93";
 #include <ctype.h>
 #include <string.h>
 
-#define flockfile(s) _IO_flockfile (s)
-#define funlockfile(s) _IO_funlockfile (s)
-
 static char zapchar;
 static FILE *tf;
 
@@ -71,10 +68,10 @@ __getttyent (void)
 
 	if (!tf && !__setttyent())
 		return (NULL);
-	flockfile (tf);
+	__flockfile (tf);
 	for (;;) {
 		if (!__fgets_unlocked(p = line, sizeof(line), tf)) {
-			funlockfile (tf);
+			__funlockfile (tf);
 			return (NULL);
 		}
 		/* skip lines that are too big */
@@ -119,7 +116,7 @@ __getttyent (void)
 			break;
 	}
 	/* We can release the lock only here since `zapchar' is global.  */
-	funlockfile(tf);
+	__funlockfile(tf);
 
 	if (zapchar == '#' || *p == '#')
 		while ((c = *++p) == ' ' || c == '\t')

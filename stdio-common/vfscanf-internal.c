@@ -177,12 +177,6 @@
 	  return EOF;							      \
 	}								      \
     } while (0)
-#define LOCK_STREAM(S)							      \
-  __libc_cleanup_region_start (1, (void (*) (void *)) &_IO_funlockfile, (S)); \
-  _IO_flockfile (S)
-#define UNLOCK_STREAM(S)						      \
-  _IO_funlockfile (S);							      \
-  __libc_cleanup_region_end (0)
 
 struct ptrs_to_free
 {
@@ -369,7 +363,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
  }
 
   /* Lock the stream.  */
-  LOCK_STREAM (s);
+  _IO_acquire_lock (s);
 
 
 #ifndef COMPILE_WSCANF
@@ -3022,7 +3016,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 
  errout:
   /* Unlock stream.  */
-  UNLOCK_STREAM (s);
+  _IO_release_lock (s);
 
   scratch_buffer_free (&charbuf.scratch);
 

@@ -24,9 +24,6 @@
 #include <string.h>
 #include <sys/types.h>
 
-#define flockfile(s) _IO_flockfile (s)
-#define funlockfile(s) _IO_funlockfile (s)
-
 #undef __setmntent
 #undef __endmntent
 #undef __getmntent_r
@@ -186,7 +183,7 @@ __getmntent_r (FILE *stream, struct mntent *mp, char *buffer, int bufsiz)
 {
   struct mntent *result;
 
-  flockfile (stream);
+  __flockfile (stream);
   while (true)
     if (get_mnt_entry (stream, mp, buffer, bufsiz))
       {
@@ -205,7 +202,7 @@ __getmntent_r (FILE *stream, struct mntent *mp, char *buffer, int bufsiz)
 	result = NULL;
 	break;
       }
-  funlockfile (stream);
+  __funlockfile (stream);
 
   return result;
 }
@@ -245,7 +242,7 @@ __addmntent (FILE *stream, const struct mntent *mnt)
   if (fseek (stream, 0, SEEK_END))
     return ret;
 
-  flockfile (stream);
+  __flockfile (stream);
 
   write_string (stream, mnt->mnt_fsname);
   write_string (stream, mnt->mnt_dir);
@@ -255,7 +252,7 @@ __addmntent (FILE *stream, const struct mntent *mnt)
 
   ret = __ferror_unlocked (stream) != 0 || fflush (stream) != 0;
 
-  funlockfile (stream);
+  __funlockfile (stream);
 
   return ret;
 }

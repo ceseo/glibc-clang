@@ -53,7 +53,7 @@ _IO_un_link (struct _IO_FILE_plus *fp)
       _IO_cleanup_region_start_noarg (flush_cleanup);
       _IO_lock_lock (list_all_lock);
       run_fp = (FILE *) fp;
-      _IO_flockfile ((FILE *) fp);
+      _IO_acquire_lock ((FILE *) fp);
       if (_IO_list_all == NULL)
 	;
       else if (fp == _IO_list_all)
@@ -66,7 +66,7 @@ _IO_un_link (struct _IO_FILE_plus *fp)
 	      break;
 	    }
       fp->file._flags &= ~_IO_LINKED;
-      _IO_funlockfile ((FILE *) fp);
+      _IO_release_lock ((FILE *) fp);
       run_fp = NULL;
       _IO_lock_unlock (list_all_lock);
       _IO_cleanup_region_end (0);
@@ -83,10 +83,10 @@ _IO_link_in (struct _IO_FILE_plus *fp)
       _IO_cleanup_region_start_noarg (flush_cleanup);
       _IO_lock_lock (list_all_lock);
       run_fp = (FILE *) fp;
-      _IO_flockfile ((FILE *) fp);
+      _IO_acquire_lock ((FILE *) fp);
       fp->file._chain = (FILE *) _IO_list_all;
       _IO_list_all = fp;
-      _IO_funlockfile ((FILE *) fp);
+      _IO_release_lock ((FILE *) fp);
       run_fp = NULL;
       _IO_lock_unlock (list_all_lock);
       _IO_cleanup_region_end (0);
@@ -678,7 +678,7 @@ _IO_flush_all_lockp (int do_lock)
     {
       run_fp = fp;
       if (do_lock)
-	_IO_flockfile (fp);
+	_IO_acquire_lock (fp);
 
       if (((fp->_mode <= 0 && fp->_IO_write_ptr > fp->_IO_write_base)
 	   || (_IO_vtable_offset (fp) == 0
@@ -689,7 +689,7 @@ _IO_flush_all_lockp (int do_lock)
 	result = EOF;
 
       if (do_lock)
-	_IO_funlockfile (fp);
+	_IO_release_lock (fp);
       run_fp = NULL;
     }
 
@@ -719,12 +719,12 @@ _IO_flush_all_linebuffered (void)
   for (fp = (FILE *) _IO_list_all; fp != NULL; fp = fp->_chain)
     {
       run_fp = fp;
-      _IO_flockfile (fp);
+      _IO_acquire_lock (fp);
 
       if ((fp->_flags & _IO_NO_WRITES) == 0 && fp->_flags & _IO_LINE_BUF)
 	_IO_OVERFLOW (fp, EOF);
 
-      _IO_funlockfile (fp);
+      _IO_release_lock (fp);
       run_fp = NULL;
     }
 

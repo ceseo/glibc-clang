@@ -20,11 +20,7 @@
 #include <string.h>		/* For string function builtin redirect.  */
 #include <termios.h>
 #include <unistd.h>
-
 #include <wchar.h>
-#define flockfile(s) _IO_flockfile (s)
-#define funlockfile(s) _IO_funlockfile (s)
-#include <libc-lock.h>
 
 /* It is desirable to use this bit on systems that have it.
    The only bit of terminal state we want to twiddle is echoing, which is
@@ -73,7 +69,7 @@ getpass (const char *prompt)
      canceled.  */
   __libc_cleanup_push (call_fclose, in == out ? in : NULL);
 
-  flockfile (out);
+  __flockfile (out);
 
   /* Turn echoing off if it is on now.  */
 
@@ -112,7 +108,7 @@ getpass (const char *prompt)
   if (tty_changed)
     (void) tcsetattr (fileno (in), TCSAFLUSH|TCSASOFT, &s);
 
-  funlockfile (out);
+  __funlockfile (out);
 
   __libc_cleanup_pop (0);
 

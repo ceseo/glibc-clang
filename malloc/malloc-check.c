@@ -17,6 +17,8 @@
    not, see <https://www.gnu.org/licenses/>.  */
 
 #define __mremap mremap
+#define _IO_acquire_lock(__fp) flockfile (__fp)
+#define _IO_release_lock(__fp) funlockfile (__fp)
 #include "malloc.c"
 
 /* When memory is tagged, the checking data is stored in the user part

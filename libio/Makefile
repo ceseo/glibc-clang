@@ -93,6 +93,9 @@ routines += clearerr_u feof_u ferror_u fputc_u getc_u getchar_u		      \
 endif
 
 # Support for exception handling.
+CFLAGS-clearerr.c += -fexceptions
+CFLAGS-feof.c += -fexceptions
+CFLAGS-ferror.c += -fexceptions
 CFLAGS-fileops.c += -fexceptions
 CFLAGS-fputc.c += -fexceptions
 CFLAGS-fputwc.c += -fexceptions
