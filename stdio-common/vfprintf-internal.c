@@ -1257,7 +1257,7 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
 
   /* Lock stream.  */
   _IO_cleanup_region_start ((void (*) (void *)) &_IO_funlockfile, s);
-  _IO_flockfile (s);
+  _IO_acquire_lock (s);
 
   /* Write the literal text before the first format.  */
   outstring ((const UCHAR_T *) format,
@@ -1605,7 +1605,7 @@ do_positional:
 
  all_done:
   /* Unlock the stream.  */
-  _IO_funlockfile (s);
+  _IO_release_lock (s);
   _IO_cleanup_region_end (0);
 
   return done;
@@ -2258,7 +2258,7 @@ buffered_vfprintf (FILE *s, const CHAR_T *format, va_list args,
 
   /* Lock stream.  */
   __libc_cleanup_region_start (1, (void (*) (void *)) &_IO_funlockfile, s);
-  _IO_flockfile (s);
+  _IO_acquire_lock (s);
 
   /* Now flush anything from the helper to the S. */
 #ifdef COMPILE_WPRINTF
@@ -2278,7 +2278,7 @@ buffered_vfprintf (FILE *s, const CHAR_T *format, va_list args,
 #endif
 
   /* Unlock the stream.  */
-  _IO_funlockfile (s);
+  _IO_release_lock (s);
   __libc_cleanup_region_end (0);
 
   return result;

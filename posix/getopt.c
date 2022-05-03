@@ -38,13 +38,14 @@
    the messages are looked up in the proper text domain.  */
 # include <libintl.h>
 # define fprintf __fxprintf_nocancel
-# define flockfile(fp) _IO_flockfile (fp)
-# define funlockfile(fp) _IO_funlockfile (fp)
+# define flockfile(fp) __flockfile (fp)
+# define funlockfile(fp) __funlockfile (fp)
 #else
 # include "gettext.h"
 # define _(msgid) gettext (msgid)
 /* When used standalone, flockfile and funlockfile might not be
    available.  */
+
 # ifndef _POSIX_THREAD_SAFE_FUNCTIONS
 #  define flockfile(fp) /* nop */
 #  define funlockfile(fp) /* nop */

@@ -24,8 +24,9 @@
 #include <string.h>
 #include <sys/types.h>
 
-#define flockfile(s) _IO_flockfile (s)
-#define funlockfile(s) _IO_funlockfile (s)
+#include <libioP.h>
+#define flockfile(s) _IO_acquire_lock (s)
+#define funlockfile(s) _IO_release_lock (s)
 
 #undef __setmntent
 #undef __endmntent

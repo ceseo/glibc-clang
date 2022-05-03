@@ -24,8 +24,6 @@
 #include <stdio.h>
 
 #include <wchar.h>
-#define flockfile(s) _IO_flockfile (s)
-#define funlockfile(s) _IO_funlockfile (s)
 
 extern char *__progname;
 
@@ -41,12 +39,12 @@ void
 __vwarnx_internal (const char *format, __gnuc_va_list ap,
 		   unsigned int mode_flags)
 {
-  flockfile (stderr);
+  __flockfile (stderr);
   __fxprintf (stderr, "%s: ", __progname);
   if (format != NULL)
     __vfxprintf (stderr, format, ap, mode_flags);
   __fxprintf (stderr, "\n");
-  funlockfile (stderr);
+  __funlockfile (stderr);
 }
 
 void
@@ -55,7 +53,7 @@ __vwarn_internal (const char *format, __gnuc_va_list ap,
 {
   int error = errno;
 
-  flockfile (stderr);
+  __flockfile (stderr);
   if (format != NULL)
     {
       __fxprintf (stderr, "%s: ", __progname);
@@ -68,7 +66,7 @@ __vwarn_internal (const char *format, __gnuc_va_list ap,
       __set_errno (error);
       __fxprintf (stderr, "%s: %m\n", __progname);
     }
-  funlockfile (stderr);
+  __funlockfile (stderr);
 }
 
 void

@@ -294,6 +294,7 @@ CPPFLAGS-malloc.c += -DUSE_TCACHE=0
 endif
 # Uncomment this for test releases.  For public releases it is too expensive.
 #CPPFLAGS-malloc.o += -DMALLOC_DEBUG=1
+CFLAGS-malloc.c += -fexceptions
 
 sLIBdir := $(shell echo $(slibdir) | sed 's,lib\(\|64\)$$,\\\\$$LIB,')
 

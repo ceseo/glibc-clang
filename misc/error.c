@@ -245,7 +245,7 @@ __error_internal (int status, int errnum, const char *message,
 
   flush_stdout ();
 #ifdef _LIBC
-  _IO_flockfile (stderr);
+  _IO_acquire_lock (stderr);
 #endif
   if (error_print_progname)
     (*error_print_progname) ();
@@ -261,7 +261,7 @@ __error_internal (int status, int errnum, const char *message,
   error_tail (status, errnum, message, args, mode_flags);
 
 #ifdef _LIBC
-  _IO_funlockfile (stderr);
+  _IO_release_lock (stderr);
   __pthread_setcancelstate (state, NULL);
 #endif
 }
@@ -311,7 +311,7 @@ __error_at_line_internal (int status, int errnum, const char *file_name,
 
   flush_stdout ();
 #ifdef _LIBC
-  _IO_flockfile (stderr);
+  _IO_acquire_lock (stderr);
 #endif
   if (error_print_progname)
     (*error_print_progname) ();
@@ -335,7 +335,7 @@ __error_at_line_internal (int status, int errnum, const char *file_name,
   error_tail (status, errnum, message, args, mode_flags);
 
 #ifdef _LIBC
-  _IO_funlockfile (stderr);
+  _IO_release_lock (stderr);
   __pthread_setcancelstate (state, NULL);
 #endif
 }

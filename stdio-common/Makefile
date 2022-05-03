@@ -334,6 +334,11 @@ CFLAGS-isoc99_vfscanf.c += -fexceptions
 CFLAGS-isoc99_vscanf.c += -fexceptions
 CFLAGS-isoc99_fscanf.c += -fexceptions
 CFLAGS-isoc99_scanf.c += -fexceptions
+CFLAGS-vfprintf-internal.c += -fexceptions
+CFLAGS-vfwprintf-internal.c += -fexceptions
+CFLAGS-fxprintf.c += -fexceptions
+CFLAGS-vfscanf-internal.c += -fexceptions
+CFLAGS-vfwscanf-internal.c += -fexceptions
 CFLAGS-errlist.c += $(fno-unit-at-a-time)
 CFLAGS-siglist.c += $(fno-unit-at-a-time)
 

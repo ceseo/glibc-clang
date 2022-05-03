@@ -26,7 +26,7 @@ __nss_fgetent_r (FILE *fp, void *result, char *buffer, size_t buffer_length,
 {
   int ret;
 
-  _IO_flockfile (fp);
+  __flockfile (fp);
 
   while (true)
     {
@@ -50,7 +50,7 @@ __nss_fgetent_r (FILE *fp, void *result, char *buffer, size_t buffer_length,
       break;
     }
 
-  _IO_funlockfile (fp);
+  __funlockfile (fp);
 
   return ret;
 }
