@@ -87,6 +87,9 @@ late_init (void)
   __sigaddset (&sa.sa_mask, SIGSETXID);
   INTERNAL_SYSCALL_CALL (rt_sigprocmask, SIG_UNBLOCK, &sa.sa_mask,
 			 NULL, __NSIG_BYTES);
+
+  /* Disable single-thread optimization for stdio locks.  */
+  _IO_enable_locks ();
 }
 
 /* Code to allocate and deallocate a stack.  */
@@ -739,9 +742,6 @@ __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
           != (ATTR_FLAG_SCHED_SET | ATTR_FLAG_POLICY_SET))
         collect_default_sched (pd);
     }
-
-  if (__glibc_unlikely (__nptl_nthreads == 1))
-    _IO_enable_locks ();
 
   /* Pass the descriptor to the caller.  */
   *newthread = (pthread_t) pd;

@@ -32,7 +32,7 @@
 #include <stdbool.h>
 #include <sched.h>
 
-static _IO_lock_t list_all_lock = _IO_lock_initializer;
+static _IO_lock_t list_all_lock = _IO_lock_initializer_not_chained;
 
 static FILE *run_fp;
 
@@ -488,39 +488,30 @@ _IO_init (FILE *fp, int flags)
   _IO_init_internal (fp, flags);
 }
 
-static int stdio_needs_locking;
-
 /* In a single-threaded process most stdio locks can be omitted.  After
    _IO_enable_locks is called, locks are not optimized away any more.
    It must be first called while the process is still single-threaded.
 
-   This lock optimization can be disabled on a per-file basis by setting
-   _IO_FLAGS2_NEED_LOCK, because a file can have user-defined callbacks
+   This lock optimization can be disabled on a per-file basis by calling
+   _IO_lock_disable_st, because a file can have user-defined callbacks
    or can be locked with flockfile and then a thread may be created
    between a lock and unlock, so omitting the lock is not valid.
 
-   Here we have to make sure that the flag is set on all existing files
+   Here we have to make sure that the lock is set on all existing files
    and files created later.  */
 void
 _IO_enable_locks (void)
 {
   _IO_ITER i;
-
-  if (stdio_needs_locking)
-    return;
-  stdio_needs_locking = 1;
   for (i = _IO_iter_begin (); i != _IO_iter_end (); i = _IO_iter_next (i))
-    _IO_iter_file (i)->_flags2 |= _IO_FLAGS2_NEED_LOCK;
+    _IO_lock_disable_st (*i->_lock);
 }
-libc_hidden_def (_IO_enable_locks)
 
 void
 _IO_old_init (FILE *fp, int flags)
 {
   fp->_flags = _IO_MAGIC|flags;
   fp->_flags2 = 0;
-  if (stdio_needs_locking)
-    fp->_flags2 |= _IO_FLAGS2_NEED_LOCK;
   fp->_IO_buf_base = NULL;
   fp->_IO_buf_end = NULL;
   fp->_IO_read_base = NULL;
@@ -665,6 +656,29 @@ _IO_adjust_column (unsigned start, const char *line, int count)
 }
 libc_hidden_def (_IO_adjust_column)
 
+static int
+_IO_flush_fp (FILE *fp)
+{
+  if (((fp->_mode <= 0 && fp->_IO_write_ptr > fp->_IO_write_base)
+       || (_IO_vtable_offset (fp) == 0
+	   && fp->_mode > 0 && (fp->_wide_data->_IO_write_ptr
+				> fp->_wide_data->_IO_write_base))
+       )
+      && _IO_OVERFLOW (fp, EOF) == EOF)
+    return EOF;
+  return 0;
+}
+
+static int
+_IO_flush_fp_locked (FILE *fp)
+{
+  int result;
+  _IO_acquire_lock (fp);
+  result = _IO_flush_fp (fp);
+  _IO_release_lock (fp);
+  return result;
+}
+
 int
 _IO_flush_all_lockp (int do_lock)
 {
@@ -678,18 +692,9 @@ _IO_flush_all_lockp (int do_lock)
     {
       run_fp = fp;
       if (do_lock)
-	_IO_acquire_lock (fp);
-
-      if (((fp->_mode <= 0 && fp->_IO_write_ptr > fp->_IO_write_base)
-	   || (_IO_vtable_offset (fp) == 0
-	       && fp->_mode > 0 && (fp->_wide_data->_IO_write_ptr
-				    > fp->_wide_data->_IO_write_base))
-	   )
-	  && _IO_OVERFLOW (fp, EOF) == EOF)
-	result = EOF;
-
-      if (do_lock)
-	_IO_release_lock (fp);
+	_IO_flush_fp_locked (fp);
+      else
+	_IO_flush_fp (fp);
       run_fp = NULL;
     }
 

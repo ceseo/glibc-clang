@@ -27,6 +27,7 @@ __libc_lock_define_recursive (typedef, _IO_lock_t)
 /* We need recursive (counting) mutexes.  */
 #ifdef _LIBC_LOCK_RECURSIVE_INITIALIZER
 # define _IO_lock_initializer _LIBC_LOCK_RECURSIVE_INITIALIZER
+# define _IO_lock_initializer_not_chained _LIBC_LOCK_RECURSIVE_INITIALIZER
 #else
 # error libio needs recursive mutexes
 #endif
@@ -37,6 +38,8 @@ __libc_lock_define_recursive (typedef, _IO_lock_t)
 #define _IO_lock_trylock(_name)	__libc_lock_trylock_recursive (_name)
 #define _IO_lock_unlock(_name)	__libc_lock_unlock_recursive (_name)
 
+#define _IO_lock_init_not_chained(_name) __libc_lock_init_recursive (_name)
+#define _IO_lock_disable_st(_name)
 
 #define _IO_cleanup_region_start(_fct, _fp) \
   __libc_cleanup_region_start (((_fp)->_flags & _IO_USER_LOCK) == 0, _fct, _fp)

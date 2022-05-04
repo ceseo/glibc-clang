@@ -47,7 +47,7 @@ typedef struct _IO_proc_file _IO_proc_file;
 
 static struct _IO_proc_file *old_proc_file_chain;
 
-static _IO_lock_t proc_file_chain_lock = _IO_lock_initializer;
+static _IO_lock_t proc_file_chain_lock = _IO_lock_initializer_not_chained;
 
 static void
 unlock (void *not_used)

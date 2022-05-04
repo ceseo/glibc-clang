@@ -865,8 +865,8 @@ __attribute__ ((__always_inline__))
 _IO_acquire_lock_fct (FILE **p)
 {
   FILE *fp = *p;
-  if ((fp->_flags & _IO_USER_LOCK) == 0)
-    _IO_funlockfile (fp);
+  if (fp != NULL && (fp->_flags & _IO_USER_LOCK) == 0)
+    _IO_lock_unlock (*fp->_lock);
 }
 
 /* Collect all vtables in a special section for vtable verification.

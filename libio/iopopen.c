@@ -49,7 +49,7 @@ static const struct _IO_jump_t _IO_proc_jumps;
 
 static struct _IO_proc_file *proc_file_chain;
 
-static _IO_lock_t proc_file_chain_lock = _IO_lock_initializer;
+static _IO_lock_t proc_file_chain_lock = _IO_lock_initializer_not_chained;
 
 static void
 unlock (void *not_used)

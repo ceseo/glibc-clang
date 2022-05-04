@@ -17,13 +17,11 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
-#include <stdio-lock.h>
-#include <sys/single_threaded.h>
 
 int
 __ftrylockfile (FILE *stream)
 {
-  return _IO_lock_trylock (*stream->_lock);
+  return _IO_ftrylock_lock (*stream->_lock);
 }
 weak_alias (__ftrylockfile, ftrylockfile);
 weak_alias (__ftrylockfile, _IO_ftrylockfile)
