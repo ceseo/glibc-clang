@@ -21,6 +21,13 @@
 # define START_ITER (100000000)
 #endif
 
+/* Prevent compiler to optimize away call.  */
+#define DO_NOT_OPTIMIZE(__value)		\
+  ({						\
+    __typeof (__value) __v = (__value);		\
+    asm volatile("" : : "r,m" (__v) : "memory");\
+  })
+
 /* bench_start reduces the random variations due to frequency scaling by
    executing a small loop with many memory accesses.  START_ITER controls
    the number of iterations.  */

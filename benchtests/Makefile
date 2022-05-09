@@ -229,7 +229,10 @@ endif
 
 stdlib-benchset := strtod
 
-stdio-common-benchset := sprintf
+stdio-common-benchset := \
+  sprintf \
+  stdio-locks \
+  # stdio-common-benchset
 
 math-benchset := math-inlines
 
