@@ -107,12 +107,12 @@ typedef struct
 
 # define HURD_SEL_LDT(sel) (__builtin_expect ((sel) & 4, 0))
 
-static inline const char * __attribute__ ((unused))
+static inline bool __attribute__ ((unused))
 _hurd_tls_init (tcbhead_t *tcb)
 {
   HURD_TLS_DESC_DECL (desc, tcb);
   thread_t self = __mach_thread_self ();
-  const char *msg = NULL;
+  bool ret = true;
 
   /* This field is used by TLS accesses to get our "thread pointer"
      from the TLS point of view.  */
@@ -131,14 +131,14 @@ _hurd_tls_init (tcbhead_t *tcb)
       assert_perror (err);
       if (err)
       {
-	msg = "i386_set_ldt failed";
+	ret = false;
 	goto out;
       }
     }
   else if (err)
     {
       assert_perror (err); /* Separate from above with different line #. */
-      msg = "i386_set_gdt failed";
+      ret = false;
       goto out;
     }
 
@@ -147,7 +147,7 @@ _hurd_tls_init (tcbhead_t *tcb)
 
 out:
   __mach_port_deallocate (__mach_task_self (), self);
-  return msg;
+  return ret;
 }
 
 /* Code to initially initialize the thread pointer.  This might need

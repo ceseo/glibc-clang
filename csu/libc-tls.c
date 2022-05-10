@@ -191,15 +191,15 @@ __libc_setup_tls (void)
 #if TLS_TCB_AT_TP
   INSTALL_DTV ((char *) tlsblock + tcb_offset, _dl_static_dtv);
 
-  const char *lossage = TLS_INIT_TP ((char *) tlsblock + tcb_offset);
+  bool tlsinit = TLS_INIT_TP ((char *) tlsblock + tcb_offset);
 #elif TLS_DTV_AT_TP
   INSTALL_DTV (tlsblock, _dl_static_dtv);
-  const char *lossage = TLS_INIT_TP (tlsblock);
+  bool tlsinit = TLS_INIT_TP (tlsblock);
 #else
 # error "Either TLS_TCB_AT_TP or TLS_DTV_AT_TP must be defined"
 #endif
-  if (__builtin_expect (lossage != NULL, 0))
-    _startup_fatal (lossage);
+  if (__glibc_unlikely (!tlsinit))
+    _startup_fatal ("cannot set base address for thread-local storage");
   __tls_init_tp ();
 
   /* Update the executable's link map with enough information to make

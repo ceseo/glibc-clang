@@ -139,7 +139,7 @@ typedef struct
     __thread_register = (void *) (tcbp) + TLS_TCB_OFFSET;		      \
     THREAD_SET_HWCAP (__tcb_hwcap);					      \
     THREAD_SET_AT_PLATFORM (__tcb_platform);				      \
-    NULL;								      \
+    true;								      \
   })
 
 /* Value passed to 'clone' for initialization of the thread register.  */

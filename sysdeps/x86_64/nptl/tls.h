@@ -132,6 +132,8 @@ _Static_assert (offsetof (tcbhead_t, __glibc_unused2) == 0x80,
 # define GET_DTV(descr) \
   (((tcbhead_t *) (descr))->dtv)
 
+# define TLS_INIT_TP_ERR_MSG \
+  "cannot set %fs base address for thread-local storage"
 
 /* Code to initially initialize the thread pointer.  This might need
    special attention since 'errno' is not yet available and if the
@@ -156,7 +158,7 @@ _Static_assert (offsetof (tcbhead_t, __glibc_unused2) == 0x80,
 		     "S" (_thrdescr)					      \
 		   : "memory", "cc", "r11", "cx");			      \
 									      \
-    _result ? "cannot set %fs base address for thread-local storage" : 0;     \
+     _result ? false : true;						      \
   })
 
 # define TLS_DEFINE_INIT_TP(tp, pd) void *tp = (pd)
