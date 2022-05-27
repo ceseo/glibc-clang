@@ -269,19 +269,13 @@ extern void __pthread_unregister_cancel (__pthread_unwind_buf_t *__buf)
 libc_hidden_proto (__pthread_unregister_cancel)
 
 /* Called when a thread reacts on a cancellation request.  */
-static inline void
-__attribute ((noreturn, always_inline))
+extern _Noreturn void __exit_thread (void *value) attribute_hidden;
+
+static _Noreturn __always_inline void
 __do_cancel (void)
 {
-  struct pthread *self = THREAD_SELF;
-
-  /* Make sure we get no more cancellations.  */
-  atomic_bit_set (&self->cancelhandling, EXITING_BIT);
-
-  __pthread_unwind ((__pthread_unwind_buf_t *)
-		    THREAD_GETMEM (self, cleanup_jmp_buf));
+  __exit_thread (PTHREAD_CANCELED);
 }
-
 
 /* Internal prototypes.  */
 
