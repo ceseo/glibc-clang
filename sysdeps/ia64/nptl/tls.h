@@ -36,8 +36,6 @@ typedef struct
 
 register struct pthread *__thread_self __asm__("r13");
 
-# define TLS_MULTIPLE_THREADS_IN_TCB 1
-
 #else /* __ASSEMBLER__ */
 # include <tcb-offsets.h>
 #endif

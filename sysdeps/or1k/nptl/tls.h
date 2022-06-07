@@ -35,8 +35,6 @@ typedef struct
 
 register tcbhead_t *__thread_self __asm__("r10");
 
-# define TLS_MULTIPLE_THREADS_IN_TCB 1
-
 /* Get system call information.  */
 # include <sysdep.h>
 

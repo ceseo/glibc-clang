@@ -35,7 +35,7 @@ typedef struct
 			   thread descriptor used by libpthread.  */
   dtv_t *dtv;
   void *self;
-  int multiple_threads;
+  int unused_multiple_threads;
 #if __WORDSIZE == 64
   int gscope_flag;
 #endif

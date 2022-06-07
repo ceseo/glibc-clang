@@ -35,7 +35,7 @@ typedef struct
 			   thread descriptor used by libpthread.  */
   dtv_t *dtv;
   void *self;		/* Pointer to the thread descriptor.  */
-  int multiple_threads;
+  int unused_multiple_threads;
   uintptr_t sysinfo;
   uintptr_t stack_guard;
   int gscope_flag;
@@ -43,10 +43,6 @@ typedef struct
   /* GCC split stack support.  */
   void *__private_ss;
 } tcbhead_t;
-
-# ifndef __s390x__
-#  define TLS_MULTIPLE_THREADS_IN_TCB 1
-# endif
 
 #else /* __ASSEMBLER__ */
 # include <tcb-offsets.h>

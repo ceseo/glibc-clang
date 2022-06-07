@@ -33,7 +33,7 @@ typedef struct
   void *tcb;			/* Points to this structure.  */
   dtv_t *dtv;			/* Vector of pointers to TLS data.  */
   thread_t self;		/* This thread's control port.  */
-  int multiple_threads;
+  int unused_multiple_threads;
   uintptr_t sysinfo;
   uintptr_t stack_guard;
   uintptr_t pointer_guard;
@@ -117,8 +117,6 @@ _hurd_tls_init (tcbhead_t *tcb)
   /* This field is used by TLS accesses to get our "thread pointer"
      from the TLS point of view.  */
   tcb->tcb = tcb;
-  /* We always at least start the sigthread anyway.  */
-  tcb->multiple_threads = 1;
 
   /* Get the first available selector.  */
   int sel = -1;

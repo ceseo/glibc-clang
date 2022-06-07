@@ -290,9 +290,6 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 	 stack cache nor will the memory (except the TLS memory) be freed.  */
       pd->user_stack = true;
 
-      /* This is at least the second thread.  */
-      pd->header.multiple_threads = 1;
-
 #ifdef NEED_DL_SYSINFO
       SETUP_THREAD_SYSINFO (pd);
 #endif
@@ -407,9 +404,6 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 	     This address will not change for the lifetime of this
 	     descriptor.  */
 	  pd->specific[0] = pd->specific_1stblock;
-
-	  /* This is at least the second thread.  */
-	  pd->header.multiple_threads = 1;
 
 #ifdef NEED_DL_SYSINFO
 	  SETUP_THREAD_SYSINFO (pd);
