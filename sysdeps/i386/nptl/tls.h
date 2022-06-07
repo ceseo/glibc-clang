@@ -36,7 +36,7 @@ typedef struct
 			   thread descriptor used by libpthread.  */
   dtv_t *dtv;
   void *self;		/* Pointer to the thread descriptor.  */
-  int multiple_threads;
+  int unused_multiple_threads;
   uintptr_t sysinfo;
   uintptr_t stack_guard;
   uintptr_t pointer_guard;
@@ -56,8 +56,6 @@ typedef struct
 /* morestack.S in libgcc uses offset 0x30 to access __private_ss,   */
 _Static_assert (offsetof (tcbhead_t, __private_ss) == 0x30,
 		"offset of __private_ss != 0x30");
-
-# define TLS_MULTIPLE_THREADS_IN_TCB 1
 
 #else /* __ASSEMBLER__ */
 # include <tcb-offsets.h>

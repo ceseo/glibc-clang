@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <atomic.h>
+#include <support/xthread.h>
 
 #ifndef atomic_t
 # define atomic_t int

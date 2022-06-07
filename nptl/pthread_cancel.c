@@ -157,12 +157,9 @@ __pthread_cancel (pthread_t th)
 
 	/* A single-threaded process should be able to kill itself, since
 	   there is nothing in the POSIX specification that says that it
-	   cannot.  So we set multiple_threads to true so that cancellation
-	   points get executed.  */
-	THREAD_SETMEM (THREAD_SELF, header.multiple_threads, 1);
-#ifndef TLS_MULTIPLE_THREADS_IN_TCB
+	   cannot.  So we set __libc_single_threaded to true so that
+	   cancellation points get executed.  */
 	__libc_single_threaded_internal = 0;
-#endif
     }
   while (!atomic_compare_exchange_weak_acquire (&pd->cancelhandling, &oldval,
 						newval));

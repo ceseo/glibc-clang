@@ -881,11 +881,6 @@ __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
 	   other reason that create_thread chose.  Now let it run
 	   free.  */
 	lll_unlock (pd->lock, LLL_PRIVATE);
-
-      /* We now have for sure more than one thread.  The main thread might
-	 not yet have the flag set.  No need to set the global variable
-	 again if this is what we use.  */
-      THREAD_SETMEM (THREAD_SELF, header.multiple_threads, 1);
     }
 
  out:

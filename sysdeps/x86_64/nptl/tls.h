@@ -45,7 +45,7 @@ typedef struct
 			   thread descriptor used by libpthread.  */
   dtv_t *dtv;
   void *self;		/* Pointer to the thread descriptor.  */
-  int multiple_threads;
+  int unused_multiple_threads;
   int gscope_flag;
   uintptr_t sysinfo;
   uintptr_t stack_guard;

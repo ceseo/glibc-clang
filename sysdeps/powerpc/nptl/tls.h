@@ -52,9 +52,6 @@
 # define TLS_DTV_AT_TP	1
 # define TLS_TCB_AT_TP	0
 
-/* We use the multiple_threads field in the pthread struct */
-#define TLS_MULTIPLE_THREADS_IN_TCB	1
-
 /* Get the thread descriptor definition.  */
 # include <nptl/descr.h>
 

@@ -23,20 +23,7 @@
 # include <sys/single_threaded.h>
 #endif
 
-/* The default way to check if the process is single thread is by using the
-   pthread_t 'multiple_threads' field.  However, for some architectures it is
-   faster to either use an extra field on TCB or global variables (the TCB
-   field is also used on x86 for some single-thread atomic optimizations).
-
-   The ABI might define SINGLE_THREAD_BY_GLOBAL to enable the single thread
-   check to use global variables instead of the pthread_t field.  */
-
-#if !defined SINGLE_THREAD_BY_GLOBAL || IS_IN (rtld)
-# define SINGLE_THREAD_P \
-  (THREAD_GETMEM (THREAD_SELF, header.multiple_threads) == 0)
-#else
-# define SINGLE_THREAD_P (__libc_single_threaded_internal != 0)
-#endif
+#define SINGLE_THREAD_P (__libc_single_threaded_internal != 0)
 
 #define RTLD_SINGLE_THREAD_P SINGLE_THREAD_P
 
