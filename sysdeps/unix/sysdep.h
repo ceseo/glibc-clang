@@ -16,7 +16,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <sysdeps/generic/sysdep.h>
-#include <single-thread.h>
+#include <sys/single_threaded.h>
 #include <sys/syscall.h>
 #define	HAVE_SYSCALLS
 
