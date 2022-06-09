@@ -33,12 +33,12 @@ $as_echo "$libc_cv_x86_cet_available" >&6; }
 fi
 if test $enable_cet != no; then
   # Check if assembler supports CET.
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $AS supports CET" >&5
-$as_echo_n "checking whether $AS supports CET... " >&6; }
-if ${libc_cv_x86_cet_as+:} false; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CC supports CET" >&5
+$as_echo_n "checking whether $CC supports CET... " >&6; }
+if ${libc_cv_x86_cet_cc+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  cat > conftest.s <<EOF
+  cat > conftest.S <<EOF
 	incsspd %ecx
 EOF
 		 if { ac_try='${CC-cc} -c $CFLAGS conftest.s -o conftest.o 1>&5'
@@ -47,15 +47,15 @@ EOF
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; }; then
-		   libc_cv_x86_cet_as=yes
+		   libc_cv_x86_cet_cc=yes
 		 else
-		   libc_cv_x86_cet_as=no
+		   libc_cv_x86_cet_cc=no
 		 fi
 		 rm -rf conftest*
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_x86_cet_as" >&5
-$as_echo "$libc_cv_x86_cet_as" >&6; }
-  if test $libc_cv_x86_cet_as = no; then
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $libc_cv_x86_cet_cc" >&5
+$as_echo "$libc_cv_x86_cet_cc" >&6; }
+  if test $libc_cv_x86_cet_cc = no; then
     as_fn_error $? "$AS doesn't support CET" "$LINENO" 5
   fi
 fi

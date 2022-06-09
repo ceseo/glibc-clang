@@ -22,18 +22,18 @@ EOF
 fi
 if test $enable_cet != no; then
   # Check if assembler supports CET.
-  AC_CACHE_CHECK(whether $AS supports CET,
-		 libc_cv_x86_cet_as, [dnl
-cat > conftest.s <<EOF
+  AC_CACHE_CHECK(whether $CC supports CET,
+		 libc_cv_x86_cet_cc, [dnl
+cat > conftest.S <<EOF
 	incsspd %ecx
 EOF
 		 if AC_TRY_COMMAND(${CC-cc} -c $CFLAGS conftest.s -o conftest.o 1>&AS_MESSAGE_LOG_FD); then
-		   libc_cv_x86_cet_as=yes
+		   libc_cv_x86_cet_cc=yes
 		 else
-		   libc_cv_x86_cet_as=no
+		   libc_cv_x86_cet_cc=no
 		 fi
 		 rm -rf conftest*])
-  if test $libc_cv_x86_cet_as = no; then
+  if test $libc_cv_x86_cet_cc = no; then
     AC_MSG_ERROR([$AS doesn't support CET])
   fi
 fi
