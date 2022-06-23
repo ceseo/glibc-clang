@@ -41,11 +41,6 @@
 # error "ELF_MACHINE_LOAD_ADDRESS is not defined."
 #endif
 
-#ifndef COMPARE_AND_SWAP
-# define COMPARE_AND_SWAP(ptr, old, new) \
-  (catomic_compare_and_exchange_bool_acq (ptr, new, old) == 0)
-#endif
-
 ElfW(Addr) _dl_boot_fptr_table [ELF_MACHINE_BOOT_FPTR_TABLE_LEN];
 
 static struct local
@@ -85,8 +80,9 @@ new_fdesc_table (struct local *l, size_t *size)
 
   /* If someone has just created a new table, we return NULL to tell
      the caller to use the new table.  */
-  if (! COMPARE_AND_SWAP (&l->npages, old_npages, new_npages))
-    return (struct fdesc_table *) NULL;
+  if (!atomic_compare_exchange_weak_acquire (&l->npages, &old_npages,
+					     new_npages))
+    return NULL;
 
   *size = old_npages * GLRO(dl_pagesize);
   new_table = __mmap (NULL, *size,
@@ -128,7 +124,9 @@ make_fdesc (ElfW(Addr) ip, ElfW(Addr) gp)
       old = root->first_unused;
       if (old >= root->len)
 	break;
-      else if (COMPARE_AND_SWAP (&root->first_unused, old, old + 1))
+      else if (atomic_compare_exchange_weak_acquire (&root->first_unused,
+						     &old, old + 1))
+
 	{
 	  fdesc = &root->fdesc[old];
 	  goto install;
@@ -144,8 +142,8 @@ make_fdesc (ElfW(Addr) ip, ElfW(Addr) gp)
 	  if (fdesc == NULL)
 	    goto retry;
 	}
-      while (! COMPARE_AND_SWAP ((ElfW(Addr) *) &l->free_list,
-				 (ElfW(Addr)) fdesc, fdesc->ip));
+      while (!atomic_compare_exchange_weak_acquire (&l->free_list, &fdesc,
+						    fdesc->ip));
     }
   else
     {
@@ -157,9 +155,7 @@ make_fdesc (ElfW(Addr) ip, ElfW(Addr) gp)
 	goto retry;
 
       new_table->next = root;
-      if (! COMPARE_AND_SWAP ((ElfW(Addr) *) &l->root,
-			      (ElfW(Addr)) root,
-			      (ElfW(Addr)) new_table))
+      if (!atomic_compare_exchange_weak_acquire (&l->root, &root, new_table))
 	{
 	  /* Someone has just installed a new table. Return NULL to
 	     tell the caller to use the new table.  */
@@ -213,8 +209,9 @@ make_fptr_table (struct link_map *map)
     _dl_signal_error (errno, NULL, NULL,
 		      N_("cannot map pages for fptr table"));
 
-  if (COMPARE_AND_SWAP ((ElfW(Addr) *) &map->l_mach.fptr_table,
-			(ElfW(Addr)) NULL, (ElfW(Addr)) fptr_table))
+  ElfW(Addr) v = 0;
+  if (atomic_compare_exchange_weak_acquire (&map->l_mach.fptr_table, &v,
+					    fptr_table))
     map->l_mach.fptr_table_len = len;
   else
     __munmap (fptr_table, len * sizeof (fptr_table[0]));
@@ -249,8 +246,9 @@ _dl_make_fptr (struct link_map *map, const ElfW(Sym) *sym,
       ElfW(Addr) fdesc
 	= make_fdesc (ip, map->l_info[DT_PLTGOT]->d_un.d_ptr);
 
-      if (__builtin_expect (COMPARE_AND_SWAP (&ftab[symidx], (ElfW(Addr)) NULL,
-					      fdesc), 1))
+      if (atomic_compare_exchange_weak_acquire (&ftab[symidx],
+						&(struct fdesc *){ NULL },
+						fdesc))
 	{
 	  /* Noone has updated the entry and the new function
 	     descriptor has been installed.  */
@@ -276,8 +274,9 @@ _dl_make_fptr (struct link_map *map, const ElfW(Sym) *sym,
 
 	  do
 	    f->ip = (ElfW(Addr)) l->free_list;
-	  while (! COMPARE_AND_SWAP ((ElfW(Addr) *) &l->free_list,
-				     f->ip, fdesc));
+	  while (!atomic_compare_exchange_weak_acquire (&l->free_list,
+							&f->ip, fdesc));
+
 	}
     }
 
@@ -313,8 +312,8 @@ _dl_unmap (struct link_map *map)
   if (tail)
     do
       tail->ip = (ElfW(Addr)) local.free_list;
-    while (! COMPARE_AND_SWAP ((ElfW(Addr) *) &local.free_list,
-			       tail->ip, (ElfW(Addr)) head));
+    while (!atomic_compare_exchange_weak_acquire (&local.free_list, &tail->ip,
+						  head));
 
   __munmap (ftab, (map->l_mach.fptr_table_len
 		   * sizeof (map->l_mach.fptr_table[0])));
