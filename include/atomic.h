@@ -247,42 +247,6 @@
 #endif
 
 
-#ifndef catomic_max
-# define catomic_max(mem, value) \
-  do {									      \
-    __typeof (*(mem)) __atg9_oldv;					      \
-    __typeof (mem) __atg9_memp = (mem);					      \
-    __typeof (*(mem)) __atg9_value = (value);				      \
-    do {								      \
-      __atg9_oldv = *__atg9_memp;					      \
-      if (__atg9_oldv >= __atg9_value)					      \
-	break;								      \
-    } while (__builtin_expect						      \
-	     (catomic_compare_and_exchange_bool_acq (__atg9_memp,	      \
-						     __atg9_value,	      \
-						     __atg9_oldv), 0));	      \
-  } while (0)
-#endif
-
-
-#ifndef atomic_min
-# define atomic_min(mem, value) \
-  do {									      \
-    __typeof (*(mem)) __atg10_oldval;					      \
-    __typeof (mem) __atg10_memp = (mem);				      \
-    __typeof (*(mem)) __atg10_value = (value);				      \
-    do {								      \
-      __atg10_oldval = *__atg10_memp;					      \
-      if (__atg10_oldval <= __atg10_value)				      \
-	break;								      \
-    } while (__builtin_expect						      \
-	     (atomic_compare_and_exchange_bool_acq (__atg10_memp,	      \
-						    __atg10_value,	      \
-						    __atg10_oldval), 0));     \
-  } while (0)
-#endif
-
-
 #ifndef atomic_add
 # define atomic_add(mem, value) (void) atomic_exchange_and_add ((mem), (value))
 #endif
@@ -299,25 +263,8 @@
 #endif
 
 
-#ifndef catomic_increment
-# define catomic_increment(mem) catomic_add ((mem), 1)
-#endif
-
-
 #ifndef atomic_increment_val
 # define atomic_increment_val(mem) (atomic_exchange_and_add ((mem), 1) + 1)
-#endif
-
-
-#ifndef catomic_increment_val
-# define catomic_increment_val(mem) (catomic_exchange_and_add ((mem), 1) + 1)
-#endif
-
-
-/* Add one to *MEM and return true iff it's now zero.  */
-#ifndef atomic_increment_and_test
-# define atomic_increment_and_test(mem) \
-  (atomic_exchange_and_add ((mem), 1) + 1 == 0)
 #endif
 
 
@@ -333,11 +280,6 @@
 
 #ifndef atomic_decrement_val
 # define atomic_decrement_val(mem) (atomic_exchange_and_add ((mem), -1) - 1)
-#endif
-
-
-#ifndef catomic_decrement_val
-# define catomic_decrement_val(mem) (catomic_exchange_and_add ((mem), -1) - 1)
 #endif
 
 
@@ -365,13 +307,6 @@
 						   __atg11_oldval - 1,	      \
 						   __atg11_oldval), 0));      \
      __atg11_oldval; })
-#endif
-
-
-#ifndef atomic_add_negative
-# define atomic_add_negative(mem, value)				      \
-  ({ __typeof (value) __atg12_value = (value);				      \
-     atomic_exchange_and_add (mem, __atg12_value) < -__atg12_value; })
 #endif
 
 
@@ -418,22 +353,6 @@
 	   (atomic_compare_and_exchange_bool_acq (__atg15_memp,		      \
 						  __atg15_old & __atg15_mask, \
 						  __atg15_old), 0));	      \
-  } while (0)
-#endif
-
-#ifndef catomic_and
-# define catomic_and(mem, mask) \
-  do {									      \
-    __typeof (*(mem)) __atg20_old;					      \
-    __typeof (mem) __atg20_memp = (mem);				      \
-    __typeof (*(mem)) __atg20_mask = (mask);				      \
-									      \
-    do									      \
-      __atg20_old = (*__atg20_memp);					      \
-    while (__builtin_expect						      \
-	   (catomic_compare_and_exchange_bool_acq (__atg20_memp,	      \
-						   __atg20_old & __atg20_mask,\
-						   __atg20_old), 0));	      \
   } while (0)
 #endif
 

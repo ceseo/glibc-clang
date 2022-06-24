@@ -129,5 +129,3 @@
   do {						\
     atomic_and_val (mem, mask);			\
   } while (0)
-#define catomic_and(mem, mask)			\
-  atomic_and(mem, mask)

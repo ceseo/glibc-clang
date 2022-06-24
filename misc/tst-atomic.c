@@ -152,30 +152,6 @@ do_test (void)
       ret = 1;
     }
 
-  mem = 0;
-  if (atomic_increment_and_test (&mem)
-      || mem != 1)
-    {
-      puts ("atomic_increment_and_test test 1 failed");
-      ret = 1;
-    }
-
-  mem = 35;
-  if (atomic_increment_and_test (&mem)
-      || mem != 36)
-    {
-      puts ("atomic_increment_and_test test 2 failed");
-      ret = 1;
-    }
-
-  mem = -1;
-  if (! atomic_increment_and_test (&mem)
-      || mem != 0)
-    {
-      puts ("atomic_increment_and_test test 3 failed");
-      ret = 1;
-    }
-
   mem = 17;
   atomic_decrement (&mem);
   if (mem != 16)
@@ -235,54 +211,6 @@ do_test (void)
       || mem != -1)
     {
       puts ("atomic_decrement_if_positive test 3 failed");
-      ret = 1;
-    }
-
-  mem = -12;
-  if (! atomic_add_negative (&mem, 10)
-      || mem != -2)
-    {
-      puts ("atomic_add_negative test 1 failed");
-      ret = 1;
-    }
-
-  mem = 0;
-  if (atomic_add_negative (&mem, 100)
-      || mem != 100)
-    {
-      puts ("atomic_add_negative test 2 failed");
-      ret = 1;
-    }
-
-  mem = 15;
-  if (atomic_add_negative (&mem, -10)
-      || mem != 5)
-    {
-      puts ("atomic_add_negative test 3 failed");
-      ret = 1;
-    }
-
-  mem = -12;
-  if (atomic_add_negative (&mem, 14)
-      || mem != 2)
-    {
-      puts ("atomic_add_negative test 4 failed");
-      ret = 1;
-    }
-
-  mem = 0;
-  if (! atomic_add_negative (&mem, -1)
-      || mem != -1)
-    {
-      puts ("atomic_add_negative test 5 failed");
-      ret = 1;
-    }
-
-  mem = -31;
-  if (atomic_add_negative (&mem, 31)
-      || mem != 0)
-    {
-      puts ("atomic_add_negative test 6 failed");
       ret = 1;
     }
 
@@ -473,35 +401,6 @@ do_test (void)
   if (mem != 1)
     {
       puts ("catomic_add test failed");
-      ret = 1;
-    }
-
-  mem = -1;
-  catomic_increment (&mem);
-  if (mem != 0)
-    {
-      puts ("catomic_increment test failed");
-      ret = 1;
-    }
-
-  mem = 2;
-  if (catomic_increment_val (&mem) != 3)
-    {
-      puts ("catomic_increment_val test failed");
-      ret = 1;
-    }
-
-  mem = 17;
-  catomic_decrement (&mem);
-  if (mem != 16)
-    {
-      puts ("catomic_decrement test failed");
-      ret = 1;
-    }
-
-  if (catomic_decrement_val (&mem) != 15)
-    {
-      puts ("catomic_decrement_val test failed");
       ret = 1;
     }
 

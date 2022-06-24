@@ -179,18 +179,6 @@
      atomic_add (mem, value);						      \
   })
 
-
-#define atomic_increment(mem) \
-  __single_op (LOCK_PREFIX, (mem), inc)
-
-#define catomic_increment(mem)						      \
-  ({									      \
-    if (SINGLE_THREAD_P)						      \
-      __single_op ("", (mem), inc);					      \
-   else									      \
-     atomic_increment (mem);						      \
-  })
-
 #define atomic_increment_and_test(mem) \
   ({ unsigned char __result;						      \
      if (sizeof (*mem) == 1)						      \
@@ -299,14 +287,6 @@
 
 #define atomic_and(mem, mask)						      \
   __xchg_op (LOCK_PREFIX, (mem), (mask), and)
-
-#define catomic_and(mem, mask) \
-  ({									      \
-    if (SINGLE_THREAD_P)						      \
-      __xchg_op ("", (mem), (mask), and);				      \
-   else									      \
-      atomic_and (mem, mask);						      \
-  })
 
 #define atomic_or(mem, mask)						      \
   __xchg_op (LOCK_PREFIX, (mem), (mask), or)

@@ -164,7 +164,6 @@
   __tmp; })
 
 # define atomic_max(mem, value) asm_amo ("amomaxu", ".aq", mem, value)
-# define atomic_min(mem, value) asm_amo ("amominu", ".aq", mem, value)
 
 # define atomic_bit_test_set(mem, bit)                   \
   ({ typeof (*mem) __mask = (typeof (*mem))1 << (bit);    \
@@ -172,7 +171,6 @@
 
 # define catomic_exchange_and_add(mem, value)		\
   atomic_exchange_and_add (mem, value)
-# define catomic_max(mem, value) atomic_max (mem, value)
 
 #else /* __riscv_atomic */
 # error "ISAs that do not subsume the A extension are not supported"
