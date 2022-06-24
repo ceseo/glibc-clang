@@ -31,7 +31,6 @@
    The atomic_fetch_abc_def C11 builtins are now using load-and-abc instructions
    on z196 zarch and higher cpus instead of a loop with compare-and-swap
    instruction.  */
-#define USE_ATOMIC_COMPILER_BUILTINS 1
 
 #ifdef __s390x__
 # define __HAVE_64B_ATOMICS 1

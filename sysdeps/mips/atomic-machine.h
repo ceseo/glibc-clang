@@ -42,7 +42,6 @@
 #define MIPS_SYNC_STR_1(X) MIPS_SYNC_STR_2(X)
 #define MIPS_SYNC_STR MIPS_SYNC_STR_1(MIPS_SYNC)
 
-#define USE_ATOMIC_COMPILER_BUILTINS 1
 
 /* MIPS is an LL/SC machine.  However, XLP has a direct atomic exchange
    instruction which will be used by __atomic_exchange_n.  */

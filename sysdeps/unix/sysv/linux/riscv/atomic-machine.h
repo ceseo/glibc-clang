@@ -24,7 +24,6 @@
 #ifdef __riscv_atomic
 
 # define __HAVE_64B_ATOMICS (__riscv_xlen >= 64)
-# define USE_ATOMIC_COMPILER_BUILTINS 1
 # define ATOMIC_EXCHANGE_USES_CAS 0
 
 /* Compare and exchange.

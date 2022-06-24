@@ -21,7 +21,6 @@
 #define atomic_full_barrier() __sync_synchronize ()
 
 #define __HAVE_64B_ATOMICS 0
-#define USE_ATOMIC_COMPILER_BUILTINS 1
 
 /* We use the compiler atomic load and store builtins as the generic
    defines are not atomic.  In particular, we need to use compare and

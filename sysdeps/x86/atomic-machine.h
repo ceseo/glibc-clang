@@ -25,8 +25,6 @@
 
 #define LOCK_PREFIX "lock;"
 
-#define USE_ATOMIC_COMPILER_BUILTINS	1
-
 #ifdef __x86_64__
 # define __HAVE_64B_ATOMICS		1
 # define SP_REG				"rsp"

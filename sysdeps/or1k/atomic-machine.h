@@ -22,7 +22,6 @@
 #include <stdint.h>
 
 #define __HAVE_64B_ATOMICS 0
-#define USE_ATOMIC_COMPILER_BUILTINS 1
 #define ATOMIC_EXCHANGE_USES_CAS 1
 
 #define __arch_compare_and_exchange_bool_8_int(mem, newval, oldval, model) \

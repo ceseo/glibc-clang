@@ -20,7 +20,6 @@
 #define _AARCH64_ATOMIC_MACHINE_H	1
 
 #define __HAVE_64B_ATOMICS 1
-#define USE_ATOMIC_COMPILER_BUILTINS 1
 #define ATOMIC_EXCHANGE_USES_CAS 0
 
 /* Compare and exchange.

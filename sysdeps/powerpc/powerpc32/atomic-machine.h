@@ -33,7 +33,6 @@
 #endif
 
 #define __HAVE_64B_ATOMICS 0
-#define USE_ATOMIC_COMPILER_BUILTINS 1
 #define ATOMIC_EXCHANGE_USES_CAS 1
 
 /*

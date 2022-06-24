@@ -20,7 +20,6 @@
 #define _ARC_BITS_ATOMIC_H 1
 
 #define __HAVE_64B_ATOMICS 0
-#define USE_ATOMIC_COMPILER_BUILTINS 1
 
 /* ARC does have legacy atomic EX reg, [mem] instruction but the micro-arch
    is not as optimal as LLOCK/SCOND specially for SMP.  */

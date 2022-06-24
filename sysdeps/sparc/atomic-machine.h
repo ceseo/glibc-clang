@@ -24,7 +24,6 @@
 #else
 # define __HAVE_64B_ATOMICS          0
 #endif
-#define USE_ATOMIC_COMPILER_BUILTINS 1
 
 /* XXX Is this actually correct?  */
 #define ATOMIC_EXCHANGE_USES_CAS     __HAVE_64B_ATOMICS
