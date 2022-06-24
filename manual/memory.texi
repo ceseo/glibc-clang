@@ -397,7 +397,7 @@ this function is in @file{stdlib.h}.
 @c     mutex_lock (list_lock) dup @asulock @aculock
 @c     atomic_write_barrier ok
 @c     mutex_unlock (list_lock) @aculock
-@c    catomic_decrement ok
+@c    atomic_fetch_sub_relaxed ok
 @c    reused_arena @asulock @aculock
 @c      reads&writes next_to_use and iterates over arena next without guards
 @c      those are harmless as long as we don't drop arenas from the

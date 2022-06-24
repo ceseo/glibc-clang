@@ -169,14 +169,6 @@
 #define atomic_add(mem, value) \
   __xchg_op (LOCK_PREFIX, (mem), (value), add);				      \
 
-#define catomic_add(mem, value)						      \
-  ({									      \
-    if (SINGLE_THREAD_P)						      \
-      __xchg_op ("", (mem), (value), add);				      \
-   else									      \
-     atomic_add (mem, value);						      \
-  })
-
 #define atomic_increment_and_test(mem) \
   ({ unsigned char __result;						      \
      if (sizeof (*mem) == 1)						      \
@@ -202,15 +194,6 @@
 
 #define atomic_decrement(mem)						      \
   __single_op (LOCK_PREFIX, (mem), dec)
-
-#define catomic_decrement(mem)						      \
-  ({									      \
-    if (SINGLE_THREAD_P)						      \
-      __single_op ("", (mem), dec);					      \
-   else									      \
-     atomic_decrement (mem);						      \
-  })
-
 
 #define atomic_decrement_and_test(mem) \
   ({ unsigned char __result;						      \

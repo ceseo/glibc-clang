@@ -212,24 +212,6 @@
   atomic_exchange_and_add_acq(mem, value)
 #endif
 
-#ifndef catomic_exchange_and_add
-# define catomic_exchange_and_add(mem, value) \
-  ({ __typeof (*(mem)) __atg7_oldv;					      \
-     __typeof (mem) __atg7_memp = (mem);				      \
-     __typeof (*(mem)) __atg7_value = (value);				      \
-									      \
-     do									      \
-       __atg7_oldv = *__atg7_memp;					      \
-     while (__builtin_expect						      \
-	    (catomic_compare_and_exchange_bool_acq (__atg7_memp,	      \
-						    __atg7_oldv		      \
-						    + __atg7_value,	      \
-						    __atg7_oldv), 0));	      \
-									      \
-     __atg7_oldv; })
-#endif
-
-
 #ifndef atomic_max
 # define atomic_max(mem, value) \
   do {									      \
@@ -252,12 +234,6 @@
 #endif
 
 
-#ifndef catomic_add
-# define catomic_add(mem, value) \
-  (void) catomic_exchange_and_add ((mem), (value))
-#endif
-
-
 #ifndef atomic_increment
 # define atomic_increment(mem) atomic_add ((mem), 1)
 #endif
@@ -270,11 +246,6 @@
 
 #ifndef atomic_decrement
 # define atomic_decrement(mem) atomic_add ((mem), -1)
-#endif
-
-
-#ifndef catomic_decrement
-# define catomic_decrement(mem) catomic_add ((mem), -1)
 #endif
 
 
@@ -540,6 +511,19 @@ void __atomic_link_error (void);
 #define atomic_fetch_add_acq_rel(mem, operand) \
   ({ __atomic_check_size((mem));					      \
   __atomic_fetch_add ((mem), (operand), __ATOMIC_ACQ_REL); })
+
+#define atomic_fetch_sub_relaxed(mem, operand) \
+  ({ __atomic_check_size((mem));					      \
+  __atomic_fetch_sub ((mem), (operand), __ATOMIC_RELAXED); })
+#define atomic_fetch_sub_acquire(mem, operand) \
+  ({ __atomic_check_size((mem));					      \
+  __atomic_fetch_sub ((mem), (operand), __ATOMIC_ACQUIRE); })
+#define atomic_fetch_sub_release(mem, operand) \
+  ({ __atomic_check_size((mem));					      \
+  __atomic_fetch_sub ((mem), (operand), __ATOMIC_RELEASE); })
+#define atomic_fetch_sub_acq_rel(mem, operand) \
+  ({ __atomic_check_size((mem));					      \
+  __atomic_fetch_sub ((mem), (operand), __ATOMIC_ACQ_REL); })
 
 #define atomic_fetch_and_relaxed(mem, operand) \
   ({ __atomic_check_size((mem));					      \

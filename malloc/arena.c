@@ -962,7 +962,7 @@ arena_get2 (size_t size, mstate avoid_arena)
             goto repeat;
           a = _int_new_arena (size);
 	  if (__glibc_unlikely (a == NULL))
-            catomic_decrement (&narenas);
+            atomic_fetch_sub_release (&narenas, 1);
         }
       else
         a = reused_arena (avoid_arena);

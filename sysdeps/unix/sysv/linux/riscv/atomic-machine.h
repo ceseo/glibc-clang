@@ -168,9 +168,6 @@
   ({ typeof (*mem) __mask = (typeof (*mem))1 << (bit);    \
      asm_amo ("amoor", ".aq", mem, __mask) & __mask; })
 
-# define catomic_exchange_and_add(mem, value)		\
-  atomic_exchange_and_add (mem, value)
-
 #else /* __riscv_atomic */
 # error "ISAs that do not subsume the A extension are not supported"
 #endif /* !__riscv_atomic */

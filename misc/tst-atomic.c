@@ -388,22 +388,6 @@ do_test (void)
       ret = 1;
     }
 
-  mem = 2;
-  if (catomic_exchange_and_add (&mem, 11) != 2
-      || mem != 13)
-    {
-      puts ("catomic_exchange_and_add test failed");
-      ret = 1;
-    }
-
-  mem = -21;
-  catomic_add (&mem, 22);
-  if (mem != 1)
-    {
-      puts ("catomic_add test failed");
-      ret = 1;
-    }
-
   /* Tests for C11-like atomics.  */
   mem = 11;
   if (atomic_load_relaxed (&mem) != 11 || atomic_load_acquire (&mem) != 11)

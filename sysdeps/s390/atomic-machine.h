@@ -89,8 +89,6 @@
 # define atomic_exchange_and_add_rel(mem, operand)			\
   ({ __atomic_check_size((mem));					\
   __atomic_fetch_add ((mem), (operand), __ATOMIC_RELEASE); })
-#define catomic_exchange_and_add(mem, value)	\
-  atomic_exchange_and_add (mem, value)
 
 /* Atomically *mem |= mask and return the old value of *mem.  */
 /* The gcc builtin uses load-and-or instruction on z196 zarch and higher cpus
