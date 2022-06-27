@@ -169,29 +169,6 @@
 #define atomic_add(mem, value) \
   __xchg_op (LOCK_PREFIX, (mem), (value), add);				      \
 
-#define atomic_increment_and_test(mem) \
-  ({ unsigned char __result;						      \
-     if (sizeof (*mem) == 1)						      \
-       __asm __volatile (LOCK_PREFIX "incb %b0; sete %b1"		      \
-			 : "=m" (*mem), "=qm" (__result)		      \
-			 : "m" (*mem));					      \
-     else if (sizeof (*mem) == 2)					      \
-       __asm __volatile (LOCK_PREFIX "incw %w0; sete %w1"		      \
-			 : "=m" (*mem), "=qm" (__result)		      \
-			 : "m" (*mem));					      \
-     else if (sizeof (*mem) == 4)					      \
-       __asm __volatile (LOCK_PREFIX "incl %0; sete %1"			      \
-			 : "=m" (*mem), "=qm" (__result)		      \
-			 : "m" (*mem));					      \
-     else if (__HAVE_64B_ATOMICS)					      \
-       __asm __volatile (LOCK_PREFIX "incq %q0; sete %1"		      \
-			 : "=m" (*mem), "=qm" (__result)		      \
-			 : "m" (*mem));					      \
-     else								      \
-       __atomic_link_error ();						      \
-     __result; })
-
-
 #define atomic_decrement(mem)						      \
   __single_op (LOCK_PREFIX, (mem), dec)
 

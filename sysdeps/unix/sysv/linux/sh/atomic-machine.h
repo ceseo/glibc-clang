@@ -249,8 +249,6 @@
        abort (); \
      __result; })
 
-#define atomic_increment_and_test(mem) atomic_add_zero((mem), 1)
-
 #define atomic_bit_set(mem, bit) \
   (void) ({ unsigned int __mask = 1 << (bit); \
 	    if (sizeof (*(mem)) == 1) \
