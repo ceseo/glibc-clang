@@ -136,41 +136,12 @@
        __atomic_link_error ();						      \
      __ret; })
 
-#define __single_op(lock, mem, op)					      \
-  ({									      \
-     if (sizeof (*mem) == 1)						      \
-       __asm __volatile (lock #op "b %b0"				      \
-			 : "=m" (*mem)					      \
-			 : "m" (*mem)					      \
-			 : "memory", "cc");				      \
-     else if (sizeof (*mem) == 2)					      \
-       __asm __volatile (lock #op "w %b0"				      \
-			 : "=m" (*mem)					      \
-			 : "m" (*mem)					      \
-			 : "memory", "cc");				      \
-     else if (sizeof (*mem) == 4)					      \
-       __asm __volatile (lock #op "l %b0"				      \
-			 : "=m" (*mem)					      \
-			 : "m" (*mem)					      \
-			 : "memory", "cc");				      \
-     else if (__HAVE_64B_ATOMICS)					      \
-       __asm __volatile (lock #op "q %b0"				      \
-			 : "=m" (*mem)					      \
-			 : "m" (*mem)					      \
-			 : "memory", "cc");				      \
-     else								      \
-       __atomic_link_error ();						      \
-  })
-
 /* Note that we need no lock prefix.  */
 #define atomic_exchange_acq(mem, newvalue)				      \
   __xchg_op ("", (mem), (newvalue), xchg)
 
 #define atomic_add(mem, value) \
   __xchg_op (LOCK_PREFIX, (mem), (value), add);				      \
-
-#define atomic_decrement(mem)						      \
-  __single_op (LOCK_PREFIX, (mem), dec)
 
 #define atomic_bit_set(mem, bit) \
   do {									      \

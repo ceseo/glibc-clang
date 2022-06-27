@@ -257,5 +257,3 @@
        abort ();							      \
     __result;								      \
   })
-
-#define atomic_decrement(mem) ({ atomic_decrement_val (mem); (void) 0; })
