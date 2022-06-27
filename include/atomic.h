@@ -249,13 +249,6 @@
 #endif
 
 
-/* Subtract 1 from *MEM and return true iff it's now zero.  */
-#ifndef atomic_decrement_and_test
-# define atomic_decrement_and_test(mem) \
-  (atomic_exchange_and_add ((mem), -1) == 1)
-#endif
-
-
 /* Decrement *MEM if it is > 0, and return the old value.  */
 #ifndef atomic_decrement_if_positive
 # define atomic_decrement_if_positive(mem) \

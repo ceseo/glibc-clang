@@ -187,37 +187,6 @@
        }								      \
      __result; })
 
-#define atomic_decrement_and_test(mem) \
-  ({ char __result;							      \
-     if (sizeof (*(mem)) == 1)						      \
-       __asm __volatile ("subq%.b %#1,%1; seq %0"			      \
-			 : "=dm" (__result), "+m" (*(mem)));		      \
-     else if (sizeof (*(mem)) == 2)					      \
-       __asm __volatile ("subq%.w %#1,%1; seq %0"			      \
-			 : "=dm" (__result), "+m" (*(mem)));		      \
-     else if (sizeof (*(mem)) == 4)					      \
-       __asm __volatile ("subq%.l %#1,%1; seq %0"			      \
-			 : "=dm" (__result), "+m" (*(mem)));		      \
-     else								      \
-       {								      \
-	 __typeof (mem) __memp = (mem);					      \
-	 __typeof (*(mem)) __oldval = *__memp;				      \
-	 __typeof (*(mem)) __temp;					      \
-	 __asm __volatile ("1: move%.l %1,%2;"				      \
-			   "   move%.l %R1,%R2;"			      \
-			   "   subq%.l %#1,%R2;"			      \
-			   "   subx%.l %5,%2;"				      \
-			   "   seq %0;"					      \
-			   "   cas2%.l %1:%R1,%2:%R2,(%3):(%4);"	      \
-			   "   jbne 1b"					      \
-			   : "=&dm" (__result), "=d" (__oldval),	      \
-			     "=&d" (__temp)				      \
-			   : "r" (__memp), "r" ((char *) __memp + 4),	      \
-			     "d" (0), "1" (__oldval)			      \
-			   : "memory");					      \
-       }								      \
-     __result; })
-
 #define atomic_bit_set(mem, bit) \
   __asm __volatile ("bfset %0{%1,#1}"					      \
 		    : "+m" (*(mem))					      \

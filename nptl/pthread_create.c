@@ -489,7 +489,7 @@ start_thread (void *arg)
      the breakpoint reports TD_THR_RUN state rather than TD_THR_ZOMBIE.  */
   atomic_bit_set (&pd->cancelhandling, EXITING_BIT);
 
-  if (__glibc_unlikely (atomic_decrement_and_test (&__nptl_nthreads)))
+  if (__glibc_unlikely (atomic_fetch_sub_acquire (&__nptl_nthreads, 1) == 1))
     /* This was the last thread.  */
     exit (0);
 

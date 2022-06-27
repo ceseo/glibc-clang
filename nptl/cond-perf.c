@@ -24,7 +24,7 @@ cons (void *arg)
 
   do
     {
-      if (atomic_decrement_and_test (&ntogo))
+      if (atomic_fetch_sub_acquire (&ntogo, 1) == 0)
 	{
 	  pthread_mutex_lock (&mut2);
 	  alldone = true;

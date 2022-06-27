@@ -195,27 +195,6 @@
 #define atomic_decrement(mem)						      \
   __single_op (LOCK_PREFIX, (mem), dec)
 
-#define atomic_decrement_and_test(mem) \
-  ({ unsigned char __result;						      \
-     if (sizeof (*mem) == 1)						      \
-       __asm __volatile (LOCK_PREFIX "decb %b0; sete %1"		      \
-			 : "=m" (*mem), "=qm" (__result)		      \
-			 : "m" (*mem));					      \
-     else if (sizeof (*mem) == 2)					      \
-       __asm __volatile (LOCK_PREFIX "decw %w0; sete %1"		      \
-			 : "=m" (*mem), "=qm" (__result)		      \
-			 : "m" (*mem));					      \
-     else if (sizeof (*mem) == 4)					      \
-       __asm __volatile (LOCK_PREFIX "decl %0; sete %1"			      \
-			 : "=m" (*mem), "=qm" (__result)		      \
-			 : "m" (*mem));					      \
-     else								      \
-       __asm __volatile (LOCK_PREFIX "decq %q0; sete %1"		      \
-			 : "=m" (*mem), "=qm" (__result)		      \
-			 : "m" (*mem));					      \
-     __result; })
-
-
 #define atomic_bit_set(mem, bit) \
   do {									      \
     if (sizeof (*mem) == 1)						      \

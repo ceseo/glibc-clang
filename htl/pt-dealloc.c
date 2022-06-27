@@ -33,7 +33,7 @@ extern pthread_mutex_t __pthread_free_threads_lock;
 void
 __pthread_dealloc (struct __pthread *pthread)
 {
-  if (!atomic_decrement_and_test (&pthread->nr_refs))
+  if (atomic_fetch_sub_acquire (&pthread->nr_refs, 1) != 0)
     return;
 
   /* Withdraw this thread from the thread ID lookup table.  */
