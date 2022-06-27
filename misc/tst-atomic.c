@@ -137,13 +137,6 @@ do_test (void)
       ret = 1;
     }
 
-  mem = 16;
-  if (atomic_decrement_val (&mem) != 15)
-    {
-      puts ("atomic_decrement_val test failed");
-      ret = 1;
-    }
-
   mem = 0;
   atomic_bit_set (&mem, 1);
   if (mem != 2)
