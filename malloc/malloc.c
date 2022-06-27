@@ -3060,7 +3060,7 @@ munmap_chunk (mchunkptr p)
     malloc_printerr ("munmap_chunk(): invalid pointer");
 
   atomic_fetch_sub_relaxed (&mp_.n_mmaps, 1);
-  atomic_add (&mp_.mmapped_mem, -total_size);
+  atomic_fetch_sub_relaxed (&mp_.mmapped_mem, total_size);
 
   /* If munmap failed the process virtual memory address space is in a
      bad shape.  Just leave the block hanging around, the process will

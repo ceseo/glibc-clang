@@ -229,11 +229,6 @@
 #endif
 
 
-#ifndef atomic_add
-# define atomic_add(mem, value) (void) atomic_exchange_and_add ((mem), (value))
-#endif
-
-
 #ifndef atomic_bit_set
 # define atomic_bit_set(mem, bit) \
   (void) atomic_bit_test_set(mem, bit)

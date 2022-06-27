@@ -150,56 +150,6 @@
        } \
      __result; })
 
-#define atomic_add(mem, value) \
-  (void) ({ __typeof (*(mem)) __tmp, __value = (value); \
-	    if (sizeof (*(mem)) == 1) \
-	      __asm __volatile ("\
-		mova 1f,r0\n\
-		mov r15,r1\n\
-		.align 2\n\
-		mov #(0f-1f),r15\n\
-	     0: mov.b @%1,r2\n\
-		add %0,r2\n\
-		mov.b r2,@%1\n\
-	     1: mov r1,r15"\
-		: "=&r" (__tmp) : "u" (mem), "0" (__value) \
-		: "r0", "r1", "r2", "memory"); \
-	    else if (sizeof (*(mem)) == 2) \
-	      __asm __volatile ("\
-		mova 1f,r0\n\
-		mov r15,r1\n\
-		.align 2\n\
-		mov #(0f-1f),r15\n\
-	     0: mov.w @%1,r2\n\
-		add %0,r2\n\
-		mov.w r2,@%1\n\
-	     1: mov r1,r15"\
-		: "=&r" (__tmp) : "u" (mem), "0" (__value) \
-		: "r0", "r1", "r2", "memory"); \
-	    else if (sizeof (*(mem)) == 4) \
-	      __asm __volatile ("\
-		mova 1f,r0\n\
-		mov r15,r1\n\
-		.align 2\n\
-		mov #(0f-1f),r15\n\
-	     0: mov.l @%1,r2\n\
-		add %0,r2\n\
-		mov.l r2,@%1\n\
-	     1: mov r1,r15"\
-		: "=&r" (__tmp) : "u" (mem), "0" (__value) \
-		: "r0", "r1", "r2", "memory"); \
-	    else \
-	      { \
-		__typeof (*(mem)) oldval; \
-		__typeof (mem) memp = (mem); \
-		do \
-		  oldval = *memp; \
-		while (__arch_compare_and_exchange_val_64_acq \
-			(memp, oldval + __value, oldval) == oldval); \
-		(void) __value; \
-	      } \
-	    })
-
 #define atomic_bit_set(mem, bit) \
   (void) ({ unsigned int __mask = 1 << (bit); \
 	    if (sizeof (*(mem)) == 1) \

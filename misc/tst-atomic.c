@@ -129,14 +129,6 @@ do_test (void)
       ret = 1;
     }
 
-  mem = -21;
-  atomic_add (&mem, 22);
-  if (mem != 1)
-    {
-      puts ("atomic_add test failed");
-      ret = 1;
-    }
-
   mem = 0;
   atomic_bit_set (&mem, 1);
   if (mem != 2)

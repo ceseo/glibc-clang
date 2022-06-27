@@ -278,7 +278,7 @@ make_request (int fd, pid_t pid)
     {
       free (result);
 
-      atomic_add (&noai6ai_cached.usecnt, 2);
+      atomic_fetch_add_release (&noai6ai_cached.usecnt, 2);
       noai6ai_cached.seen_ipv4 = seen_ipv4;
       noai6ai_cached.seen_ipv6 = seen_ipv6;
       result = &noai6ai_cached;

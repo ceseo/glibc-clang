@@ -124,38 +124,6 @@
        }								      \
      __result; })
 
-#define atomic_add(mem, value) \
-  (void) ({ if (sizeof (*(mem)) == 1)					      \
-	      __asm __volatile ("add%.b %1,%0"				      \
-				: "+m" (*(mem))				      \
-				: "id" (value));			      \
-	    else if (sizeof (*(mem)) == 2)				      \
-	      __asm __volatile ("add%.w %1,%0"				      \
-				: "+m" (*(mem))				      \
-				: "id" (value));			      \
-	    else if (sizeof (*(mem)) == 4)				      \
-	      __asm __volatile ("add%.l %1,%0"				      \
-				: "+m" (*(mem))				      \
-				: "id" (value));			      \
-	    else							      \
-	      {								      \
-		__typeof (mem) __memp = (mem);				      \
-		__typeof (*(mem)) __oldval = *__memp;			      \
-		__typeof (*(mem)) __temp;				      \
-		__asm __volatile ("1: move%.l %0,%1;"			      \
-				  "   move%.l %R0,%R1;"			      \
-				  "   add%.l %R2,%R1;"			      \
-				  "   addx%.l %2,%1;"			      \
-				  "   cas2%.l %0:%R0,%1:%R1,(%3):(%4);"	      \
-				  "   jbne 1b"				      \
-				  : "=d" (__oldval), "=&d" (__temp)	      \
-				  : "d" ((__typeof (*(mem))) (value)),	      \
-				    "r" (__memp), "r" ((char *) __memp + 4),  \
-				    "0" (__oldval)			      \
-				  : "memory");				      \
-	      }								      \
-	    })
-
 #define atomic_bit_set(mem, bit) \
   __asm __volatile ("bfset %0{%1,#1}"					      \
 		    : "+m" (*(mem))					      \

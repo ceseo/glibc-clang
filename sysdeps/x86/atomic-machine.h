@@ -140,9 +140,6 @@
 #define atomic_exchange_acq(mem, newvalue)				      \
   __xchg_op ("", (mem), (newvalue), xchg)
 
-#define atomic_add(mem, value) \
-  __xchg_op (LOCK_PREFIX, (mem), (value), add);				      \
-
 #define atomic_bit_set(mem, bit) \
   do {									      \
     if (sizeof (*mem) == 1)						      \
