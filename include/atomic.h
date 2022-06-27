@@ -239,11 +239,6 @@
 #endif
 
 
-#ifndef atomic_increment_val
-# define atomic_increment_val(mem) (atomic_exchange_and_add ((mem), 1) + 1)
-#endif
-
-
 #ifndef atomic_decrement
 # define atomic_decrement(mem) atomic_add ((mem), -1)
 #endif

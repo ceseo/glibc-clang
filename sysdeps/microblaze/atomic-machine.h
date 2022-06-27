@@ -172,45 +172,6 @@
     __result;                                                                  \
   })
 
-#define __arch_atomic_increment_val_32(mem)                                    \
-  ({                                                                           \
-    __typeof (*(mem)) __val;                                                   \
-    int test;                                                                  \
-    __asm __volatile (                                                         \
-                "   addc    r0, r0, r0;"                                       \
-                "1: lwx     %0, %3, r0;"                                       \
-                "   addic   %1, r0, 0;"                                        \
-                "   bnei    %1, 1b;"                                           \
-                "   addi    %0, %0, 1;"                                        \
-                "   swx     %0, %3, r0;"                                       \
-                "   addic   %1, r0, 0;"                                        \
-                "   bnei    %1, 1b;"                                           \
-                    : "=&r" (__val),                                           \
-                    "=&r" (test),                                              \
-                    "=m" (*mem)                                                \
-                    : "r" (mem),                                               \
-                    "m" (*mem)                                                 \
-                    : "cc", "memory");                                         \
-    __val;                                                                     \
-  })
-
-#define __arch_atomic_increment_val_64(mem)                                    \
-  (abort (), (__typeof (*mem)) 0)
-
-#define atomic_increment_val(mem)                                              \
-  ({                                                                           \
-    __typeof (*(mem)) __result;                                                \
-    if (sizeof (*(mem)) == 4)                                                  \
-      __result = __arch_atomic_increment_val_32 (mem);                         \
-    else if (sizeof (*(mem)) == 8)                                             \
-      __result = __arch_atomic_increment_val_64 (mem);                         \
-    else                                                                       \
-       abort ();                                                               \
-    __result;                                                                  \
-  })
-
-#define atomic_increment(mem) ({ atomic_increment_val (mem); (void) 0; })
-
 #define __arch_atomic_decrement_val_32(mem)                                    \
   ({                                                                           \
     __typeof (*(mem)) __val;                                                   \

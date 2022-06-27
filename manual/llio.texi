@@ -2528,7 +2528,6 @@ aiocb64}, since the LFS transparently replaces the old interface.
 @c      _dl_allocate_tls_init ok
 @c       GET_DTV ok
 @c     mmap ok
-@c     atomic_increment_val ok
 @c     munmap ok
 @c     change_stack_perm ok
 @c      mprotect ok

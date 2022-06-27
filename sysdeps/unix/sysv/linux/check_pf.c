@@ -72,7 +72,7 @@ static uint32_t nl_timestamp;
 uint32_t
 __bump_nl_timestamp (void)
 {
-  if (atomic_increment_val (&nl_timestamp) == 0)
+  if (atomic_fetch_add_acquire (&nl_timestamp, 1) == 0)
     atomic_increment (&nl_timestamp);
 
   return nl_timestamp;
