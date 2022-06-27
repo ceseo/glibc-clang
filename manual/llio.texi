@@ -2566,7 +2566,7 @@ aiocb64}, since the LFS transparently replaces the old interface.
 @c     do_clone @asulock @ascuheap @aculock @acsmem
 @c      PREPARE_CREATE ok
 @c      lll_lock (pd->lock) @asulock @aculock
-@c      atomic_increment ok
+@c      atomic_fetch_add ok
 @c      clone ok
 @c      atomic_decrement ok
 @c      atomic_exchange_acq ok

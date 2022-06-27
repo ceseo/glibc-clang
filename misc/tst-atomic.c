@@ -137,14 +137,6 @@ do_test (void)
       ret = 1;
     }
 
-  mem = -1;
-  atomic_increment (&mem);
-  if (mem != 0)
-    {
-      puts ("atomic_increment test failed");
-      ret = 1;
-    }
-
   mem = 17;
   atomic_decrement (&mem);
   if (mem != 16)

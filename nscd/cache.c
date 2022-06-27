@@ -191,12 +191,11 @@ cache_add (int type, const void *key, size_t len, struct datahead *packet,
     ++table->head->posmiss;
 
   /* We depend on this value being correct and at least as high as the
-     real number of entries.  */
-  atomic_increment (&table->head->nentries);
-
-  /* It does not matter that we are not loading the just increment
+     real number of entries.
+     It does not matter that we are not loading the just increment
      value, this is just for statistics.  */
-  unsigned long int nentries = table->head->nentries;
+  unsigned long int nentries =
+    atomic_fetch_add_relaxed (&table->head->nentries, 1) + 1;
   if (nentries > table->head->maxnentries)
     table->head->maxnentries = nentries;
 
