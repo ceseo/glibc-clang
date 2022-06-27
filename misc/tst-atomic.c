@@ -130,32 +130,6 @@ do_test (void)
     }
 
   mem = 0;
-  atomic_bit_set (&mem, 1);
-  if (mem != 2)
-    {
-      puts ("atomic_bit_set test 1 failed");
-      ret = 1;
-    }
-
-  mem = 8;
-  atomic_bit_set (&mem, 3);
-  if (mem != 8)
-    {
-      puts ("atomic_bit_set test 2 failed");
-      ret = 1;
-    }
-
-#ifdef TEST_ATOMIC64
-  mem = 16;
-  atomic_bit_set (&mem, 35);
-  if (mem != 0x800000010LL)
-    {
-      puts ("atomic_bit_set test 3 failed");
-      ret = 1;
-    }
-#endif
-
-  mem = 0;
   if (atomic_bit_test_set (&mem, 1)
       || mem != 2)
     {

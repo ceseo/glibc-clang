@@ -140,33 +140,6 @@
 #define atomic_exchange_acq(mem, newvalue)				      \
   __xchg_op ("", (mem), (newvalue), xchg)
 
-#define atomic_bit_set(mem, bit) \
-  do {									      \
-    if (sizeof (*mem) == 1)						      \
-      __asm __volatile (LOCK_PREFIX "orb %b2, %0"			      \
-			: "=m" (*mem)					      \
-			: "m" (*mem), IBR_CONSTRAINT (1L << (bit)));	      \
-    else if (sizeof (*mem) == 2)					      \
-      __asm __volatile (LOCK_PREFIX "orw %w2, %0"			      \
-			: "=m" (*mem)					      \
-			: "m" (*mem), "ir" (1L << (bit)));		      \
-    else if (sizeof (*mem) == 4)					      \
-      __asm __volatile (LOCK_PREFIX "orl %2, %0"			      \
-			: "=m" (*mem)					      \
-			: "m" (*mem), "ir" (1L << (bit)));		      \
-    else if (__builtin_constant_p (bit) && (bit) < 32)			      \
-      __asm __volatile (LOCK_PREFIX "orq %2, %0"			      \
-			: "=m" (*mem)					      \
-			: "m" (*mem), "i" (1L << (bit)));		      \
-    else if (__HAVE_64B_ATOMICS)					      \
-      __asm __volatile (LOCK_PREFIX "orq %q2, %0"			      \
-			: "=m" (*mem)					      \
-			: "m" (*mem), "r" (1UL << (bit)));		      \
-    else								      \
-      __atomic_link_error ();						      \
-  } while (0)
-
-
 #define atomic_bit_test_set(mem, bit) \
   ({ unsigned char __result;						      \
      if (sizeof (*mem) == 1)						      \

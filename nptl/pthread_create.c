@@ -487,7 +487,7 @@ start_thread (void *arg)
   /* The thread is exiting now.  Don't set this bit until after we've hit
      the event-reporting breakpoint, so that td_thr_get_info on us while at
      the breakpoint reports TD_THR_RUN state rather than TD_THR_ZOMBIE.  */
-  atomic_bit_set (&pd->cancelhandling, EXITING_BIT);
+  atomic_fetch_or_release (&pd->cancelhandling, EXITING_BITMASK);
 
   if (__glibc_unlikely (atomic_fetch_sub_acquire (&__nptl_nthreads, 1) == 1))
     /* This was the last thread.  */

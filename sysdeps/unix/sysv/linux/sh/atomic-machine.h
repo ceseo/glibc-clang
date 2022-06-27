@@ -150,48 +150,6 @@
        } \
      __result; })
 
-#define atomic_bit_set(mem, bit) \
-  (void) ({ unsigned int __mask = 1 << (bit); \
-	    if (sizeof (*(mem)) == 1) \
-	      __asm __volatile ("\
-		mova 1f,r0\n\
-		mov r15,r1\n\
-		.align 2\n\
-		mov #(0f-1f),r15\n\
-	     0: mov.b @%0,r2\n\
-		or %1,r2\n\
-		mov.b r2,@%0\n\
-	     1: mov r1,r15"\
-		: : "u" (mem), "u" (__mask) \
-		: "r0", "r1", "r2", "memory"); \
-	    else if (sizeof (*(mem)) == 2) \
-	      __asm __volatile ("\
-		mova 1f,r0\n\
-		mov r15,r1\n\
-		.align 2\n\
-		mov #(0f-1f),r15\n\
-	     0: mov.w @%0,r2\n\
-		or %1,r2\n\
-		mov.w r2,@%0\n\
-	     1: mov r1,r15"\
-		: : "u" (mem), "u" (__mask) \
-		: "r0", "r1", "r2", "memory"); \
-	    else if (sizeof (*(mem)) == 4) \
-	      __asm __volatile ("\
-		mova 1f,r0\n\
-		mov r15,r1\n\
-		.align 2\n\
-		mov #(0f-1f),r15\n\
-	     0: mov.l @%0,r2\n\
-		or %1,r2\n\
-		mov.l r2,@%0\n\
-	     1: mov r1,r15"\
-		: : "u" (mem), "u" (__mask) \
-		: "r0", "r1", "r2", "memory"); \
-	    else \
-	      abort (); \
-	    })
-
 #define atomic_bit_test_set(mem, bit) \
   ({ unsigned int __mask = 1 << (bit); \
      unsigned int __result = __mask; \

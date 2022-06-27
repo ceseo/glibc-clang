@@ -229,12 +229,6 @@
 #endif
 
 
-#ifndef atomic_bit_set
-# define atomic_bit_set(mem, bit) \
-  (void) atomic_bit_test_set(mem, bit)
-#endif
-
-
 #ifndef atomic_bit_test_set
 # define atomic_bit_test_set(mem, bit) \
   ({ __typeof (*(mem)) __atg14_old;					      \

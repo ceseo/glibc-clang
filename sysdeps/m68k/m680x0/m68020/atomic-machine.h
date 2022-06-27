@@ -124,11 +124,6 @@
        }								      \
      __result; })
 
-#define atomic_bit_set(mem, bit) \
-  __asm __volatile ("bfset %0{%1,#1}"					      \
-		    : "+m" (*(mem))					      \
-		    : "di" (sizeof (*(mem)) * 8 - (bit) - 1))
-
 #define atomic_bit_test_set(mem, bit) \
   ({ char __result;							      \
      __asm __volatile ("bfset %1{%2,#1}; sne %0"			      \
