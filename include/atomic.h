@@ -244,13 +244,6 @@
 #endif
 
 
-#ifndef atomic_add_zero
-# define atomic_add_zero(mem, value)					      \
-  ({ __typeof (value) __atg13_value = (value);				      \
-     atomic_exchange_and_add (mem, __atg13_value) == -__atg13_value; })
-#endif
-
-
 #ifndef atomic_bit_set
 # define atomic_bit_set(mem, bit) \
   (void) atomic_bit_test_set(mem, bit)

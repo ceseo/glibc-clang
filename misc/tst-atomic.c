@@ -151,54 +151,6 @@ do_test (void)
       ret = 1;
     }
 
-  mem = -34;
-  if (atomic_add_zero (&mem, 31)
-      || mem != -3)
-    {
-      puts ("atomic_add_zero test 1 failed");
-      ret = 1;
-    }
-
-  mem = -36;
-  if (! atomic_add_zero (&mem, 36)
-      || mem != 0)
-    {
-      puts ("atomic_add_zero test 2 failed");
-      ret = 1;
-    }
-
-  mem = 113;
-  if (atomic_add_zero (&mem, -13)
-      || mem != 100)
-    {
-      puts ("atomic_add_zero test 3 failed");
-      ret = 1;
-    }
-
-  mem = -18;
-  if (atomic_add_zero (&mem, 20)
-      || mem != 2)
-    {
-      puts ("atomic_add_zero test 4 failed");
-      ret = 1;
-    }
-
-  mem = 10;
-  if (atomic_add_zero (&mem, -20)
-      || mem != -10)
-    {
-      puts ("atomic_add_zero test 5 failed");
-      ret = 1;
-    }
-
-  mem = 10;
-  if (! atomic_add_zero (&mem, -10)
-      || mem != 0)
-    {
-      puts ("atomic_add_zero test 6 failed");
-      ret = 1;
-    }
-
   mem = 0;
   atomic_bit_set (&mem, 1);
   if (mem != 2)
