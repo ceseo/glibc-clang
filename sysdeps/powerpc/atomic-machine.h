@@ -164,21 +164,6 @@
     __val;								      \
   })
 
-#define __arch_atomic_decrement_if_positive_32(mem) \
-  ({ int __val, __tmp;							      \
-     __asm __volatile ("1:	lwarx	%0,0,%3\n"			      \
-		       "	cmpwi	0,%0,0\n"			      \
-		       "	addi	%1,%0,-1\n"			      \
-		       "	ble	2f\n"				      \
-		       "	stwcx.	%1,0,%3\n"			      \
-		       "	bne-	1b\n"				      \
-		       "2:	" __ARCH_ACQ_INSTR			      \
-		       : "=&b" (__val), "=&r" (__tmp), "=m" (*mem)	      \
-		       : "b" (mem), "m" (*mem)				      \
-		       : "cr0", "memory");				      \
-     __val;								      \
-  })
-
 #define atomic_compare_and_exchange_val_acq(mem, newval, oldval) \
   ({									      \
     __typeof (*(mem)) __result;						      \
@@ -274,16 +259,3 @@
   })
 
 #define atomic_decrement(mem) ({ atomic_decrement_val (mem); (void) 0; })
-
-
-/* Decrement *MEM if it is > 0, and return the old value.  */
-#define atomic_decrement_if_positive(mem) \
-  ({ __typeof (*(mem)) __result;					      \
-    if (sizeof (*mem) == 4)						      \
-      __result = __arch_atomic_decrement_if_positive_32 (mem);		      \
-    else if (sizeof (*mem) == 8)					      \
-      __result = __arch_atomic_decrement_if_positive_64 (mem);		      \
-    else								      \
-       abort ();							      \
-    __result;								      \
-  })

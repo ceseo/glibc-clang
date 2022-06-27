@@ -244,26 +244,6 @@
 #endif
 
 
-/* Decrement *MEM if it is > 0, and return the old value.  */
-#ifndef atomic_decrement_if_positive
-# define atomic_decrement_if_positive(mem) \
-  ({ __typeof (*(mem)) __atg11_oldval;					      \
-     __typeof (mem) __atg11_memp = (mem);				      \
-									      \
-     do									      \
-       {								      \
-	 __atg11_oldval = *__atg11_memp;				      \
-	 if (__glibc_unlikely (__atg11_oldval <= 0))			      \
-	   break;							      \
-       }								      \
-     while (__builtin_expect						      \
-	    (atomic_compare_and_exchange_bool_acq (__atg11_memp,	      \
-						   __atg11_oldval - 1,	      \
-						   __atg11_oldval), 0));      \
-     __atg11_oldval; })
-#endif
-
-
 #ifndef atomic_add_zero
 # define atomic_add_zero(mem, value)					      \
   ({ __typeof (value) __atg13_value = (value);				      \

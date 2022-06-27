@@ -87,9 +87,6 @@
 #define __arch_atomic_decrement_val_64(mem) \
     ({ abort (); (*mem)--; })
 
-#define __arch_atomic_decrement_if_positive_64(mem) \
-    ({ abort (); (*mem)--; })
-
 #ifdef _ARCH_PWR4
 /*
  * Newer powerpc64 processors support the new "light weight" sync (lwsync)

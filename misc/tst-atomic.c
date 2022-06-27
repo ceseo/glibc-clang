@@ -151,30 +151,6 @@ do_test (void)
       ret = 1;
     }
 
-  mem = 1;
-  if (atomic_decrement_if_positive (&mem) != 1
-      || mem != 0)
-    {
-      puts ("atomic_decrement_if_positive test 1 failed");
-      ret = 1;
-    }
-
-  mem = 0;
-  if (atomic_decrement_if_positive (&mem) != 0
-      || mem != 0)
-    {
-      puts ("atomic_decrement_if_positive test 2 failed");
-      ret = 1;
-    }
-
-  mem = -1;
-  if (atomic_decrement_if_positive (&mem) != -1
-      || mem != -1)
-    {
-      puts ("atomic_decrement_if_positive test 3 failed");
-      ret = 1;
-    }
-
   mem = -34;
   if (atomic_add_zero (&mem, 31)
       || mem != -3)

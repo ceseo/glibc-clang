@@ -193,21 +193,6 @@
       __val;								      \
     })
 
-#define __arch_atomic_decrement_if_positive_64(mem) \
-  ({ int __val, __tmp;							      \
-     __asm __volatile ("1:	ldarx	%0,0,%3\n"			      \
-		       "	cmpdi	0,%0,0\n"			      \
-		       "	addi	%1,%0,-1\n"			      \
-		       "	ble	2f\n"				      \
-		       "	stdcx.	%1,0,%3\n"			      \
-		       "	bne-	1b\n"				      \
-		       "2:	" __ARCH_ACQ_INSTR			      \
-		       : "=&b" (__val), "=&r" (__tmp), "=m" (*mem)	      \
-		       : "b" (mem), "m" (*mem)				      \
-		       : "cr0", "memory");				      \
-     __val;								      \
-  })
-
 /*
  * All powerpc64 processors support the new "light weight"  sync (lwsync).
  */

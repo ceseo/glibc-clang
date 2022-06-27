@@ -60,22 +60,6 @@
 #define atomic_exchange_and_add(mem, value) \
   __sync_fetch_and_add ((mem), (value))
 
-#define atomic_decrement_if_positive(mem) \
-  ({ __typeof (*mem) __oldval, __val;					      \
-     __typeof (mem) __memp = (mem);					      \
-									      \
-     __val = (*__memp);							      \
-     do									      \
-       {								      \
-	 __oldval = __val;						      \
-	 if (__builtin_expect (__val <= 0, 0))				      \
-	   break;							      \
-	 __val = atomic_compare_and_exchange_val_acq (__memp,	__oldval - 1, \
-						      __oldval);	      \
-       }								      \
-     while (__builtin_expect (__val != __oldval, 0));			      \
-     __oldval; })
-
 #define atomic_bit_test_set(mem, bit) \
   ({ __typeof (*mem) __oldval, __val;					      \
      __typeof (mem) __memp = (mem);					      \

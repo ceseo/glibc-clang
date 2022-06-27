@@ -328,7 +328,6 @@
 /* ??? Blah, I'm lazy.  Implement these later.  Can do better than the
    compare-and-exchange loop provided by generic code.
 
-#define atomic_decrement_if_positive(mem)
 #define atomic_bit_test_set(mem, bit)
 
 */

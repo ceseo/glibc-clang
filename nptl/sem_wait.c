@@ -48,6 +48,20 @@ versioned_symbol (libc, __new_sem_wait, sem_wait, GLIBC_2_34);
 compat_symbol (libpthread, __new_sem_wait, sem_wait, GLIBC_2_1);
 #endif
 
+static inline int
+atomic_decrement_if_positive (int *v)
+{
+  int oldval;
+  do
+    {
+      oldval = atomic_load_relaxed (v);
+      if (__glibc_unlikely (oldval <= 0))
+	break;
+    }
+  while (atomic_compare_exchange_weak_acquire (v, &oldval, oldval - 1));
+  return oldval;
+}
+
 #if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_1)
 int
 attribute_compat_text_section
