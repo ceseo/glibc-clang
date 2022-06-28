@@ -140,9 +140,6 @@
 #define atomic_exchange_acq(mem, newvalue)				      \
   __xchg_op ("", (mem), (newvalue), xchg)
 
-#define atomic_and(mem, mask)						      \
-  __xchg_op (LOCK_PREFIX, (mem), (mask), and)
-
 #define atomic_or(mem, mask)						      \
   __xchg_op (LOCK_PREFIX, (mem), (mask), or)
 

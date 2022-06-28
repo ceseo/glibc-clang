@@ -110,8 +110,3 @@
 #define atomic_and_val(mem, operand)					\
   ({ __atomic_check_size((mem));					\
   __atomic_fetch_and ((mem), (operand), __ATOMIC_ACQUIRE); })
-/* Atomically *mem &= mask.  */
-#define atomic_and(mem, mask)			\
-  do {						\
-    atomic_and_val (mem, mask);			\
-  } while (0)
