@@ -103,10 +103,3 @@
   } while (0)
 #define catomic_or(mem, mask)			\
   atomic_or (mem, mask)
-
-/* Atomically *mem &= mask and return the old value of *mem.  */
-/* The gcc builtin uses load-and-and instruction on z196 zarch and higher cpus
-   instead of a loop with compare-and-swap instruction.  */
-#define atomic_and_val(mem, operand)					\
-  ({ __atomic_check_size((mem));					\
-  __atomic_fetch_and ((mem), (operand), __ATOMIC_ACQUIRE); })

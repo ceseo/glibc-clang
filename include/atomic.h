@@ -228,23 +228,6 @@
   } while (0)
 #endif
 
-/* Atomically *mem &= mask and return the old value of *mem.  */
-#ifndef atomic_and_val
-# define atomic_and_val(mem, mask) \
-  ({ __typeof (*(mem)) __atg16_old;					      \
-     __typeof (mem) __atg16_memp = (mem);				      \
-     __typeof (*(mem)) __atg16_mask = (mask);				      \
-									      \
-     do									      \
-       __atg16_old = (*__atg16_memp);					      \
-     while (__builtin_expect						      \
-	    (atomic_compare_and_exchange_bool_acq (__atg16_memp,	      \
-						   __atg16_old & __atg16_mask,\
-						   __atg16_old), 0));	      \
-									      \
-     __atg16_old; })
-#endif
-
 /* Atomically *mem |= mask and return the old value of *mem.  */
 #ifndef atomic_or
 # define atomic_or(mem, mask) \
