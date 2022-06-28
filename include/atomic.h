@@ -228,23 +228,6 @@
   } while (0)
 #endif
 
-/* Atomically *mem |= mask and return the old value of *mem.  */
-#ifndef atomic_or_val
-# define atomic_or_val(mem, mask) \
-  ({ __typeof (*(mem)) __atg19_old;					      \
-     __typeof (mem) __atg19_memp = (mem);				      \
-     __typeof (*(mem)) __atg19_mask = (mask);				      \
-									      \
-     do									      \
-       __atg19_old = (*__atg19_memp);					      \
-     while (__builtin_expect						      \
-	    (atomic_compare_and_exchange_bool_acq (__atg19_memp,	      \
-						   __atg19_old | __atg19_mask,\
-						   __atg19_old), 0));	      \
-									      \
-     __atg19_old; })
-#endif
-
 #ifndef atomic_full_barrier
 # define atomic_full_barrier() __asm ("" ::: "memory")
 #endif
