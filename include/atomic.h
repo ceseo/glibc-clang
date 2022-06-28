@@ -212,22 +212,6 @@
   atomic_exchange_and_add_acq(mem, value)
 #endif
 
-#ifndef atomic_max
-# define atomic_max(mem, value) \
-  do {									      \
-    __typeof (*(mem)) __atg8_oldval;					      \
-    __typeof (mem) __atg8_memp = (mem);					      \
-    __typeof (*(mem)) __atg8_value = (value);				      \
-    do {								      \
-      __atg8_oldval = *__atg8_memp;					      \
-      if (__atg8_oldval >= __atg8_value)				      \
-	break;								      \
-    } while (__builtin_expect						      \
-	     (atomic_compare_and_exchange_bool_acq (__atg8_memp, __atg8_value,\
-						    __atg8_oldval), 0));      \
-  } while (0)
-#endif
-
 #ifndef atomic_full_barrier
 # define atomic_full_barrier() __asm ("" ::: "memory")
 #endif
@@ -387,6 +371,23 @@ void __atomic_link_error (void);
    in the body of a spin loop to potentially improve its efficiency.  */
 #ifndef atomic_spin_nop
 # define atomic_spin_nop() do { /* nothing */ } while (0)
+#endif
+
+#ifndef atomic_max
+# define atomic_max(mem, value) \
+  do {									      \
+    __atomic_check_size_ls ((mem));					      \
+    __typeof (*(mem)) __oldval;						      \
+    __typeof (mem) __memp = (mem);					      \
+    __typeof (*(mem)) __value = (value);				      \
+    do {								      \
+      __oldval = atomic_load_relaxed (__memp);				      \
+      if (__oldval >= __value)						      \
+	break;								      \
+    } while (__glibc_likely						      \
+	     (atomic_compare_exchange_weak_acquire (__memp, &__oldval,	      \
+						    __value) == __oldval));   \
+  } while (0)
 #endif
 
 /* ATOMIC_EXCHANGE_USES_CAS is non-zero if atomic_exchange operations

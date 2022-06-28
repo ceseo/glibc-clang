@@ -317,6 +317,28 @@ do_test (void)
       ret = 1;
     }
 
+  mem = 5;
+  atomic_max (&mem, 4);
+  if (mem != 5)
+    {
+      puts ("atomic_max failed");
+      ret = 1;
+    }
+
+  atomic_max (&mem, 5);
+  if (mem != 5)
+    {
+      puts ("atomic_max failed");
+      ret = 1;
+    }
+
+  atomic_max (&mem, 6);
+  if (mem != 6)
+    {
+      puts ("atomic_max failed");
+      ret = 1;
+    }
+
   /* This is a single-threaded test, so we can't test the effects of the
      fences.  */
   atomic_thread_fence_acquire ();
