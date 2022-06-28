@@ -129,40 +129,6 @@ do_test (void)
       ret = 1;
     }
 
-  mem = 0;
-  if (atomic_bit_test_set (&mem, 1)
-      || mem != 2)
-    {
-      puts ("atomic_bit_test_set test 1 failed");
-      ret = 1;
-    }
-
-  mem = 8;
-  if (! atomic_bit_test_set (&mem, 3)
-      || mem != 8)
-    {
-      puts ("atomic_bit_test_set test 2 failed");
-      ret = 1;
-    }
-
-#ifdef TEST_ATOMIC64
-  mem = 16;
-  if (atomic_bit_test_set (&mem, 35)
-      || mem != 0x800000010LL)
-    {
-      puts ("atomic_bit_test_set test 3 failed");
-      ret = 1;
-    }
-
-  mem = 0x100000000LL;
-  if (! atomic_bit_test_set (&mem, 32)
-      || mem != 0x100000000LL)
-    {
-      puts ("atomic_bit_test_set test 4 failed");
-      ret = 1;
-    }
-#endif
-
 #ifdef catomic_compare_and_exchange_val_acq
   mem = 24;
   if (catomic_compare_and_exchange_val_acq (&mem, 35, 24) != 24

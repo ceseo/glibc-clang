@@ -60,20 +60,4 @@
 #define atomic_exchange_and_add(mem, value) \
   __sync_fetch_and_add ((mem), (value))
 
-#define atomic_bit_test_set(mem, bit) \
-  ({ __typeof (*mem) __oldval, __val;					      \
-     __typeof (mem) __memp = (mem);					      \
-     __typeof (*mem) __mask = ((__typeof (*mem)) 1 << (bit));		      \
-									      \
-     __val = (*__memp);							      \
-     do									      \
-       {								      \
-	 __oldval = __val;						      \
-	 __val = atomic_compare_and_exchange_val_acq (__memp,		      \
-						      __oldval | __mask,      \
-						      __oldval);	      \
-       }								      \
-     while (__builtin_expect (__val != __oldval, 0));			      \
-     __oldval & __mask; })
-
 #define atomic_full_barrier() __sync_synchronize ()

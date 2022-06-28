@@ -229,22 +229,6 @@
 #endif
 
 
-#ifndef atomic_bit_test_set
-# define atomic_bit_test_set(mem, bit) \
-  ({ __typeof (*(mem)) __atg14_old;					      \
-     __typeof (mem) __atg14_memp = (mem);				      \
-     __typeof (*(mem)) __atg14_mask = ((__typeof (*(mem))) 1 << (bit));	      \
-									      \
-     do									      \
-       __atg14_old = (*__atg14_memp);					      \
-     while (__builtin_expect						      \
-	    (atomic_compare_and_exchange_bool_acq (__atg14_memp,	      \
-						   __atg14_old | __atg14_mask,\
-						   __atg14_old), 0));	      \
-									      \
-     __atg14_old & __atg14_mask; })
-#endif
-
 /* Atomically *mem &= mask.  */
 #ifndef atomic_and
 # define atomic_and(mem, mask) \

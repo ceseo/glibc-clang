@@ -104,17 +104,6 @@
 #define catomic_or(mem, mask)			\
   atomic_or (mem, mask)
 
-/* Atomically *mem |= 1 << bit and return true if the bit was set in old value
-   of *mem.  */
-/* The load-and-or instruction is used on z196 zarch and higher cpus
-   instead of a loop with compare-and-swap instruction.  */
-#define atomic_bit_test_set(mem, bit)					\
-  ({ __typeof (*(mem)) __atg14_old;					\
-    __typeof (mem) __atg14_memp = (mem);				\
-    __typeof (*(mem)) __atg14_mask = ((__typeof (*(mem))) 1 << (bit));	\
-    __atg14_old = atomic_or_val (__atg14_memp, __atg14_mask);		\
-    __atg14_old & __atg14_mask; })
-
 /* Atomically *mem &= mask and return the old value of *mem.  */
 /* The gcc builtin uses load-and-and instruction on z196 zarch and higher cpus
    instead of a loop with compare-and-swap instruction.  */

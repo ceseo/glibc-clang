@@ -164,10 +164,6 @@
 
 # define atomic_max(mem, value) asm_amo ("amomaxu", ".aq", mem, value)
 
-# define atomic_bit_test_set(mem, bit)                   \
-  ({ typeof (*mem) __mask = (typeof (*mem))1 << (bit);    \
-     asm_amo ("amoor", ".aq", mem, __mask) & __mask; })
-
 #else /* __riscv_atomic */
 # error "ISAs that do not subsume the A extension are not supported"
 #endif /* !__riscv_atomic */
