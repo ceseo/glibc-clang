@@ -96,10 +96,3 @@
 #define atomic_or_val(mem, operand)					\
   ({ __atomic_check_size((mem));					\
   __atomic_fetch_or ((mem), (operand), __ATOMIC_ACQUIRE); })
-/* Atomically *mem |= mask.  */
-#define atomic_or(mem, mask)			\
-  do {						\
-    atomic_or_val (mem, mask);			\
-  } while (0)
-#define catomic_or(mem, mask)			\
-  atomic_or (mem, mask)

@@ -140,17 +140,6 @@
 #define atomic_exchange_acq(mem, newvalue)				      \
   __xchg_op ("", (mem), (newvalue), xchg)
 
-#define atomic_or(mem, mask)						      \
-  __xchg_op (LOCK_PREFIX, (mem), (mask), or)
-
-#define catomic_or(mem, mask) \
-  ({									      \
-    if (SINGLE_THREAD_P)						      \
-      __xchg_op ("", (mem), (mask), or);				      \
-   else									      \
-      atomic_or (mem, mask);						      \
-  })
-
 /* We don't use mfence because it is supposedly slower due to having to
    provide stronger guarantees (e.g., regarding self-modifying code).  */
 #define atomic_full_barrier() \
