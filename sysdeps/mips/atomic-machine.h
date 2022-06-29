@@ -131,9 +131,6 @@
   __atomic_exchange_n (mem, newval, model)
 #endif
 
-#define atomic_exchange_acq(mem, value)				\
-  __atomic_val_bysize (__arch_exchange, int, mem, value, __ATOMIC_ACQUIRE)
-
 
 /* Atomically add value and return the previous (unincremented) value.  */
 

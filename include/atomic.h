@@ -158,23 +158,6 @@
 #endif
 
 
-/* Store NEWVALUE in *MEM and return the old value.  */
-#ifndef atomic_exchange_acq
-# define atomic_exchange_acq(mem, newvalue) \
-  ({ __typeof ((__typeof (*(mem))) *(mem)) __atg5_oldval;		      \
-     __typeof (mem) __atg5_memp = (mem);				      \
-     __typeof ((__typeof (*(mem))) *(mem)) __atg5_value = (newvalue);	      \
-									      \
-     do									      \
-       __atg5_oldval = *__atg5_memp;					      \
-     while (__builtin_expect						      \
-	    (atomic_compare_and_exchange_bool_acq (__atg5_memp, __atg5_value, \
-						   __atg5_oldval), 0));	      \
-									      \
-     __atg5_oldval; })
-#endif
-
-
 #ifndef atomic_full_barrier
 # define atomic_full_barrier() __asm ("" ::: "memory")
 #endif

@@ -270,9 +270,6 @@
 	: "memory");							\
   __ret; })
 
-#define atomic_exchange_acq(mem, value) \
-  __atomic_val_bysize (__arch_exchange, int, mem, value, "", __MB)
-
 
 /* Atomically add value and return the previous (unincremented) value.  */
 

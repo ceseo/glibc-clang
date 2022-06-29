@@ -50,33 +50,3 @@
 			 "r" ((char *) __memp + 4), "0" (oldval)	      \
 		       : "memory");					      \
      __ret; })
-
-#define atomic_exchange_acq(mem, newvalue) \
-  ({ __typeof (*(mem)) __result = *(mem);				      \
-     if (sizeof (*(mem)) == 1)						      \
-       __asm __volatile ("1: cas%.b %0,%2,%1;"				      \
-			 "   jbne 1b"					      \
-			 : "=d" (__result), "+m" (*(mem))		      \
-			 : "d" (newvalue), "0" (__result));		      \
-     else if (sizeof (*(mem)) == 2)					      \
-       __asm __volatile ("1: cas%.w %0,%2,%1;"				      \
-			 "   jbne 1b"					      \
-			 : "=d" (__result), "+m" (*(mem))		      \
-			 : "d" (newvalue), "0" (__result));		      \
-     else if (sizeof (*(mem)) == 4)					      \
-       __asm __volatile ("1: cas%.l %0,%2,%1;"				      \
-			 "   jbne 1b"					      \
-			 : "=d" (__result), "+m" (*(mem))		      \
-			 : "d" (newvalue), "0" (__result));		      \
-     else								      \
-       {								      \
-	 __typeof (mem) __memp = (mem);					      \
-	 __asm __volatile ("1: cas2%.l %0:%R0,%1:%R1,(%2):(%3);"	      \
-			   "   jbne 1b"					      \
-			   : "=d" (__result)				      \
-			   : "d" ((__typeof (*(mem))) (newvalue)),	      \
-			     "r" (__memp), "r" ((char *) __memp + 4),	      \
-			     "0" (__result)				      \
-			   : "memory");					      \
-       }								      \
-     __result; })

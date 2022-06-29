@@ -117,9 +117,6 @@
 #  define __arch_exchange_64_int(mem, newval, model)	\
   __atomic_exchange_n (mem, newval, model)
 
-# define atomic_exchange_acq(mem, value)				\
-  __atomic_val_bysize (__arch_exchange, int, mem, value, __ATOMIC_ACQUIRE)
-
 /* Atomically add value and return the previous (unincremented) value.  */
 
 # define __arch_exchange_and_add_8_int(mem, value, model)	\

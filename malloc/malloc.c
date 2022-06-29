@@ -4742,7 +4742,7 @@ static void malloc_consolidate(mstate av)
   maxfb = &fastbin (av, NFASTBINS - 1);
   fb = &fastbin (av, 0);
   do {
-    p = atomic_exchange_acq (fb, NULL);
+    p = atomic_exchange_acquire (fb, NULL);
     if (p != 0) {
       do {
 	{

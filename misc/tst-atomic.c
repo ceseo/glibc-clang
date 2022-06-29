@@ -97,14 +97,6 @@ do_test (void)
       ret = 1;
     }
 
-  mem = 64;
-  if (atomic_exchange_acq (&mem, 31) != 64
-      || mem != 31)
-    {
-      puts ("atomic_exchange_acq test failed");
-      ret = 1;
-    }
-
 #ifdef catomic_compare_and_exchange_val_acq
   mem = 24;
   if (catomic_compare_and_exchange_val_acq (&mem, 35, 24) != 24

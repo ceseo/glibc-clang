@@ -50,8 +50,4 @@
 #define __arch_compare_and_exchange_val_64_acq(mem, newval, oldval) \
   __sync_val_compare_and_swap ((mem), (long) (oldval), (long) (newval))
 
-/* Atomically store newval and return the old value.  */
-#define atomic_exchange_acq(mem, value) \
-  __sync_lock_test_and_set (mem, value)
-
 #define atomic_full_barrier() __sync_synchronize ()

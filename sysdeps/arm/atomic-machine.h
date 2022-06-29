@@ -38,9 +38,6 @@ void __arm_link_error (void);
    a pattern to do this efficiently.  */
 #ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_4
 
-# define atomic_exchange_acq(mem, value)                                \
-  __atomic_val_bysize (__arch_exchange, int, mem, value, __ATOMIC_ACQUIRE)
-
 /* Atomic exchange (without compare).  */
 
 # define __arch_exchange_8_int(mem, newval, model)      \

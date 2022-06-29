@@ -71,8 +71,3 @@
 				  __ATOMIC_RELAXED); })
 #define catomic_compare_and_exchange_bool_acq(mem, newval, oldval)	\
   atomic_compare_and_exchange_bool_acq (mem, newval, oldval)
-
-/* Store NEWVALUE in *MEM and return the old value.  */
-#define atomic_exchange_acq(mem, newvalue)				\
-  ({ __atomic_check_size((mem));					\
-    __atomic_exchange_n (mem, newvalue, __ATOMIC_ACQUIRE); })

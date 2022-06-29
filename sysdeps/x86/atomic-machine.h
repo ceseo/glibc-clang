@@ -108,38 +108,6 @@
        __ret =__cmpxchg_op (LOCK_PREFIX, (mem), (newval), (oldval));	      \
      __ret; })
 
-
-#define __xchg_op(lock, mem, arg, op)					      \
-  ({ __typeof (*mem) __ret = (arg);					      \
-     if (sizeof (*mem) == 1)						      \
-       __asm __volatile (lock #op "b %b0, %1"				      \
-			 : "=q" (__ret), "=m" (*mem)			      \
-			 : "0" (arg), "m" (*mem)			      \
-			 : "memory", "cc");				      \
-     else if (sizeof (*mem) == 2)					      \
-       __asm __volatile (lock #op "w %w0, %1"				      \
-			 : "=r" (__ret), "=m" (*mem)			      \
-			 : "0" (arg), "m" (*mem)			      \
-			 : "memory", "cc");				      \
-     else if (sizeof (*mem) == 4)					      \
-       __asm __volatile (lock #op "l %0, %1"				      \
-			 : "=r" (__ret), "=m" (*mem)			      \
-			 : "0" (arg), "m" (*mem)			      \
-			 : "memory", "cc");				      \
-     else if (__HAVE_64B_ATOMICS)					      \
-       __asm __volatile (lock #op "q %q0, %1"				      \
-			 : "=r" (__ret), "=m" (*mem)			      \
-			 : "0" ((int64_t) cast_to_integer (arg)),	      \
-			   "m" (*mem)					      \
-			 : "memory", "cc");				      \
-     else								      \
-       __atomic_link_error ();						      \
-     __ret; })
-
-/* Note that we need no lock prefix.  */
-#define atomic_exchange_acq(mem, newvalue)				      \
-  __xchg_op ("", (mem), (newvalue), xchg)
-
 /* We don't use mfence because it is supposedly slower due to having to
    provide stronger guarantees (e.g., regarding self-modifying code).  */
 #define atomic_full_barrier() \

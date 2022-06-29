@@ -69,9 +69,6 @@
 #define __arch_compare_and_exchange_val_64_rel(mem, newval, oldval) \
   (abort (), (__typeof (*mem)) 0)
 
-#define __arch_atomic_exchange_64_acq(mem, value) \
-    ({ abort (); (*mem) = (value); })
-
 #define __arch_atomic_decrement_val_64(mem) \
     ({ abort (); (*mem)--; })
 
