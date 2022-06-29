@@ -41,9 +41,6 @@ void __arm_link_error (void);
 # define atomic_exchange_acq(mem, value)                                \
   __atomic_val_bysize (__arch_exchange, int, mem, value, __ATOMIC_ACQUIRE)
 
-# define atomic_exchange_rel(mem, value)                                \
-  __atomic_val_bysize (__arch_exchange, int, mem, value, __ATOMIC_RELEASE)
-
 /* Atomic exchange (without compare).  */
 
 # define __arch_exchange_8_int(mem, newval, model)      \

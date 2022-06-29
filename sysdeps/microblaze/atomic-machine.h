@@ -122,14 +122,3 @@
     __result;                                                                  \
   })
 
-#define atomic_exchange_rel(mem, value)                                        \
-  ({                                                                           \
-    __typeof (*(mem)) __result;                                                \
-    if (sizeof (*mem) == 4)                                                    \
-      __result = __arch_atomic_exchange_32_acq (mem, value);                   \
-    else if (sizeof (*mem) == 8)                                               \
-      __result = __arch_atomic_exchange_64_acq (mem, value);                   \
-    else                                                                       \
-       abort ();                                                               \
-    __result;                                                                  \
-  })

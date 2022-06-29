@@ -102,7 +102,7 @@ extern kern_return_t __gsync_wait_intr
 #define __lll_unlock(ptr, flags)   \
   ({   \
      int *__iptr = (int *)(ptr);   \
-     if (atomic_exchange_rel (__iptr, 0) == 2)   \
+     if (atomic_exchange_release (__iptr, 0) == 2)   \
        __lll_wake (__iptr, (flags));   \
      (void)0;   \
    })

@@ -174,10 +174,6 @@
      __atg5_oldval; })
 #endif
 
-#ifndef atomic_exchange_rel
-# define atomic_exchange_rel(mem, newvalue) atomic_exchange_acq (mem, newvalue)
-#endif
-
 
 #ifndef atomic_full_barrier
 # define atomic_full_barrier() __asm ("" ::: "memory")

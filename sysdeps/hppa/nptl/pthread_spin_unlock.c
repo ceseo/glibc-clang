@@ -40,7 +40,7 @@ __pthread_spin_unlock (pthread_spinlock_t *lock)
      Therefore if a variable is used in an atomic macro it must always be
      manipulated with atomic macros in order for memory ordering rules to
      be preserved.  */
-  atomic_exchange_rel (lock, 0);
+  atomic_exchange_release (lock, 0);
   return 0;
 }
 versioned_symbol (libc, __pthread_spin_unlock, pthread_spin_unlock,

@@ -54,7 +54,4 @@
 #define atomic_exchange_acq(mem, value) \
   __sync_lock_test_and_set (mem, value)
 
-#define atomic_exchange_rel(mem, value) \
-  (__sync_synchronize (), __sync_lock_test_and_set (mem, value))
-
 #define atomic_full_barrier() __sync_synchronize ()

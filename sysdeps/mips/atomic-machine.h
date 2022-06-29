@@ -134,9 +134,6 @@
 #define atomic_exchange_acq(mem, value)				\
   __atomic_val_bysize (__arch_exchange, int, mem, value, __ATOMIC_ACQUIRE)
 
-#define atomic_exchange_rel(mem, value)				\
-  __atomic_val_bysize (__arch_exchange, int, mem, value, __ATOMIC_RELEASE)
-
 
 /* Atomically add value and return the previous (unincremented) value.  */
 

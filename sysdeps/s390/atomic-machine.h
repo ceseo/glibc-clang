@@ -76,6 +76,3 @@
 #define atomic_exchange_acq(mem, newvalue)				\
   ({ __atomic_check_size((mem));					\
     __atomic_exchange_n (mem, newvalue, __ATOMIC_ACQUIRE); })
-#define atomic_exchange_rel(mem, newvalue)				\
-  ({ __atomic_check_size((mem));					\
-    __atomic_exchange_n (mem, newvalue, __ATOMIC_RELEASE); })

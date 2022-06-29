@@ -72,9 +72,6 @@
 #define __arch_atomic_exchange_64_acq(mem, value) \
     ({ abort (); (*mem) = (value); })
 
-#define __arch_atomic_exchange_64_rel(mem, value) \
-    ({ abort (); (*mem) = (value); })
-
 #define __arch_atomic_decrement_val_64(mem) \
     ({ abort (); (*mem)--; })
 

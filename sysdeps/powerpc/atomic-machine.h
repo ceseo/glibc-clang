@@ -97,19 +97,6 @@
     __val;								      \
   })
 
-#define __arch_atomic_exchange_32_rel(mem, value) \
-  ({									      \
-    __typeof (*mem) __val;						      \
-    __asm __volatile (__ARCH_REL_INSTR "\n"				      \
-		      "1:	lwarx	%0,0,%2" MUTEX_HINT_REL "\n"	      \
-		      "		stwcx.	%3,0,%2\n"			      \
-		      "		bne-	1b"				      \
-		      : "=&r" (__val), "=m" (*mem)			      \
-		      : "b" (mem), "r" (value), "m" (*mem)		      \
-		      : "cr0", "memory");				      \
-    __val;								      \
-  })
-
 #define atomic_compare_and_exchange_val_acq(mem, newval, oldval) \
   ({									      \
     __typeof (*(mem)) __result;						      \
@@ -141,18 +128,6 @@
       __result = __arch_atomic_exchange_32_acq (mem, value);		      \
     else if (sizeof (*mem) == 8)					      \
       __result = __arch_atomic_exchange_64_acq (mem, value);		      \
-    else 								      \
-       abort ();							      \
-    __result;								      \
-  })
-
-#define atomic_exchange_rel(mem, value) \
-  ({									      \
-    __typeof (*(mem)) __result;						      \
-    if (sizeof (*mem) == 4)						      \
-      __result = __arch_atomic_exchange_32_rel (mem, value);		      \
-    else if (sizeof (*mem) == 8)					      \
-      __result = __arch_atomic_exchange_64_rel (mem, value);		      \
     else 								      \
        abort ();							      \
     __result;								      \

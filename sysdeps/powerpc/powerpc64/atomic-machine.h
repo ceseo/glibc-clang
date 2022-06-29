@@ -126,19 +126,6 @@
       __val;								      \
     })
 
-#define __arch_atomic_exchange_64_rel(mem, value) \
-    ({									      \
-      __typeof (*mem) __val;						      \
-      __asm __volatile (__ARCH_REL_INSTR "\n"				      \
-			"1:	ldarx	%0,0,%2" MUTEX_HINT_REL "\n"	      \
-			"	stdcx.	%3,0,%2\n"			      \
-			"	bne-	1b"				      \
-			: "=&r" (__val), "=m" (*mem)			      \
-			: "b" (mem), "r" (value), "m" (*mem)		      \
-			: "cr0", "memory");				      \
-      __val;								      \
-    })
-
 #define __arch_atomic_decrement_val_64(mem) \
     ({									      \
       __typeof (*(mem)) __val;						      \
