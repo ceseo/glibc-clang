@@ -319,12 +319,6 @@
 	: "memory");							\
   __ret; })
 
-/* ??? Barrier semantics for atomic_exchange_and_add appear to be
-   undefined.  Use full barrier for now, as that's safe.  */
-#define atomic_exchange_and_add(mem, value) \
-  __atomic_val_bysize (__arch_exchange_and_add, int, mem, value, __MB, __MB)
-
-
 /* ??? Blah, I'm lazy.  Implement these later.  Can do better than the
    compare-and-exchange loop provided by generic code.
 

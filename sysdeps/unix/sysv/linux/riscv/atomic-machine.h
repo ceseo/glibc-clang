@@ -137,14 +137,6 @@
 #  define __arch_exchange_and_add_64_int(mem, value, model)	\
   __atomic_fetch_add (mem, value, model)
 
-# define atomic_exchange_and_add_acq(mem, value)			\
-  __atomic_val_bysize (__arch_exchange_and_add, int, mem, value,	\
-		       __ATOMIC_ACQUIRE)
-
-# define atomic_exchange_and_add_rel(mem, value)			\
-  __atomic_val_bysize (__arch_exchange_and_add, int, mem, value,	\
-		       __ATOMIC_RELEASE)
-
 /* Miscellaneous.  */
 
 # define asm_amo(which, ordering, mem, value) ({ 		\

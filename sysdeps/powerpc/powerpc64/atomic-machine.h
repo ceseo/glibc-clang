@@ -139,47 +139,6 @@
       __val;								      \
     })
 
-#define __arch_atomic_exchange_and_add_64(mem, value) \
-    ({									      \
-      __typeof (*mem) __val, __tmp;					      \
-      __asm __volatile ("1:	ldarx	%0,0,%3\n"			      \
-			"	add	%1,%0,%4\n"			      \
-			"	stdcx.	%1,0,%3\n"			      \
-			"	bne-	1b"				      \
-			: "=&b" (__val), "=&r" (__tmp), "=m" (*mem)	      \
-			: "b" (mem), "r" (value), "m" (*mem)		      \
-			: "cr0", "memory");				      \
-      __val;								      \
-    })
-
-#define __arch_atomic_exchange_and_add_64_acq(mem, value) \
-    ({									      \
-      __typeof (*mem) __val, __tmp;					      \
-      __asm __volatile ("1:	ldarx	%0,0,%3" MUTEX_HINT_ACQ "\n"	      \
-			"	add	%1,%0,%4\n"			      \
-			"	stdcx.	%1,0,%3\n"			      \
-			"	bne-	1b\n"				      \
-			__ARCH_ACQ_INSTR				      \
-			: "=&b" (__val), "=&r" (__tmp), "=m" (*mem)	      \
-			: "b" (mem), "r" (value), "m" (*mem)		      \
-			: "cr0", "memory");				      \
-      __val;								      \
-    })
-
-#define __arch_atomic_exchange_and_add_64_rel(mem, value) \
-    ({									      \
-      __typeof (*mem) __val, __tmp;					      \
-      __asm __volatile (__ARCH_REL_INSTR "\n"				      \
-			"1:	ldarx	%0,0,%3" MUTEX_HINT_REL "\n"	      \
-			"	add	%1,%0,%4\n"			      \
-			"	stdcx.	%1,0,%3\n"			      \
-			"	bne-	1b"				      \
-			: "=&b" (__val), "=&r" (__tmp), "=m" (*mem)	      \
-			: "b" (mem), "r" (value), "m" (*mem)		      \
-			: "cr0", "memory");				      \
-      __val;								      \
-    })
-
 #define __arch_atomic_decrement_val_64(mem) \
     ({									      \
       __typeof (*(mem)) __val;						      \

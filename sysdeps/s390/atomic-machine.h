@@ -79,13 +79,3 @@
 #define atomic_exchange_rel(mem, newvalue)				\
   ({ __atomic_check_size((mem));					\
     __atomic_exchange_n (mem, newvalue, __ATOMIC_RELEASE); })
-
-/* Add VALUE to *MEM and return the old value of *MEM.  */
-/* The gcc builtin uses load-and-add instruction on z196 zarch and higher cpus
-   instead of a loop with compare-and-swap instruction.  */
-# define atomic_exchange_and_add_acq(mem, operand)			\
-  ({ __atomic_check_size((mem));					\
-  __atomic_fetch_add ((mem), (operand), __ATOMIC_ACQUIRE); })
-# define atomic_exchange_and_add_rel(mem, operand)			\
-  ({ __atomic_check_size((mem));					\
-  __atomic_fetch_add ((mem), (operand), __ATOMIC_RELEASE); })

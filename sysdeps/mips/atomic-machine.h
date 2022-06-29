@@ -158,14 +158,6 @@
   __atomic_fetch_add (mem, value, model)
 #endif
 
-#define atomic_exchange_and_add_acq(mem, value)			\
-  __atomic_val_bysize (__arch_exchange_and_add, int, mem, value,	\
-		       __ATOMIC_ACQUIRE)
-
-#define atomic_exchange_and_add_rel(mem, value)			\
-  __atomic_val_bysize (__arch_exchange_and_add, int, mem, value,	\
-		       __ATOMIC_RELEASE)
-
 /* TODO: More atomic operations could be implemented efficiently; only the
    basic requirements are done.  */
 
