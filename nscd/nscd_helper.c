@@ -454,7 +454,7 @@ __nscd_cache_search (request_type type, const char *key, size_t keylen,
   size_t datasize = mapped->datasize;
 
   ref_t trail = mapped->head->array[hash];
-  trail = atomic_forced_read (trail);
+  trail = atomic_load_relaxed (&trail);
   ref_t work = trail;
   size_t loop_cnt = datasize / (MINIMUM_HASHENTRY_SIZE
 				+ offsetof (struct datahead, data) / 2);
@@ -478,9 +478,9 @@ __nscd_cache_search (request_type type, const char *key, size_t keylen,
 
       if (type == here->type
 	  && keylen == here->len
-	  && (here_key = atomic_forced_read (here->key)) + keylen <= datasize
+	  && (here_key = atomic_load_relaxed (&here->key)) + keylen <= datasize
 	  && memcmp (key, mapped->data + here_key, keylen) == 0
-	  && ((here_packet = atomic_forced_read (here->packet))
+	  && ((here_packet = atomic_load_relaxed (&here->packet))
 	      + sizeof (struct datahead) <= datasize))
 	{
 	  /* We found the entry.  Increment the appropriate counter.  */
@@ -501,7 +501,7 @@ __nscd_cache_search (request_type type, const char *key, size_t keylen,
 	    return dh;
 	}
 
-      work = atomic_forced_read (here->next);
+      work = atomic_load_relaxed (&here->next);
       /* Prevent endless loops.  This should never happen but perhaps
 	 the database got corrupted, accidentally or deliberately.  */
       if (work == trail || loop_cnt-- == 0)
@@ -520,7 +520,7 @@ __nscd_cache_search (request_type type, const char *key, size_t keylen,
 	  if (trail + MINIMUM_HASHENTRY_SIZE > datasize)
 	    return NULL;
 
-	  trail = atomic_forced_read (trailelem->next);
+	  trail = atomic_load_relaxed (&trailelem->next);
 	}
       tick = 1 - tick;
     }
