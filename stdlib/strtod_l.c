@@ -85,6 +85,7 @@ extern double ____strtod_l_internal (const char *, char **, int, locale_t);
 #include "fpioconst.h"
 
 #include <assert.h>
+#include <libc-diag.h>
 
 
 /* We use this code for the extended locale handling where the
@@ -871,7 +872,11 @@ ____STRTOF_INTERNAL (const STRING_TYPE *nptr, STRING_TYPE **endptr, int group,
 	  c = *++cp;
 	}
     }
+
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13.0, "-Wtautological-constant-out-of-range-compare");
   assert (dig_no <= (uintmax_t) INTMAX_MAX);
+  DIAG_POP_NEEDS_COMMENT_CLANG;
 
   /* Remember start of exponent (if any).  */
   expp = cp;
@@ -901,16 +906,22 @@ ____STRTOF_INTERNAL (const STRING_TYPE *nptr, STRING_TYPE **endptr, int group,
 	    {
 	      if (exp_negative)
 		{
+		  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+		  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13.0, "-Wtautological-constant-out-of-range-compare");
 		  assert (int_no <= (uintmax_t) (INTMAX_MAX
 						 + MIN_EXP - MANT_DIG) / 4);
+		  DIAG_POP_NEEDS_COMMENT_CLANG;
 		  exp_limit = -MIN_EXP + MANT_DIG + 4 * (intmax_t) int_no;
 		}
 	      else
 		{
 		  if (int_no)
 		    {
+		      DIAG_PUSH_NEEDS_COMMENT_CLANG;
+		      DIAG_IGNORE_NEEDS_COMMENT_CLANG (13.0, "-Wtautological-constant-out-of-range-compare");
 		      assert (lead_zero == 0
 			      && int_no <= (uintmax_t) INTMAX_MAX / 4);
+		      DIAG_POP_NEEDS_COMMENT_CLANG;
 		      exp_limit = MAX_EXP - 4 * (intmax_t) int_no + 3;
 		    }
 		  else if (lead_zero == (size_t) -1)
@@ -921,8 +932,11 @@ ____STRTOF_INTERNAL (const STRING_TYPE *nptr, STRING_TYPE **endptr, int group,
 		    }
 		  else
 		    {
+		      DIAG_PUSH_NEEDS_COMMENT_CLANG;
+		      DIAG_IGNORE_NEEDS_COMMENT_CLANG (13.0, "-Wtautological-constant-out-of-range-compare");
 		      assert (lead_zero
 			      <= (uintmax_t) (INTMAX_MAX - MAX_EXP - 3) / 4);
+		      DIAG_POP_NEEDS_COMMENT_CLANG;
 		      exp_limit = (MAX_EXP
 				   + 4 * (intmax_t) lead_zero
 				   + 3);
@@ -933,16 +947,22 @@ ____STRTOF_INTERNAL (const STRING_TYPE *nptr, STRING_TYPE **endptr, int group,
 	    {
 	      if (exp_negative)
 		{
+		  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+		  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13.0, "-Wtautological-constant-out-of-range-compare");
 		  assert (int_no
 			  <= (uintmax_t) (INTMAX_MAX + MIN_10_EXP - MANT_DIG));
+		  DIAG_POP_NEEDS_COMMENT_CLANG;
 		  exp_limit = -MIN_10_EXP + MANT_DIG + (intmax_t) int_no;
 		}
 	      else
 		{
 		  if (int_no)
 		    {
+		      DIAG_PUSH_NEEDS_COMMENT_CLANG;
+		      DIAG_IGNORE_NEEDS_COMMENT_CLANG (13.0, "-Wtautological-constant-out-of-range-compare");
 		      assert (lead_zero == 0
 			      && int_no <= (uintmax_t) INTMAX_MAX);
+		      DIAG_POP_NEEDS_COMMENT_CLANG;
 		      exp_limit = MAX_10_EXP - (intmax_t) int_no + 1;
 		    }
 		  else if (lead_zero == (size_t) -1)
@@ -953,8 +973,11 @@ ____STRTOF_INTERNAL (const STRING_TYPE *nptr, STRING_TYPE **endptr, int group,
 		    }
 		  else
 		    {
+		      DIAG_PUSH_NEEDS_COMMENT_CLANG;
+		      DIAG_IGNORE_NEEDS_COMMENT_CLANG (13.0, "-Wtautological-constant-out-of-range-compare");
 		      assert (lead_zero
 			      <= (uintmax_t) (INTMAX_MAX - MAX_10_EXP - 1));
+		      DIAG_POP_NEEDS_COMMENT_CLANG;
 		      exp_limit = MAX_10_EXP + (intmax_t) lead_zero + 1;
 		    }
 		}
