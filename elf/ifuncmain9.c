@@ -22,6 +22,7 @@
 
 # include <stdbool.h>
 # include <stdio.h>
+# include <libc-diag.h>
 
 /* Do not use the test framework, so that the process setup is not
    disturbed.  */
@@ -40,6 +41,8 @@ implementation (void)
   return random_constant;
 }
 
+DIAG_PUSH_NEEDS_COMMENT_CLANG;
+DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wunused-function");
 static __typeof__ (implementation) *
 inhibit_stack_protector
 resolver (void)
@@ -47,6 +50,7 @@ resolver (void)
   ++resolver_called;
   return implementation;
 }
+DIAG_POP_NEEDS_COMMENT_CLANG;
 
 static int magic (void) __attribute__ ((ifunc ("resolver")));
 
