@@ -45,6 +45,7 @@ extern __typeof (REDIRECT_NAME) OPTIMIZE (avx512_no_vzeroupper)
   attribute_hidden;
 
 static inline void *
+inhibit_stack_protector
 IFUNC_SELECTOR (void)
 {
   const struct cpu_features* cpu_features = __get_cpu_features ();

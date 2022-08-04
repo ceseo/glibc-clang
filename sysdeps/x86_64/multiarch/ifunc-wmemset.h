@@ -26,6 +26,7 @@ extern __typeof (REDIRECT_NAME) OPTIMIZE (evex_unaligned) attribute_hidden;
 extern __typeof (REDIRECT_NAME) OPTIMIZE (avx512_unaligned) attribute_hidden;
 
 static inline void *
+inhibit_stack_protector
 IFUNC_SELECTOR (void)
 {
   const struct cpu_features* cpu_features = __get_cpu_features ();
