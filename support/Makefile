@@ -48,12 +48,14 @@ libsupport-routines = \
   support_can_chroot \
   support_capture_subprocess \
   support_capture_subprocess_check \
+  support_check_fault_write \
   support_chroot \
   support_copy_file \
   support_copy_file_range \
   support_create_timer \
   support_descriptor_supports_holes \
   support_descriptors \
+  support_disable_more_coredumps \
   support_enter_mount_namespace \
   support_enter_network_namespace \
   support_format_address_family \
@@ -276,6 +278,7 @@ tests = \
   tst-support-namespace \
   tst-support_blob_repeat \
   tst-support_capture_subprocess \
+  tst-support_check_fault \
   tst-support_descriptors \
   tst-support_format_dns_packet \
   tst-support-open-dev-null-range \

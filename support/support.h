@@ -91,6 +91,11 @@ char *support_quote_string (const char *);
    regular file open for writing, and initially empty.  */
 int support_descriptor_supports_holes (int fd);
 
+/* For performance reasons, some tests need to disable all coredumps
+   (not just those which are written to the source directory, which
+   are disabled by the test driver).  */
+void support_disable_more_coredumps (void);
+
 /* Predicates that a test requires a working /proc filesystem.  This
    call will exit with UNSUPPORTED if /proc is not available, printing
    WHY_MSG as part of the diagnostic.  */
