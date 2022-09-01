@@ -57,25 +57,25 @@ main (int argc, char *argv[])
 
       if (tests[n].exp < 0 && res >= 0)
 	{
-	  printf ("swprintf (buf, %Zu, L\"%%s\", \"%s\") expected to fail\n",
+	  printf ("swprintf (buf, %zu, L\"%%s\", \"%s\") expected to fail\n",
 		  tests[n].n, tests[n].str);
 	  result = 1;
 	}
       else if (tests[n].exp >= 0 && tests[n].exp != res)
 	{
-	  printf ("swprintf (buf, %Zu, L\"%%s\", \"%s\") expected to return %Zd, but got %Zd\n",
+	  printf ("swprintf (buf, %zu, L\"%%s\", \"%s\") expected to return %zd, but got %zd\n",
 		  tests[n].n, tests[n].str, tests[n].exp, res);
 	  result = 1;
 	}
       else
-	printf ("swprintf (buf, %Zu, L\"%%s\", \"%s\") OK\n",
+	printf ("swprintf (buf, %zu, L\"%%s\", \"%s\") OK\n",
 		tests[n].n, tests[n].str);
     }
 
   if (swprintf (buf, nbuf, L"%.0s", "foo") != 0
       || wcslen (buf) != 0)
     {
-      printf ("swprintf (buf, %Zu, L\"%%.0s\", \"foo\") create some output\n",
+      printf ("swprintf (buf, %zu, L\"%%.0s\", \"foo\") create some output\n",
 	      nbuf);
       result = 1;
     }
@@ -83,7 +83,7 @@ main (int argc, char *argv[])
   if (swprintf (buf, nbuf, L"%.0ls", L"foo") != 0
       || wcslen (buf) != 0)
     {
-      printf ("swprintf (buf, %Zu, L\"%%.0ls\", L\"foo\") create some output\n",
+      printf ("swprintf (buf, %zu, L\"%%.0ls\", L\"foo\") create some output\n",
 	      nbuf);
       result = 1;
     }

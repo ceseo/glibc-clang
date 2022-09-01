@@ -2115,7 +2115,7 @@ dl_main (const ElfW(Phdr) *phdr,
 		}
 	      if (_dl_name_match_p (GLRO(dl_trace_prelink), l))
 		GLRO(dl_trace_prelink_map) = l;
-	      _dl_printf ("\t%s => %s (0x%0*Zx, 0x%0*Zx)",
+	      _dl_printf ("\t%s => %s (0x%0*zx, 0x%0*zx)",
 			  DSO_FILENAME (l->l_libname->name),
 			  DSO_FILENAME (l->l_name),
 			  (int) sizeof l->l_map_start * 2,
@@ -2124,7 +2124,7 @@ dl_main (const ElfW(Phdr) *phdr,
 			  (size_t) l->l_addr);
 
 	      if (l->l_tls_modid)
-		_dl_printf (" TLS(0x%Zx, 0x%0*Zx)\n", l->l_tls_modid,
+		_dl_printf (" TLS(0x%zx, 0x%0*zx)\n", l->l_tls_modid,
 			    (int) sizeof l->l_tls_offset * 2,
 			    (size_t) l->l_tls_offset);
 	      else
@@ -2186,11 +2186,11 @@ dl_main (const ElfW(Phdr) *phdr,
 	      /* The library was not found.  */
 	      _dl_printf ("\t%s => not found\n", l->l_libname->name);
 	    else if (strcmp (l->l_libname->name, l->l_name) == 0)
-	      _dl_printf ("\t%s (0x%0*Zx)\n", l->l_libname->name,
+	      _dl_printf ("\t%s (0x%0*zx)\n", l->l_libname->name,
 			  (int) sizeof l->l_map_start * 2,
 			  (size_t) l->l_map_start);
 	    else
-	      _dl_printf ("\t%s => %s (0x%0*Zx)\n", l->l_libname->name,
+	      _dl_printf ("\t%s => %s (0x%0*zx)\n", l->l_libname->name,
 			  l->l_name, (int) sizeof l->l_map_start * 2,
 			  (size_t) l->l_map_start);
 	}
@@ -2209,7 +2209,7 @@ dl_main (const ElfW(Phdr) *phdr,
 
 	    loadbase = LOOKUP_VALUE_ADDRESS (result, false);
 
-	    _dl_printf ("%s found at 0x%0*Zd in object at 0x%0*Zd\n",
+	    _dl_printf ("%s found at 0x%0*zd in object at 0x%0*zd\n",
 			_dl_argv[i],
 			(int) sizeof ref->st_value * 2,
 			(size_t) ref->st_value,

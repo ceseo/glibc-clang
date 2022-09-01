@@ -1062,7 +1062,7 @@ _dl_debug_bindings (const char *undef_name, struct link_map *undef_map,
 	  || GLRO(dl_trace_prelink_map) == NULL
 	  || type_class >= 4)
 	{
-	  _dl_printf ("%s 0x%0*Zx 0x%0*Zx -> 0x%0*Zx 0x%0*Zx ",
+	  _dl_printf ("%s 0x%0*zx 0x%0*zx -> 0x%0*zx 0x%0*zx ",
 		      conflict ? "conflict" : "lookup",
 		      (int) sizeof (ElfW(Addr)) * 2,
 		      (size_t) undef_map->l_map_start,
@@ -1074,7 +1074,7 @@ _dl_debug_bindings (const char *undef_name, struct link_map *undef_map,
 		      (size_t) (value->s ? value->s->st_value : 0));
 
 	  if (conflict)
-	    _dl_printf ("x 0x%0*Zx 0x%0*Zx ",
+	    _dl_printf ("x 0x%0*zx 0x%0*zx ",
 			(int) sizeof (ElfW(Addr)) * 2,
 			(size_t) (val.s ? val.m->l_map_start : 0),
 			(int) sizeof (ElfW(Addr)) * 2,
