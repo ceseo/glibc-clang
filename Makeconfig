@@ -404,6 +404,9 @@ else
 # for PIE to support exception.
 static-pie-ldflag = -Wl,-pie,--no-dynamic-linker,--eh-frame-hdr,-z,text
 endif # have-static-pie
+else
+no-static-pie = $(no-pie-ccflag)
+no-pic-flag = -UPIC
 endif # enable-static-pie
 endif # build-pie-default
 
@@ -899,6 +902,18 @@ endif
 # is a list of routines that this path should be applied to.
 define elide-stack-protector
 $(if $(filter $(@F),$(patsubst %,%$(1),$(2))), $(no-stack-protector))
+endef
+
+# If static-pie is not supported, add the compiler option to avoid building it
+# for pie and to remove the PIC define.  The first argument is the extension
+# (.o, .os, .oS) and the second is a list of routines that this path should be
+# applied to.
+define elide-pie
+$(if $(filter $(@F),$(patsubst %,%$(1),$(2))), $(no-static-pie))
+endef
+# Smae as elide-pie, but remove the PIC flag.
+define elide-pic-flag
+$(if $(filter $(@F),$(patsubst %,%$(1),$(2))), $(no-pic-flag))
 endef
 
 # The program that makes Emacs-style TAGS files.

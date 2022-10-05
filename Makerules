@@ -1239,6 +1239,13 @@ tests += $(foreach t,$(tests-time64),$(t))
 xtests += $(foreach t,$(xtests-time64),$(t))
 endif
 
+# Disable static-pie for libc.a if target does not support it.
+CFLAGS-.o += $(call elide-pie,.o,$(routines))
+CFLAGS-.op += $(call elide-pie,.op,$(routines))
+# And also remove the PIC flag.
+CPPFLAGS-.o += $(call elide-pic-flag,.o,$(routines))
+CPPFLAGS-.op += $(call elide-pic-flag,.op,$(routines))
+
 # The only difference between MODULE_NAME=testsuite and MODULE_NAME=nonlib is
 # that almost all internal declarations from config.h, libc-symbols.h, and
 # include/*.h are not available to 'testsuite' code, but are to 'nonlib' code.

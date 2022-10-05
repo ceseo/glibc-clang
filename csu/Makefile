@@ -66,6 +66,10 @@ CFLAGS-.os += $(call elide-stack-protector,.os,$(filter-out \
 						 $(ssp-safe.os), \
 						 $(routines) $(extra-no-ssp)))
 
+# Remove PIC flag for init objects.
+CPPFLAGS-.o += $(call elide-pic-flag,.o,$(basename $(extra-objs)))
+CPPFLAGS-.op += $(call elide-pic-flag,.op,$(basename $(extra-objs)))
+
 ifeq (yes,$(build-shared))
 extra-objs += S$(start-installed-name) gmon-start.os
 ifneq ($(start-installed-name),$(static-start-installed-name))
