@@ -38,7 +38,7 @@
 
 static char FCVT_BUFFER[MAXDIG];
 static char ECVT_BUFFER[MAXDIG];
-libc_freeres_ptr (static char *FCVT_BUFPTR);
+static char *FCVT_BUFPTR;
 
 char *
 __FCVT (FLOAT_TYPE value, int ndigit, int *decpt, int *sign)
@@ -72,4 +72,10 @@ __GCVT (FLOAT_TYPE value, int ndigit, char *buf)
 {
   SPRINTF (buf, "%.*" FLOAT_FMT_FLAG "g", MIN (ndigit, NDIGIT_MAX), value);
   return buf;
+}
+
+void
+__EFGCVT_FREEMEM (void)
+{
+  free (FCVT_BUFPTR);
 }

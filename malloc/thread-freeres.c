@@ -27,7 +27,7 @@
 
 /* Thread shutdown function.  Note that this function must be called
    for threads during shutdown for correctness reasons.  Unlike
-   __libc_subfreeres, skipping calls to it is not a valid optimization.
+   __libc_freeres, skipping calls to it is not a valid optimization.
    This is called directly from pthread_create as the thread exits.  */
 void
 __libc_thread_freeres (void)

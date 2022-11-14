@@ -98,7 +98,7 @@ int iruserok (uint32_t raddr, int superuser, const char *ruser,
 
 libc_hidden_proto (iruserok_af)
 
-libc_freeres_ptr(static char *ahostbuf);
+static char *ahostbuf;
 
 int
 rcmd_af (char **ahost, u_short rport, const char *locuser, const char *remuser,
@@ -816,4 +816,10 @@ __validuser2_sa (FILE *hostf, struct sockaddr *ra, size_t ralen,
     free (buf);
 
     return retval;
+}
+
+void
+__libc_rcmd_freemem (void)
+{
+  free (ahostbuf);
 }

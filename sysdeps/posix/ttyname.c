@@ -31,7 +31,13 @@ static char *getttyname (int fd, dev_t mydev, ino_t myino,
 			 int save, int *dostat);
 
 
-libc_freeres_ptr (static char *getttyname_name);
+static char *getttyname_name;
+
+void
+__ttyname_freemem (void)
+{
+  free (getttyname_name);
+}
 
 static char *
 getttyname (int fd, dev_t mydev, ino_t myino, int save, int *dostat)

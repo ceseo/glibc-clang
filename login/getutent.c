@@ -20,7 +20,7 @@
 
 
 /* Local buffer to store the result.  */
-libc_freeres_ptr (static struct utmp *buffer);
+static struct utmp *buffer;
 
 
 struct utmp *
@@ -42,3 +42,9 @@ __getutent (void)
 }
 libc_hidden_def (__getutent)
 weak_alias (__getutent, getutent)
+
+void
+__libc_getutent_freemem (void)
+{
+  free (buffer);
+}

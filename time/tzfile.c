@@ -50,7 +50,7 @@ struct leap
   };
 
 static size_t num_transitions;
-libc_freeres_ptr (static __time64_t *transitions);
+static __time64_t *transitions;
 static unsigned char *type_idxs;
 static size_t num_types;
 static struct ttinfo *types;
@@ -776,4 +776,10 @@ __tzfile_compute (__time64_t timer, int use_localtime,
 	  --i;
 	}
     }
+}
+
+void
+__libc_tzfile_freemem (void)
+{
+  free (transitions);
 }

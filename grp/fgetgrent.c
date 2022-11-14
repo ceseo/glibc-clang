@@ -25,7 +25,7 @@
 /* We need to protect the dynamic buffer handling.  */
 __libc_lock_define_initialized (static, lock);
 
-libc_freeres_ptr (static char *buffer);
+static char *buffer;
 
 /* Read one entry from the given stream.  */
 struct group *
@@ -81,4 +81,10 @@ fgetgrent (FILE *stream)
   __set_errno (save);
 
   return result;
+}
+
+void
+__libc_fgetgrent_freemem (void)
+{
+  free (buffer);
 }

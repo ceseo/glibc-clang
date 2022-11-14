@@ -408,10 +408,7 @@ __sha512_crypt_r (const char *key, const char *salt, char *buffer, int buflen)
   return buffer;
 }
 
-#ifndef _LIBC
-# define libc_freeres_ptr(decl) decl
-#endif
-libc_freeres_ptr (static char *buffer);
+static char *buffer;
 
 /* This entry point is equivalent to the `crypt' function in Unix
    libcs.  */
@@ -444,7 +441,10 @@ __sha512_crypt (const char *key, const char *salt)
 static void
 __attribute__ ((__destructor__))
 free_mem (void)
+#else
+void
+__sha512_crypt_freemem (void)
+#endif
 {
   free (buffer);
 }
-#endif

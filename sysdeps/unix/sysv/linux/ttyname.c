@@ -24,7 +24,8 @@
 
 static char *ttyname_buf = NULL;
 
-libc_freeres_fn (free_mem)
+void
+__ttyname_freemem (void)
 {
   free (ttyname_buf);
 }

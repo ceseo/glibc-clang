@@ -42,7 +42,7 @@
 #include <sys/uio.h>
 
 int	rexecoptions;
-libc_freeres_ptr (static char *ahostbuf);
+static char *ahostbuf;
 
 int
 rexec_af (char **ahost, int rport, const char *name, const char *pass,
@@ -195,4 +195,10 @@ rexec (char **ahost, int rport, const char *name, const char *pass,
        const char *cmd, int *fd2p)
 {
 	return rexec_af(ahost, rport, name, pass, cmd, fd2p, AF_INET);
+}
+
+void
+__libc_rexec_freemem (void)
+{
+  free (ahostbuf);
 }

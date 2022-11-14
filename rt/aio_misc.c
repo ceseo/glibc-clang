@@ -694,7 +694,8 @@ handle_fildes_io (void *arg)
 
 
 /* Free allocated resources.  */
-libc_freeres_fn (free_res)
+void
+__aio_freemem (void)
 {
   size_t row;
 

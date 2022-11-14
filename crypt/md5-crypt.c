@@ -299,10 +299,7 @@ __md5_crypt_r (const char *key, const char *salt, char *buffer, int buflen)
   return buffer;
 }
 
-#ifndef _LIBC
-# define libc_freeres_ptr(decl) decl
-#endif
-libc_freeres_ptr (static char *buffer);
+static char *buffer;
 
 char *
 __md5_crypt (const char *key, const char *salt)
@@ -330,7 +327,10 @@ __md5_crypt (const char *key, const char *salt)
 static void
 __attribute__ ((__destructor__))
 free_mem (void)
+#else
+void
+__md5_crypt_freemem (void)
+#endif
 {
   free (buffer);
 }
-#endif

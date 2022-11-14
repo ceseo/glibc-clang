@@ -1,4 +1,5 @@
-/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
+/* System specific resource deallocation.  Generic version.
+   Copyright (C) 2020-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,41 +16,12 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
-#include <netdb.h>
-#include <stdlib.h>
-#include <libc-lock.h>
+/* Each system may define weak functions to free any resource allocated with
+   malloc to avoid interfere with mtrace.  */
 
-/* Static buffer for return value.  We allocate it when needed.  */
-static char *buffer;
-/* All three strings should fit in a block of 1kB size.  */
-#define BUFSIZE 1024
+#include <set-freeres-os.h>
+#include <set-freeres-fp.h>
 
-
-
-static void
-allocate (void)
-{
-  buffer = (char *) malloc (BUFSIZE);
-}
-
-int
-getnetgrent (char **hostp, char **userp, char **domainp)
-{
-  __libc_once_define (static, once);
-  __libc_once (once, allocate);
-
-  if (buffer == NULL)
-    {
-      __set_errno (ENOMEM);
-      return -1;
-    }
-
-  return __getnetgrent_r (hostp, userp, domainp, buffer, BUFSIZE);
-}
-
-void
-__libc_getnetgrent_freemem (void)
-{
-  free (buffer);
-}
+#define SET_FREERES_SYSTEM_FUNCS	\
+  SET_FREERES_OS_FUNCS			\
+  SET_FREERES_FP_FUNCS

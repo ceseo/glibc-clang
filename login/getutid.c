@@ -20,7 +20,7 @@
 
 
 /* Local buffer to store the result.  */
-libc_freeres_ptr (static struct utmp *buffer);
+static struct utmp *buffer;
 
 struct utmp *
 __getutid (const struct utmp *id)
@@ -40,3 +40,9 @@ __getutid (const struct utmp *id)
 }
 libc_hidden_def (__getutid)
 weak_alias (__getutid, getutid)
+
+void
+__libc_getutid_freemem (void)
+{
+  free (buffer);
+}

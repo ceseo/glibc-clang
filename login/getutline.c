@@ -20,7 +20,7 @@
 
 
 /* Local buffer to store the result.  */
-libc_freeres_ptr (static struct utmp *buffer);
+static struct utmp *buffer;
 
 
 struct utmp *
@@ -41,3 +41,9 @@ __getutline (const struct utmp *line)
 }
 libc_hidden_def (__getutline)
 weak_alias (__getutline, getutline)
+
+void
+__libc_getutline_freemem (void)
+{
+  free (buffer);
+}

@@ -434,7 +434,8 @@ handle_requests (void *arg)
 
 
 /* Free allocated resources.  */
-libc_freeres_fn (free_res)
+void
+__gai_freemem (void)
 {
   size_t row;
 

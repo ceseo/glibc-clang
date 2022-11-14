@@ -330,7 +330,6 @@ _res_hconf_init (void)
 #if IS_IN (libc)
 # if defined SIOCGIFCONF && defined SIOCGIFNETMASK
 /* List of known interfaces.  */
-libc_freeres_ptr (
 static struct netaddr
 {
   int addrtype;
@@ -342,7 +341,13 @@ static struct netaddr
       uint32_t	mask;
     } ipv4;
   } u;
-} *ifaddrs);
+} *ifaddrs;
+
+void
+__libc_resolv_res_hconf_freemem (void)
+{
+  free (ifaddrs);
+}
 # endif
 
 /* Reorder addresses returned in a hostent such that the first address
