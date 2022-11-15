@@ -70,9 +70,6 @@ typedef struct
   char overflow_buf[64];
 } _IO_strnfile;
 
-extern const struct _IO_jump_t _IO_strn_jumps attribute_hidden;
-
-
 typedef struct
 {
   _IO_strfile f;
@@ -80,8 +77,6 @@ typedef struct
      provided by the user.  */
   wchar_t overflow_buf[64];
 } _IO_wstrnfile;
-
-extern const struct _IO_jump_t _IO_wstrn_jumps attribute_hidden;
 
 /* Initialize an _IO_strfile SF to read from narrow string STRING, and
    return the corresponding FILE object.  It is not necessary to fclose

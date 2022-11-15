@@ -35,8 +35,8 @@ struct _IO_obstack_file
 };
 
 
-static int
-_IO_obstack_overflow (FILE *fp, int c)
+int
+__IO_obstack_overflow (FILE *fp, int c)
 {
   struct obstack *obstack = ((struct _IO_obstack_file *) fp)->obstack;
   int size;
@@ -58,8 +58,8 @@ _IO_obstack_overflow (FILE *fp, int c)
 }
 
 
-static size_t
-_IO_obstack_xsputn (FILE *fp, const void *data, size_t n)
+size_t
+__IO_obstack_xsputn (FILE *fp, const void *data, size_t n)
 {
   struct obstack *obstack = ((struct _IO_obstack_file *) fp)->obstack;
 
@@ -87,32 +87,6 @@ _IO_obstack_xsputn (FILE *fp, const void *data, size_t n)
 
   return n;
 }
-
-
-/* the jump table.  */
-const struct _IO_jump_t _IO_obstack_jumps libio_vtable attribute_hidden =
-{
-  JUMP_INIT_DUMMY,
-  JUMP_INIT(finish, NULL),
-  JUMP_INIT(overflow, _IO_obstack_overflow),
-  JUMP_INIT(underflow, NULL),
-  JUMP_INIT(uflow, NULL),
-  JUMP_INIT(pbackfail, NULL),
-  JUMP_INIT(xsputn, _IO_obstack_xsputn),
-  JUMP_INIT(xsgetn, NULL),
-  JUMP_INIT(seekoff, NULL),
-  JUMP_INIT(seekpos, NULL),
-  JUMP_INIT(setbuf, NULL),
-  JUMP_INIT(sync, NULL),
-  JUMP_INIT(doallocate, NULL),
-  JUMP_INIT(read, NULL),
-  JUMP_INIT(write, NULL),
-  JUMP_INIT(seek, NULL),
-  JUMP_INIT(close, NULL),
-  JUMP_INIT(stat, NULL),
-  JUMP_INIT(showmanyc, NULL),
-  JUMP_INIT(imbue, NULL)
-};
 
 
 int

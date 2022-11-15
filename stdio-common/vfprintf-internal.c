@@ -1633,11 +1633,11 @@ struct helper_file
 #endif
   };
 
-static int
+#ifdef COMPILE_WPRINTF
+int
 _IO_helper_overflow (FILE *s, int c)
 {
   FILE *target = ((struct helper_file*) s)->_put_stream;
-#ifdef COMPILE_WPRINTF
   int used = s->_wide_data->_IO_write_ptr - s->_wide_data->_IO_write_base;
   if (used)
     {
@@ -1649,7 +1649,13 @@ _IO_helper_overflow (FILE *s, int c)
 		  used - written);
       s->_wide_data->_IO_write_ptr -= written;
     }
+  return PUTC (c, s);
+}
 #else
+int
+_IO_whelper_overflow (FILE *s, int c)
+{
+  FILE *target = ((struct helper_file*) s)->_put_stream;
   int used = s->_IO_write_ptr - s->_IO_write_base;
   if (used)
     {
@@ -1660,54 +1666,8 @@ _IO_helper_overflow (FILE *s, int c)
 	       used - written);
       s->_IO_write_ptr -= written;
     }
-#endif
   return PUTC (c, s);
 }
-
-#ifdef COMPILE_WPRINTF
-static const struct _IO_jump_t _IO_helper_jumps libio_vtable =
-{
-  JUMP_INIT_DUMMY,
-  JUMP_INIT (finish, _IO_wdefault_finish),
-  JUMP_INIT (overflow, _IO_helper_overflow),
-  JUMP_INIT (underflow, _IO_default_underflow),
-  JUMP_INIT (uflow, _IO_default_uflow),
-  JUMP_INIT (pbackfail, (_IO_pbackfail_t) _IO_wdefault_pbackfail),
-  JUMP_INIT (xsputn, _IO_wdefault_xsputn),
-  JUMP_INIT (xsgetn, _IO_wdefault_xsgetn),
-  JUMP_INIT (seekoff, _IO_default_seekoff),
-  JUMP_INIT (seekpos, _IO_default_seekpos),
-  JUMP_INIT (setbuf, _IO_default_setbuf),
-  JUMP_INIT (sync, _IO_default_sync),
-  JUMP_INIT (doallocate, _IO_wdefault_doallocate),
-  JUMP_INIT (read, _IO_default_read),
-  JUMP_INIT (write, _IO_default_write),
-  JUMP_INIT (seek, _IO_default_seek),
-  JUMP_INIT (close, _IO_default_close),
-  JUMP_INIT (stat, _IO_default_stat)
-};
-#else
-static const struct _IO_jump_t _IO_helper_jumps libio_vtable =
-{
-  JUMP_INIT_DUMMY,
-  JUMP_INIT (finish, _IO_default_finish),
-  JUMP_INIT (overflow, _IO_helper_overflow),
-  JUMP_INIT (underflow, _IO_default_underflow),
-  JUMP_INIT (uflow, _IO_default_uflow),
-  JUMP_INIT (pbackfail, _IO_default_pbackfail),
-  JUMP_INIT (xsputn, _IO_default_xsputn),
-  JUMP_INIT (xsgetn, _IO_default_xsgetn),
-  JUMP_INIT (seekoff, _IO_default_seekoff),
-  JUMP_INIT (seekpos, _IO_default_seekpos),
-  JUMP_INIT (setbuf, _IO_default_setbuf),
-  JUMP_INIT (sync, _IO_default_sync),
-  JUMP_INIT (doallocate, _IO_default_doallocate),
-  JUMP_INIT (read, _IO_default_read),
-  JUMP_INIT (write, _IO_default_write),
-  JUMP_INIT (seek, _IO_default_seek),
-  JUMP_INIT (close, _IO_default_close),
-  JUMP_INIT (stat, _IO_default_stat)
-};
 #endif
 
 static int
@@ -1742,7 +1702,11 @@ buffered_vfprintf (FILE *s, const CHAR_T *format, va_list args,
   hp->_lock = NULL;
 #endif
   hp->_flags2 = s->_flags2;
+#ifdef COMPILE_WPRINTF
   _IO_JUMPS (&helper._f) = (struct _IO_jump_t *) &_IO_helper_jumps;
+#else
+  _IO_JUMPS (&helper._f) = (struct _IO_jump_t *) &_IO_whelper_jumps;
+#endif
 
   /* Now print to helper instead.  */
   result = vfprintf (hp, format, args, mode_flags);

@@ -27,10 +27,7 @@
 #include "libioP.h"
 #include "strfile.h"
 
-
-static wint_t _IO_wstrn_overflow (FILE *fp, wint_t c) __THROW;
-
-static wint_t
+wint_t
 _IO_wstrn_overflow (FILE *fp, wint_t c)
 {
   /* When we come to here this means the user supplied buffer is
@@ -61,31 +58,6 @@ _IO_wstrn_overflow (FILE *fp, wint_t c)
      which do not fit in the buffer we simply ignore it.  */
   return c;
 }
-
-
-const struct _IO_jump_t _IO_wstrn_jumps libio_vtable attribute_hidden =
-{
-  JUMP_INIT_DUMMY,
-  JUMP_INIT(finish, _IO_wstr_finish),
-  JUMP_INIT(overflow, (_IO_overflow_t) _IO_wstrn_overflow),
-  JUMP_INIT(underflow, (_IO_underflow_t) _IO_wstr_underflow),
-  JUMP_INIT(uflow, (_IO_underflow_t) _IO_wdefault_uflow),
-  JUMP_INIT(pbackfail, (_IO_pbackfail_t) _IO_wstr_pbackfail),
-  JUMP_INIT(xsputn, _IO_wdefault_xsputn),
-  JUMP_INIT(xsgetn, _IO_wdefault_xsgetn),
-  JUMP_INIT(seekoff, _IO_wstr_seekoff),
-  JUMP_INIT(seekpos, _IO_default_seekpos),
-  JUMP_INIT(setbuf, _IO_default_setbuf),
-  JUMP_INIT(sync, _IO_default_sync),
-  JUMP_INIT(doallocate, _IO_wdefault_doallocate),
-  JUMP_INIT(read, _IO_default_read),
-  JUMP_INIT(write, _IO_default_write),
-  JUMP_INIT(seek, _IO_default_seek),
-  JUMP_INIT(close, _IO_default_close),
-  JUMP_INIT(stat, _IO_default_stat),
-  JUMP_INIT(showmanyc, _IO_default_showmanyc),
-  JUMP_INIT(imbue, _IO_default_imbue)
-};
 
 
 int
