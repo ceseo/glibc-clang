@@ -26,6 +26,12 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#ifdef __clang__
+# define __asm_arg_cast(__type, __arg) (__arg)
+#else
+# define __asm_arg_cast(__type, __arg) ((__type)(__arg))
+#endif
+
 /* You have to define the following before including this file:
 
    UWtype -- An unsigned type, default type for operations (typically a "word")
@@ -194,21 +200,21 @@ extern UDItype __udiv_qrnnd (UDItype *, UDItype, UDItype, UDItype);
 #if defined (__arc__) && W_TYPE_SIZE == 32
 #define add_ssaaaa(sh, sl, ah, al, bh, bl) \
   __asm__ ("add.f	%1, %4, %5\n\tadc	%0, %2, %3"		\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "%r" ((USItype) (ah)),					\
-	     "rICal" ((USItype) (bh)),					\
-	     "%r" ((USItype) (al)),					\
-	     "rICal" ((USItype) (bl))					\
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "%r" __asm_arg_cast (USItype, ah),				\
+	     "rICal" __asm_arg_cast (USItype, bh),			\
+	     "%r" __asm_arg_cast (USItype, al),				\
+	     "rICal" __asm_arg_cast (USItype, bl)			\
 	   : "cc")
 #define sub_ddmmss(sh, sl, ah, al, bh, bl) \
   __asm__ ("sub.f	%1, %4, %5\n\tsbc	%0, %2, %3"		\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "r" ((USItype) (ah)),					\
-	     "rICal" ((USItype) (bh)),					\
-	     "r" ((USItype) (al)),					\
-	     "rICal" ((USItype) (bl))					\
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "r" __asm_arg_cast (USItype, ah),				\
+	     "rICal" __asm_arg_cast (USItype, bh),			\
+	     "r" __asm_arg_cast (USItype, al),				\
+	     "rICal" __asm_arg_cast (USItype, bl)			\
 	   : "cc")
 
 #define __umulsidi3(u,v) ((UDItype)(USItype)u*(USItype)v)
@@ -230,20 +236,20 @@ extern UDItype __udiv_qrnnd (UDItype *, UDItype, UDItype, UDItype);
  && W_TYPE_SIZE == 32
 #define add_ssaaaa(sh, sl, ah, al, bh, bl) \
   __asm__ ("adds	%1, %4, %5\n\tadc	%0, %2, %3"		\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "%r" ((USItype) (ah)),					\
-	     "rI" ((USItype) (bh)),					\
-	     "%r" ((USItype) (al)),					\
-	     "rI" ((USItype) (bl)) __CLOBBER_CC)
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "%r" __asm_arg_cast (USItype, ah),				\
+	     "rI" __asm_arg_cast (USItype, bh),				\
+	     "%r" __asm_arg_cast (USItype, al),				\
+	     "rI" __asm_arg_cast (USItype, bl) __CLOBBER_CC)
 #define sub_ddmmss(sh, sl, ah, al, bh, bl) \
   __asm__ ("subs	%1, %4, %5\n\tsbc	%0, %2, %3"		\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "r" ((USItype) (ah)),					\
-	     "rI" ((USItype) (bh)),					\
-	     "r" ((USItype) (al)),					\
-	     "rI" ((USItype) (bl)) __CLOBBER_CC)
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "r" __asm_arg_cast (USItype, ah),				\
+	     "rI" __asm_arg_cast (USItype, bh),				\
+	     "r" __asm_arg_cast (USItype, al),				\
+	     "rI" __asm_arg_cast (USItype, bl) __CLOBBER_CC)
 # if defined(__ARM_ARCH_2__) || defined(__ARM_ARCH_2A__) \
      || defined(__ARM_ARCH_3__)
 #  define umul_ppmm(xh, xl, a, b)					\
@@ -262,11 +268,11 @@ extern UDItype __udiv_qrnnd (UDItype *, UDItype, UDItype, UDItype);
 	   "	addcs	%0, %0, #65536\n"				\
 	   "	adds	%1, %1, %3, lsl #16\n"				\
 	   "	adc	%0, %0, %3, lsr #16"				\
-	   : "=&r" ((USItype) (xh)),					\
-	     "=r" ((USItype) (xl)),					\
+	   : "=&r" __asm_arg_cast (USItype, xh),			\
+	     "=r" __asm_arg_cast (USItype, xl),				\
 	     "=&r" (__t0), "=&r" (__t1), "=r" (__t2)			\
-	   : "r" ((USItype) (a)),					\
-	     "r" ((USItype) (b)) __CLOBBER_CC );			\
+	   : "r" __asm_arg_cast (USItype, a),				\
+	     "r" __asm_arg_cast (USItype, b) __CLOBBER_CC );		\
   } while (0)
 #  define UMUL_TIME 20
 # else
@@ -348,20 +354,20 @@ extern UDItype __umulsidi3 (USItype, USItype);
 #if defined (__hppa) && W_TYPE_SIZE == 32
 #define add_ssaaaa(sh, sl, ah, al, bh, bl) \
   __asm__ ("add %4,%5,%1\n\taddc %2,%3,%0"				\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "%rM" ((USItype) (ah)),					\
-	     "rM" ((USItype) (bh)),					\
-	     "%rM" ((USItype) (al)),					\
-	     "rM" ((USItype) (bl)))
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "%rM" __asm_arg_cast (USItype, ah),			\
+	     "rM" __asm_arg_cast (USItype, bh),				\
+	     "%rM" __asm_arg_cast (USItype, al),			\
+	     "rM" __asm_arg_cast (USItype, bl))
 #define sub_ddmmss(sh, sl, ah, al, bh, bl) \
   __asm__ ("sub %4,%5,%1\n\tsubb %2,%3,%0"				\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "rM" ((USItype) (ah)),					\
-	     "rM" ((USItype) (bh)),					\
-	     "rM" ((USItype) (al)),					\
-	     "rM" ((USItype) (bl)))
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "rM" __asm_arg_cast (USItype, ah),				\
+	     "rM" __asm_arg_cast (USItype, bh),				\
+	     "rM" __asm_arg_cast (USItype, al),				\
+	     "rM" __asm_arg_cast (USItype, bl))
 #if defined (_PA_RISC1_1)
 #define umul_ppmm(w1, w0, u, v) \
   do {									\
@@ -456,33 +462,33 @@ extern UDItype __umulsidi3 (USItype, USItype);
 #if (defined (__i386__) || defined (__i486__)) && W_TYPE_SIZE == 32
 #define add_ssaaaa(sh, sl, ah, al, bh, bl) \
   __asm__ ("add{l} {%5,%1|%1,%5}\n\tadc{l} {%3,%0|%0,%3}"		\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "%0" ((USItype) (ah)),					\
-	     "g" ((USItype) (bh)),					\
-	     "%1" ((USItype) (al)),					\
-	     "g" ((USItype) (bl)))
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "%0" __asm_arg_cast (USItype, ah),				\
+	     "g" __asm_arg_cast (USItype, bh),				\
+	     "%1" __asm_arg_cast (USItype, al),				\
+	     "g" __asm_arg_cast (USItype, bl))
 #define sub_ddmmss(sh, sl, ah, al, bh, bl) \
   __asm__ ("sub{l} {%5,%1|%1,%5}\n\tsbb{l} {%3,%0|%0,%3}"		\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "0" ((USItype) (ah)),					\
-	     "g" ((USItype) (bh)),					\
-	     "1" ((USItype) (al)),					\
-	     "g" ((USItype) (bl)))
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "0" __asm_arg_cast (USItype, ah),				\
+	     "g" __asm_arg_cast (USItype, bh),				\
+	     "1" __asm_arg_cast (USItype, al),				\
+	     "g" __asm_arg_cast (USItype, bl))
 #define umul_ppmm(w1, w0, u, v) \
   __asm__ ("mul{l} %3"							\
-	   : "=a" ((USItype) (w0)),					\
-	     "=d" ((USItype) (w1))					\
-	   : "%0" ((USItype) (u)),					\
-	     "rm" ((USItype) (v)))
+	   : "=a" __asm_arg_cast (USItype, w0),				\
+	     "=d" __asm_arg_cast (USItype, w1)				\
+	   : "%0" __asm_arg_cast (USItype, u),				\
+	     "rm" __asm_arg_cast (USItype, v))
 #define udiv_qrnnd(q, r, n1, n0, dv) \
   __asm__ ("div{l} %4"							\
-	   : "=a" ((USItype) (q)),					\
-	     "=d" ((USItype) (r))					\
-	   : "0" ((USItype) (n0)),					\
-	     "1" ((USItype) (n1)),					\
-	     "rm" ((USItype) (dv)))
+	   : "=a" __asm_arg_cast (USItype, q),				\
+	     "=d" __asm_arg_cast (USItype, r)				\
+	   : "0" __asm_arg_cast (USItype, n0),				\
+	     "1" __asm_arg_cast (USItype, n1),				\
+	     "rm" __asm_arg_cast (USItype, dv))
 #define count_leading_zeros(count, x)	((count) = __builtin_clz (x))
 #define count_trailing_zeros(count, x)	((count) = __builtin_ctz (x))
 #define UMUL_TIME 40
@@ -492,33 +498,33 @@ extern UDItype __umulsidi3 (USItype, USItype);
 #if defined (__x86_64__) && W_TYPE_SIZE == 64
 #define add_ssaaaa(sh, sl, ah, al, bh, bl) \
   __asm__ ("add{q} {%5,%1|%1,%5}\n\tadc{q} {%3,%0|%0,%3}"		\
-	   : "=r" ((UDItype) (sh)),					\
-	     "=&r" ((UDItype) (sl))					\
-	   : "%0" ((UDItype) (ah)),					\
-	     "rme" ((UDItype) (bh)),					\
-	     "%1" ((UDItype) (al)),					\
-	     "rme" ((UDItype) (bl)))
+	   : "=r" __asm_arg_cast (UDItype, sh),				\
+	     "=&r" __asm_arg_cast (UDItype, sl)				\
+	   : "%0" __asm_arg_cast (UDItype, ah),				\
+	     "rme" __asm_arg_cast (UDItype, bh),			\
+	     "%1" __asm_arg_cast (UDItype, al),				\
+	     "rme" __asm_arg_cast (UDItype, bl))
 #define sub_ddmmss(sh, sl, ah, al, bh, bl) \
   __asm__ ("sub{q} {%5,%1|%1,%5}\n\tsbb{q} {%3,%0|%0,%3}"		\
-	   : "=r" ((UDItype) (sh)),					\
-	     "=&r" ((UDItype) (sl))					\
-	   : "0" ((UDItype) (ah)),					\
-	     "rme" ((UDItype) (bh)),					\
-	     "1" ((UDItype) (al)),					\
-	     "rme" ((UDItype) (bl)))
+	   : "=r" __asm_arg_cast (UDItype, sh),				\
+	     "=&r" __asm_arg_cast (UDItype, sl)				\
+	   : "0" __asm_arg_cast (UDItype, ah),				\
+	     "rme" __asm_arg_cast (UDItype, bh),			\
+	     "1" __asm_arg_cast (UDItype, al),				\
+	     "rme" __asm_arg_cast (UDItype, bl))
 #define umul_ppmm(w1, w0, u, v) \
   __asm__ ("mul{q} %3"							\
-	   : "=a" ((UDItype) (w0)),					\
-	     "=d" ((UDItype) (w1))					\
-	   : "%0" ((UDItype) (u)),					\
-	     "rm" ((UDItype) (v)))
+	   : "=a" __asm_arg_cast (UDItype, w0),				\
+	     "=d" __asm_arg_cast (UDItype, w1)				\
+	   : "%0" __asm_arg_cast (UDItype, u),				\
+	     "rm" __asm_arg_cast (UDItype, v))
 #define udiv_qrnnd(q, r, n1, n0, dv) \
   __asm__ ("div{q} %4"							\
-	   : "=a" ((UDItype) (q)),					\
-	     "=d" ((UDItype) (r))					\
-	   : "0" ((UDItype) (n0)),					\
-	     "1" ((UDItype) (n1)),					\
-	     "rm" ((UDItype) (dv)))
+	   : "=a" __asm_arg_cast (UDItype, q),				\
+	     "=d" __asm_arg_cast (UDItype, r)				\
+	   : "0" __asm_arg_cast (UDItype, n0),				\
+	     "1" __asm_arg_cast (UDItype, n1),				\
+	     "rm" __asm_arg_cast (UDItype, dv))
 #define count_leading_zeros(count, x)	((count) = __builtin_clzll (x))
 #define count_trailing_zeros(count, x)	((count) = __builtin_ctzll (x))
 #define UMUL_TIME 40
@@ -532,15 +538,15 @@ extern UDItype __umulsidi3 (USItype, USItype);
 	  } __xx;							\
   __asm__ ("emul	%2,%1,%0"					\
 	   : "=d" (__xx.__ll)						\
-	   : "%dI" ((USItype) (u)),					\
-	     "dI" ((USItype) (v)));					\
+	   : "%dI" __asm_arg_cast (USItype, u),				\
+	     "dI" __asm_arg_cast (USItype, v));				\
   (w1) = __xx.__i.__h; (w0) = __xx.__i.__l;})
 #define __umulsidi3(u, v) \
   ({UDItype __w;							\
     __asm__ ("emul	%2,%1,%0"					\
 	     : "=d" (__w)						\
-	     : "%dI" ((USItype) (u)),					\
-	       "dI" ((USItype) (v)));					\
+	     : "%dI" __asm_arg_cast (USItype, u),			\
+	       "dI" __asm_arg_cast (USItype, v));			\
     __w; })
 #endif /* __i960__ */
 
@@ -593,83 +599,71 @@ extern UDItype __umulsidi3 (USItype, USItype);
 #define UMUL_TIME 14
 #endif
 
-#ifdef __loongarch__
-# if W_TYPE_SIZE == 32
-#  define count_leading_zeros(count, x)  ((count) = __builtin_clz (x))
-#  define count_trailing_zeros(count, x) ((count) = __builtin_ctz (x))
-#  define COUNT_LEADING_ZEROS_0 32
-# elif W_TYPE_SIZE == 64
-#  define count_leading_zeros(count, x)  ((count) = __builtin_clzll (x))
-#  define count_trailing_zeros(count, x) ((count) = __builtin_ctzll (x))
-#  define COUNT_LEADING_ZEROS_0 64
-# endif
-#endif
-
 #if defined (__M32R__) && W_TYPE_SIZE == 32
 #define add_ssaaaa(sh, sl, ah, al, bh, bl) \
   /* The cmp clears the condition bit.  */ \
   __asm__ ("cmp %0,%0\n\taddx %1,%5\n\taddx %0,%3"			\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "0" ((USItype) (ah)),					\
-	     "r" ((USItype) (bh)),					\
-	     "1" ((USItype) (al)),					\
-	     "r" ((USItype) (bl))					\
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "0" __asm_arg_cast (USItype, ah),				\
+	     "r" __asm_arg_cast (USItype, bh),				\
+	     "1" __asm_arg_cast (USItype, al),				\
+	     "r" __asm_arg_cast (USItype, bl)				\
 	   : "cbit")
 #define sub_ddmmss(sh, sl, ah, al, bh, bl) \
   /* The cmp clears the condition bit.  */ \
   __asm__ ("cmp %0,%0\n\tsubx %1,%5\n\tsubx %0,%3"			\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "0" ((USItype) (ah)),					\
-	     "r" ((USItype) (bh)),					\
-	     "1" ((USItype) (al)),					\
-	     "r" ((USItype) (bl))					\
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "0" __asm_arg_cast (USItype, ah),				\
+	     "r" __asm_arg_cast (USItype, bh),				\
+	     "1" __asm_arg_cast (USItype, al),				\
+	     "r" __asm_arg_cast (USItype, bl)				\
 	   : "cbit")
 #endif /* __M32R__ */
 
 #if defined (__mc68000__) && W_TYPE_SIZE == 32
 #define add_ssaaaa(sh, sl, ah, al, bh, bl) \
   __asm__ ("add%.l %5,%1\n\taddx%.l %3,%0"				\
-	   : "=d" ((USItype) (sh)),					\
-	     "=&d" ((USItype) (sl))					\
-	   : "%0" ((USItype) (ah)),					\
-	     "d" ((USItype) (bh)),					\
-	     "%1" ((USItype) (al)),					\
-	     "g" ((USItype) (bl)))
+	   : "=d" __asm_arg_cast (USItype, sh),				\
+	     "=&d" __asm_arg_cast (USItype, sl)				\
+	   : "%0" __asm_arg_cast (USItype, ah),				\
+	     "d" __asm_arg_cast (USItype, bh),				\
+	     "%1" __asm_arg_cast (USItype, al),				\
+	     "g" __asm_arg_cast (USItype, bl))
 #define sub_ddmmss(sh, sl, ah, al, bh, bl) \
   __asm__ ("sub%.l %5,%1\n\tsubx%.l %3,%0"				\
-	   : "=d" ((USItype) (sh)),					\
-	     "=&d" ((USItype) (sl))					\
-	   : "0" ((USItype) (ah)),					\
-	     "d" ((USItype) (bh)),					\
-	     "1" ((USItype) (al)),					\
-	     "g" ((USItype) (bl)))
+	   : "=d" __asm_arg_cast (USItype, sh),				\
+	     "=&d" __asm_arg_cast (USItype, sl)				\
+	   : "0" __asm_arg_cast (USItype, ah),				\
+	     "d" __asm_arg_cast (USItype, bh),				\
+	     "1" __asm_arg_cast (USItype, al),				\
+	     "g" __asm_arg_cast (USItype, bl))
 
 /* The '020, '030, '040, '060 and CPU32 have 32x32->64 and 64/32->32q-32r.  */
 #if (defined (__mc68020__) && !defined (__mc68060__))
 #define umul_ppmm(w1, w0, u, v) \
   __asm__ ("mulu%.l %3,%1:%0"						\
-	   : "=d" ((USItype) (w0)),					\
-	     "=d" ((USItype) (w1))					\
-	   : "%0" ((USItype) (u)),					\
-	     "dmi" ((USItype) (v)))
+	   : "=d" __asm_arg_cast (USItype, w0),				\
+	     "=d" __asm_arg_cast (USItype, w1)				\
+	   : "%0" __asm_arg_cast (USItype, u),				\
+	     "dmi" __asm_arg_cast (USItype, v))
 #define UMUL_TIME 45
 #define udiv_qrnnd(q, r, n1, n0, d) \
   __asm__ ("divu%.l %4,%1:%0"						\
-	   : "=d" ((USItype) (q)),					\
-	     "=d" ((USItype) (r))					\
-	   : "0" ((USItype) (n0)),					\
-	     "1" ((USItype) (n1)),					\
-	     "dmi" ((USItype) (d)))
+	   : "=d" __asm_arg_cast (USItype, q),				\
+	     "=d" __asm_arg_cast (USItype, r)				\
+	   : "0" __asm_arg_cast (USItype, n0),				\
+	     "1" __asm_arg_cast (USItype, n1),				\
+	     "dmi" __asm_arg_cast (USItype, d))
 #define UDIV_TIME 90
 #define sdiv_qrnnd(q, r, n1, n0, d) \
   __asm__ ("divs%.l %4,%1:%0"						\
-	   : "=d" ((USItype) (q)),					\
-	     "=d" ((USItype) (r))					\
-	   : "0" ((USItype) (n0)),					\
-	     "1" ((USItype) (n1)),					\
-	     "dmi" ((USItype) (d)))
+	   : "=d" __asm_arg_cast (USItype, q),				\
+	     "=d" __asm_arg_cast (USItype, r)				\
+	   : "0" __asm_arg_cast (USItype, n0),				\
+	     "1" __asm_arg_cast (USItype, n1),				\
+	     "dmi" __asm_arg_cast (USItype, d))
 
 #elif defined (__mcoldfire__) /* not mc68020 */
 
@@ -700,10 +694,10 @@ extern UDItype __umulsidi3 (USItype, USItype);
 	   "	move%.l	%/d2,%1\n"					\
 	   "	add%.l	%/d1,%/d0\n"					\
 	   "	move%.l	%/d0,%0"					\
-	   : "=g" ((USItype) (xh)),					\
-	     "=g" ((USItype) (xl))					\
-	   : "g" ((USItype) (a)),					\
-	     "g" ((USItype) (b))					\
+	   : "=g" __asm_arg_cast (USItype, xh),				\
+	     "=g" __asm_arg_cast (USItype, xl)				\
+	   : "g" __asm_arg_cast (USItype, a),				\
+	     "g" __asm_arg_cast (USItype, b)				\
 	   : "d0", "d1", "d2", "d3", "d4")
 #define UMUL_TIME 100
 #define UDIV_TIME 400
@@ -736,10 +730,10 @@ extern UDItype __umulsidi3 (USItype, USItype);
 	   "	move%.l	%/d2,%1\n"					\
 	   "	add%.l	%/d1,%/d0\n"					\
 	   "	move%.l	%/d0,%0"					\
-	   : "=g" ((USItype) (xh)),					\
-	     "=g" ((USItype) (xl))					\
-	   : "g" ((USItype) (a)),					\
-	     "g" ((USItype) (b))					\
+	   : "=g" __asm_arg_cast (USItype, xh),				\
+	     "=g" __asm_arg_cast (USItype, xl)				\
+	   : "g" __asm_arg_cast (USItype, a),				\
+	     "g" __asm_arg_cast (USItype, b)				\
 	   : "d0", "d1", "d2", "d3", "d4")
 #define UMUL_TIME 100
 #define UDIV_TIME 400
@@ -764,26 +758,26 @@ extern UDItype __umulsidi3 (USItype, USItype);
 #if defined (__m88000__) && W_TYPE_SIZE == 32
 #define add_ssaaaa(sh, sl, ah, al, bh, bl) \
   __asm__ ("addu.co %1,%r4,%r5\n\taddu.ci %0,%r2,%r3"			\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "%rJ" ((USItype) (ah)),					\
-	     "rJ" ((USItype) (bh)),					\
-	     "%rJ" ((USItype) (al)),					\
-	     "rJ" ((USItype) (bl)))
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "%rJ" __asm_arg_cast (USItype, ah),			\
+	     "rJ" __asm_arg_cast (USItype, bh),				\
+	     "%rJ" __asm_arg_cast (USItype, al),			\
+	     "rJ" __asm_arg_cast (USItype, bl))
 #define sub_ddmmss(sh, sl, ah, al, bh, bl) \
   __asm__ ("subu.co %1,%r4,%r5\n\tsubu.ci %0,%r2,%r3"			\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "rJ" ((USItype) (ah)),					\
-	     "rJ" ((USItype) (bh)),					\
-	     "rJ" ((USItype) (al)),					\
-	     "rJ" ((USItype) (bl)))
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "rJ" __asm_arg_cast (USItype, ah),				\
+	     "rJ" __asm_arg_cast (USItype, bh),				\
+	     "rJ" __asm_arg_cast (USItype, al),				\
+	     "rJ" __asm_arg_cast (USItype, bl))
 #define count_leading_zeros(count, x) \
   do {									\
     USItype __cbtmp;							\
     __asm__ ("ff1 %0,%1"						\
 	     : "=r" (__cbtmp)						\
-	     : "r" ((USItype) (x)));					\
+	     : "r" __asm_arg_cast (USItype, x));			\
     (count) = __cbtmp ^ 31;						\
   } while (0)
 #define COUNT_LEADING_ZEROS_0 63 /* sic */
@@ -795,8 +789,8 @@ extern UDItype __umulsidi3 (USItype, USItype);
 	  } __xx;							\
     __asm__ ("mulu.d	%0,%1,%2"					\
 	     : "=r" (__xx.__ll)						\
-	     : "r" ((USItype) (u)),					\
-	       "r" ((USItype) (v)));					\
+	     : "r" __asm_arg_cast (USItype, u),				\
+	       "r" __asm_arg_cast (USItype, v));			\
     (wh) = __xx.__i.__h;						\
     (wl) = __xx.__i.__l;						\
   } while (0)
@@ -809,7 +803,7 @@ extern UDItype __umulsidi3 (USItype, USItype);
   __asm__ ("divu.d %0,%1,%2"						\
 	   : "=r" (__q)							\
 	   : "r" (__xx.__ll),						\
-	     "r" ((USItype) (d)));					\
+	     "r" __asm_arg_cast (USItype, d));				\
   (r) = (n0) - __q * (d); (q) = __q; })
 #define UMUL_TIME 5
 #define UDIV_TIME 25
@@ -1000,20 +994,20 @@ extern UDItype __umulsidi3 (USItype, USItype);
 #if defined (__ibm032__) /* RT/ROMP */ && W_TYPE_SIZE == 32
 #define add_ssaaaa(sh, sl, ah, al, bh, bl) \
   __asm__ ("a %1,%5\n\tae %0,%3"					\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "%0" ((USItype) (ah)),					\
-	     "r" ((USItype) (bh)),					\
-	     "%1" ((USItype) (al)),					\
-	     "r" ((USItype) (bl)))
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "%0" __asm_arg_cast (USItype, ah),				\
+	     "r" __asm_arg_cast (USItype, bh),				\
+	     "%1" __asm_arg_cast (USItype, al),				\
+	     "r" __asm_arg_cast (USItype, bl))
 #define sub_ddmmss(sh, sl, ah, al, bh, bl) \
   __asm__ ("s %1,%5\n\tse %0,%3"					\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "0" ((USItype) (ah)),					\
-	     "r" ((USItype) (bh)),					\
-	     "1" ((USItype) (al)),					\
-	     "r" ((USItype) (bl)))
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "0" __asm_arg_cast (USItype, ah),				\
+	     "r" __asm_arg_cast (USItype, bh),				\
+	     "1" __asm_arg_cast (USItype, al),				\
+	     "r" __asm_arg_cast (USItype, bl))
 #define umul_ppmm(ph, pl, m0, m1) \
   do {									\
     USItype __m0 = (m0), __m1 = (m1);					\
@@ -1038,8 +1032,8 @@ extern UDItype __umulsidi3 (USItype, USItype);
 "	m	r2,%3\n"						\
 "	cas	%0,r2,r0\n"						\
 "	mfs	r10,%1"							\
-	     : "=r" ((USItype) (ph)),					\
-	       "=r" ((USItype) (pl))					\
+	     : "=r" __asm_arg_cast (USItype, ph),			\
+	       "=r" __asm_arg_cast (USItype, pl)			\
 	     : "%r" (__m0),						\
 		"r" (__m1)						\
 	     : "r2");							\
@@ -1052,13 +1046,13 @@ extern UDItype __umulsidi3 (USItype, USItype);
   do {									\
     if ((x) >= 0x10000)							\
       __asm__ ("clz	%0,%1"						\
-	       : "=r" ((USItype) (count))				\
-	       : "r" ((USItype) (x) >> 16));				\
+	       : "=r" __asm_arg_cast (USItype, count)			\
+	       : "r" __asm_arg_cast (USItype, x) >> 16);		\
     else								\
       {									\
 	__asm__ ("clz	%0,%1"						\
-		 : "=r" ((USItype) (count))				\
-		 : "r" ((USItype) (x)));					\
+		 : "=r" __asm_arg_cast (USItype, count)			\
+		 : "r" __asm_arg_cast (USItype, x));			\
 	(count) += 16;							\
       }									\
   } while (0)
@@ -1119,10 +1113,10 @@ extern UDItype __umulsidi3 (USItype, USItype);
 #define umul_ppmm(w1, w0, u, v) \
   __asm__ (								\
        "dmulu.l	%2,%3\n\tsts%M1	macl,%1\n\tsts%M0	mach,%0"	\
-	   : "=r<" ((USItype)(w1)),					\
-	     "=r<" ((USItype)(w0))					\
-	   : "r" ((USItype)(u)),					\
-	     "r" ((USItype)(v))						\
+	   : "=r<" __asm_arg_cast (USItype, w1),			\
+	     "=r<" __asm_arg_cast (USItype, w0)				\
+	   : "r" __asm_arg_cast (USItype, u),				\
+	     "r" __asm_arg_cast (USItype, v)				\
 	   : "macl", "mach")
 #define UMUL_TIME 5
 #endif
@@ -1191,21 +1185,21 @@ extern UDItype __umulsidi3 (USItype, USItype);
     && W_TYPE_SIZE == 32
 #define add_ssaaaa(sh, sl, ah, al, bh, bl) \
   __asm__ ("addcc %r4,%5,%1\n\taddx %r2,%3,%0"				\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "%rJ" ((USItype) (ah)),					\
-	     "rI" ((USItype) (bh)),					\
-	     "%rJ" ((USItype) (al)),					\
-	     "rI" ((USItype) (bl))					\
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "%rJ" __asm_arg_cast (USItype, ah),			\
+	     "rI" __asm_arg_cast (USItype, bh),				\
+	     "%rJ" __asm_arg_cast (USItype, al),			\
+	     "rI" __asm_arg_cast (USItype, bl)				\
 	   __CLOBBER_CC)
 #define sub_ddmmss(sh, sl, ah, al, bh, bl) \
   __asm__ ("subcc %r4,%5,%1\n\tsubx %r2,%3,%0"				\
-	   : "=r" ((USItype) (sh)),					\
-	     "=&r" ((USItype) (sl))					\
-	   : "rJ" ((USItype) (ah)),					\
-	     "rI" ((USItype) (bh)),					\
-	     "rJ" ((USItype) (al)),					\
-	     "rI" ((USItype) (bl))					\
+	   : "=r" __asm_arg_cast (USItype, sh),				\
+	     "=&r" __asm_arg_cast (USItype, sl)				\
+	   : "rJ" __asm_arg_cast (USItype, ah),				\
+	     "rI" __asm_arg_cast (USItype, bh),				\
+	     "rJ" __asm_arg_cast (USItype, al),				\
+	     "rI" __asm_arg_cast (USItype, bl)				\
 	   __CLOBBER_CC)
 #if defined (__sparc_v9__)
 #define umul_ppmm(w1, w0, u, v) \
@@ -1213,10 +1207,10 @@ extern UDItype __umulsidi3 (USItype, USItype);
     register USItype __g1 asm ("g1");					\
     __asm__ ("umul\t%2,%3,%1\n\t"					\
 	     "srlx\t%1, 32, %0"						\
-	     : "=r" ((USItype) (w1)),					\
+	     : "=r" __asm_arg_cast (USItype, w1),			\
 	       "=r" (__g1)						\
-	     : "r" ((USItype) (u)),					\
-	       "r" ((USItype) (v)));					\
+	     : "r" __asm_arg_cast (USItype, u),				\
+	       "r" __asm_arg_cast (USItype, v));			\
     (w0) = __g1;							\
   } while (0)
 #define udiv_qrnnd(__q, __r, __n1, __n0, __d) \
@@ -1224,36 +1218,36 @@ extern UDItype __umulsidi3 (USItype, USItype);
 	   "udiv\t%3,%4,%0\n\t"						\
 	   "umul\t%0,%4,%1\n\t"						\
 	   "sub\t%3,%1,%1"						\
-	   : "=&r" ((USItype) (__q)),					\
-	     "=&r" ((USItype) (__r))					\
-	   : "r" ((USItype) (__n1)),					\
-	     "r" ((USItype) (__n0)),					\
-	     "r" ((USItype) (__d)))
+	   : "=&r" __asm_arg_cast (USItype, __q),			\
+	     "=&r" __asm_arg_cast (USItype, __r)			\
+	   : "r" __asm_arg_cast (USItype, __n1),			\
+	     "r" __asm_arg_cast (USItype, __n0),			\
+	     "r" __asm_arg_cast (USItype, __d))
 #else
 #if defined (__sparc_v8__)
 #define umul_ppmm(w1, w0, u, v) \
   __asm__ ("umul %2,%3,%1;rd %%y,%0"					\
-	   : "=r" ((USItype) (w1)),					\
-	     "=r" ((USItype) (w0))					\
-	   : "r" ((USItype) (u)),					\
-	     "r" ((USItype) (v)))
+	   : "=r" __asm_arg_cast (USItype, w1),				\
+	     "=r" __asm_arg_cast (USItype, w0)				\
+	   : "r" __asm_arg_cast (USItype, u),				\
+	     "r" __asm_arg_cast (USItype, v))
 #define udiv_qrnnd(__q, __r, __n1, __n0, __d) \
   __asm__ ("mov %2,%%y;nop;nop;nop;udiv %3,%4,%0;umul %0,%4,%1;sub %3,%1,%1"\
-	   : "=&r" ((USItype) (__q)),					\
-	     "=&r" ((USItype) (__r))					\
-	   : "r" ((USItype) (__n1)),					\
-	     "r" ((USItype) (__n0)),					\
-	     "r" ((USItype) (__d)))
+	   : "=&r" __asm_arg_cast (USItype, __q),			\
+	     "=&r" __asm_arg_cast (USItype, __r)			\
+	   : "r" __asm_arg_cast (USItype, __n1),			\
+	     "r" __asm_arg_cast (USItype, __n0),			\
+	     "r" __asm_arg_cast (USItype, __d))
 #else
 #if defined (__sparclite__)
 /* This has hardware multiply but not divide.  It also has two additional
    instructions scan (ffs from high bit) and divscc.  */
 #define umul_ppmm(w1, w0, u, v) \
   __asm__ ("umul %2,%3,%1;rd %%y,%0"					\
-	   : "=r" ((USItype) (w1)),					\
-	     "=r" ((USItype) (w0))					\
-	   : "r" ((USItype) (u)),					\
-	     "r" ((USItype) (v)))
+	   : "=r" __asm_arg_cast (USItype, w1),				\
+	     "=r" __asm_arg_cast (USItype, w0)				\
+	   : "r" __asm_arg_cast (USItype, u),				\
+	     "r" __asm_arg_cast (USItype, v))
 #define udiv_qrnnd(q, r, n1, n0, d) \
   __asm__ ("! Inlined udiv_qrnnd\n"					\
 "	wr	%%g0,%2,%%y	! Not a delayed write for sparclite\n"	\
@@ -1294,18 +1288,18 @@ extern UDItype __umulsidi3 (USItype, USItype);
 "	bl,a 1f\n"							\
 "	add	%1,%4,%1\n"						\
 "1:	! End of inline udiv_qrnnd"					\
-	   : "=r" ((USItype) (q)),					\
-	     "=r" ((USItype) (r))					\
-	   : "r" ((USItype) (n1)),					\
-	     "r" ((USItype) (n0)),					\
-	     "rI" ((USItype) (d))					\
+	   : "=r" __asm_arg_cast (USItype, q),				\
+	     "=r" __asm_arg_cast (USItype, r)				\
+	   : "r" __asm_arg_cast (USItype, n1),				\
+	     "r" __asm_arg_cast (USItype, n0),				\
+	     "rI" __asm_arg_cast (USItype, d)				\
 	   : "g1" __AND_CLOBBER_CC)
 #define UDIV_TIME 37
 #define count_leading_zeros(count, x) \
   do {                                                                  \
   __asm__ ("scan %1,1,%0"                                               \
-	   : "=r" ((USItype) (count))                                   \
-	   : "r" ((USItype) (x)));					\
+	   : "=r" __asm_arg_cast (USItype, count)                       \
+	   : "r" __asm_arg_cast (USItype, x));				\
   } while (0)
 /* Early sparclites return 63 for an argument of 0, but they warn that future
    implementations might change this.  Therefore, leave COUNT_LEADING_ZEROS_0
@@ -1354,10 +1348,10 @@ extern UDItype __umulsidi3 (USItype, USItype);
 "	mulscc	%%g1,0,%%g1\n"						\
 "	add	%%g1,%%o5,%0\n"						\
 "	rd	%%y,%1"							\
-	   : "=r" ((USItype) (w1)),					\
-	     "=r" ((USItype) (w0))					\
-	   : "%rI" ((USItype) (u)),					\
-	     "r" ((USItype) (v))						\
+	   : "=r" __asm_arg_cast (USItype, w1),				\
+	     "=r" __asm_arg_cast (USItype, w0)				\
+	   : "%rI" __asm_arg_cast (USItype, u),				\
+	     "r" __asm_arg_cast (USItype, v)				\
 	   : "g1", "o5" __AND_CLOBBER_CC)
 #define UMUL_TIME 39		/* 39 instructions */
 /* It's quite necessary to add this much assembler for the sparc.
@@ -1387,11 +1381,11 @@ extern UDItype __umulsidi3 (USItype, USItype);
 "	sub	%1,%2,%1\n"						\
 "3:	xnor	%0,0,%0\n"						\
 "	! End of inline udiv_qrnnd"					\
-	   : "=&r" ((USItype) (__q)),					\
-	     "=&r" ((USItype) (__r))					\
-	   : "r" ((USItype) (__d)),					\
-	     "1" ((USItype) (__n1)),					\
-	     "0" ((USItype) (__n0)) : "g1" __AND_CLOBBER_CC)
+	   : "=&r" __asm_arg_cast (USItype, __q),			\
+	     "=&r" __asm_arg_cast (USItype, __r)			\
+	   : "r" __asm_arg_cast (USItype, __d),				\
+	     "1" __asm_arg_cast (USItype, __n1),			\
+	     "0" __asm_arg_cast (USItype, __n0) : "g1" __AND_CLOBBER_CC)
 #define UDIV_TIME (3+7*32)	/* 7 instructions/iteration. 32 iterations.  */
 #endif /* __sparclite__ */
 #endif /* __sparc_v8__ */
@@ -1407,13 +1401,13 @@ extern UDItype __umulsidi3 (USItype, USItype);
 	     "add\t%r3,%4,%0\n\t"					\
 	     "movcs\t%%xcc, 1, %2\n\t"					\
 	     "add\t%0, %2, %0"						\
-	     : "=r" ((UDItype)(sh)),				      	\
-	       "=&r" ((UDItype)(sl)),				      	\
+	     : "=r" __asm_arg_cast (UDItype, sh),		      	\
+	       "=&r" __asm_arg_cast (UDItype, sl),		      	\
 	       "+r" (__carry)				      		\
-	     : "%rJ" ((UDItype)(ah)),				     	\
-	       "rI" ((UDItype)(bh)),				      	\
-	       "%rJ" ((UDItype)(al)),				     	\
-	       "rI" ((UDItype)(bl))				       	\
+	     : "%rJ" __asm_arg_cast (UDItype, ah),		     	\
+	       "rI" __asm_arg_cast (UDItype, bh),		      	\
+	       "%rJ" __asm_arg_cast (UDItype, al),		     	\
+	       "rI" __asm_arg_cast (UDItype, bl)		       	\
 	     __CLOBBER_CC);						\
   } while (0)
 
@@ -1424,13 +1418,13 @@ extern UDItype __umulsidi3 (USItype, USItype);
 	     "sub\t%r3,%4,%0\n\t"					\
 	     "movcs\t%%xcc, 1, %2\n\t"					\
 	     "sub\t%0, %2, %0"						\
-	     : "=r" ((UDItype)(sh)),				      	\
-	       "=&r" ((UDItype)(sl)),				      	\
+	     : "=r" __asm_arg_cast (UDItype, sh),		      	\
+	       "=&r" __asm_arg_cast (UDItype, sl),		      	\
 	       "+r" (__carry)				      		\
-	     : "%rJ" ((UDItype)(ah)),				     	\
-	       "rI" ((UDItype)(bh)),				      	\
-	       "%rJ" ((UDItype)(al)),				     	\
-	       "rI" ((UDItype)(bl))				       	\
+	     : "%rJ" __asm_arg_cast (UDItype, ah),		     	\
+	       "rI" __asm_arg_cast (UDItype, bh),		      	\
+	       "%rJ" __asm_arg_cast (UDItype, al),		     	\
+	       "rI" __asm_arg_cast (UDItype, bl)		       	\
 	     __CLOBBER_CC);						\
   } while (0)
 
@@ -1459,11 +1453,11 @@ extern UDItype __umulsidi3 (USItype, USItype);
 		   "sllx %3,32,%3\n\t"					\
 		   "add %1,%3,%1\n\t"					\
 		   "add %5,%2,%0"					\
-	   : "=r" ((UDItype)(wh)),					\
-	     "=&r" ((UDItype)(wl)),					\
+	   : "=r" __asm_arg_cast (UDItype, wh),				\
+	     "=&r" __asm_arg_cast (UDItype, wl),			\
 	     "=&r" (tmp1), "=&r" (tmp2), "=&r" (tmp3), "=&r" (tmp4)	\
-	   : "r" ((UDItype)(u)),					\
-	     "r" ((UDItype)(v))						\
+	   : "r" __asm_arg_cast (UDItype, u),				\
+	     "r" __asm_arg_cast (UDItype, v)				\
 	   __CLOBBER_CC);						\
   } while (0)
 #define UMUL_TIME 96
@@ -1473,20 +1467,20 @@ extern UDItype __umulsidi3 (USItype, USItype);
 #if defined (__vax__) && W_TYPE_SIZE == 32
 #define add_ssaaaa(sh, sl, ah, al, bh, bl) \
   __asm__ ("addl2 %5,%1\n\tadwc %3,%0"					\
-	   : "=g" ((USItype) (sh)),					\
-	     "=&g" ((USItype) (sl))					\
-	   : "%0" ((USItype) (ah)),					\
-	     "g" ((USItype) (bh)),					\
-	     "%1" ((USItype) (al)),					\
-	     "g" ((USItype) (bl)))
+	   : "=g" __asm_arg_cast (USItype, sh),				\
+	     "=&g" __asm_arg_cast (USItype, sl)				\
+	   : "%0" __asm_arg_cast (USItype, ah),				\
+	     "g" __asm_arg_cast (USItype, bh),				\
+	     "%1" __asm_arg_cast (USItype, al),				\
+	     "g" __asm_arg_cast (USItype, bl))
 #define sub_ddmmss(sh, sl, ah, al, bh, bl) \
   __asm__ ("subl2 %5,%1\n\tsbwc %3,%0"					\
-	   : "=g" ((USItype) (sh)),					\
-	     "=&g" ((USItype) (sl))					\
-	   : "0" ((USItype) (ah)),					\
-	     "g" ((USItype) (bh)),					\
-	     "1" ((USItype) (al)),					\
-	     "g" ((USItype) (bl)))
+	   : "=g" __asm_arg_cast (USItype, sh),				\
+	     "=&g" __asm_arg_cast (USItype, sl)				\
+	   : "0" __asm_arg_cast (USItype, ah),				\
+	     "g" __asm_arg_cast (USItype, bh),				\
+	     "1" __asm_arg_cast (USItype, al),				\
+	     "g" __asm_arg_cast (USItype, bl))
 #define umul_ppmm(xh, xl, m0, m1) \
   do {									\
     union {								\
@@ -1587,20 +1581,20 @@ extern UHItype __stormy16_count_leading_zeros (UHItype);
 #if defined (__z8000__) && W_TYPE_SIZE == 16
 #define add_ssaaaa(sh, sl, ah, al, bh, bl) \
   __asm__ ("add	%H1,%H5\n\tadc	%H0,%H3"				\
-	   : "=r" ((unsigned int)(sh)),					\
-	     "=&r" ((unsigned int)(sl))					\
-	   : "%0" ((unsigned int)(ah)),					\
-	     "r" ((unsigned int)(bh)),					\
-	     "%1" ((unsigned int)(al)),					\
-	     "rQR" ((unsigned int)(bl)))
+	   : "=r" __asm_arg_cast (unsigned int, sh),			\
+	     "=&r" __asm_arg_cast (unsigned int, sl)			\
+	   : "%0" __asm_arg_cast (unsigned int, ah),			\
+	     "r" __asm_arg_cast (unsigned int, bh),			\
+	     "%1" __asm_arg_cast (unsigned int, al),			\
+	     "rQR" __asm_arg_cast (unsigned int, bl))
 #define sub_ddmmss(sh, sl, ah, al, bh, bl) \
   __asm__ ("sub	%H1,%H5\n\tsbc	%H0,%H3"				\
-	   : "=r" ((unsigned int)(sh)),					\
-	     "=&r" ((unsigned int)(sl))					\
-	   : "0" ((unsigned int)(ah)),					\
-	     "r" ((unsigned int)(bh)),					\
-	     "1" ((unsigned int)(al)),					\
-	     "rQR" ((unsigned int)(bl)))
+	   : "=r" __asm_arg_cast (unsigned int, sh),			\
+	     "=&r" __asm_arg_cast (unsigned int, sl)			\
+	   : "0" __asm_arg_cast (unsigned int, ah),			\
+	     "r" __asm_arg_cast (unsigned int, bh),			\
+	     "1" __asm_arg_cast (unsigned int, al),			\
+	     "rQR" __asm_arg_cast (unsigned int, bl))
 #define umul_ppmm(xh, xl, m0, m1) \
   do {									\
     union {long int __ll;						\
