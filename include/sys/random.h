@@ -1,3 +1,5 @@
+#include_next <sys/random.h>
+
 #ifndef _SYS_RANDOM_H
 #include <stdlib/sys/random.h>
 

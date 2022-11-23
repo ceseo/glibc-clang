@@ -47,6 +47,10 @@ setup_vdso_pointers (void)
 #ifdef HAVE_GET_TBFREQ
   GLRO(dl_vdso_get_tbfreq) = dl_vdso_vsym (HAVE_GET_TBFREQ);
 #endif
+
+#ifdef __NR_vgetrandom_alloc
+  GLRO(dl_vdso_getrandom) = dl_vdso_vsym ("__vdso_getrandom");
+#endif
 }
 
 #endif
