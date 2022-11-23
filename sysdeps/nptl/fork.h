@@ -25,6 +25,7 @@
 #include <list.h>
 #include <mqueue.h>
 #include <pthreadP.h>
+#include <getrandom.h>
 #include <sysdep.h>
 
 static inline void
@@ -46,6 +47,7 @@ fork_system_setup_after_fork (void)
 
   call_function_static_weak (__mq_notify_fork_subprocess);
   call_function_static_weak (__timer_fork_subprocess);
+  call_function_static_weak (__getrandom_fork_subprocess);
 }
 
 /* In case of a fork() call the memory allocation in the child will be

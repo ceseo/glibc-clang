@@ -73,6 +73,13 @@ PROCINFO_CLASS uint64_t (*_dl_vdso_get_tbfreq)(void) RELRO;
 # endif
 #endif
 
+#ifdef __NR_vgetrandom_alloc
+PROCINFO_CLASS ssize_t (*_dl_vdso_getrandom)(void *buffer, size_t len,
+					     unsigned int flags, void *state)
+     RELRO;
+#endif
+
+
 #undef RELRO
 #undef PROCINFO_DECL
 #undef PROCINFO_CLASS
