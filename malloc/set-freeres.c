@@ -22,6 +22,7 @@
 #include <unwind-link.h>
 #include <dlfcn/dlerror.h>
 #include <ldsodefs.h>
+#include <sys/random.h>
 
 #include "../nss/nsswitch.h"
 #include "../libio/libioP.h"
@@ -67,6 +68,7 @@ __libc_freeres (void)
 #endif
 
       call_function_static_weak (__libc_dlerror_result_free);
+      call_function_static_weak (__libc_getrandom_free);
 
 #ifdef SHARED
       GLRO (dl_libc_freeres) ();

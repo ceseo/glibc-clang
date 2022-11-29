@@ -16,6 +16,7 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <assert.h>
 #include <libc-lock.h>
 #include <sys/random.h>
 #include <sys/mman.h>
@@ -31,9 +32,15 @@
 static struct
 {
   __libc_lock_define (, lock);
-  void **states;
-  size_t len;
-  size_t cap;
+  struct grnd_allocator_map
+  {
+    void *p;
+    unsigned int num;
+    unsigned int size_per_each;
+    size_t len;
+    void **states;
+  } *maps;
+  unsigned int nmaps;
 } grnd_allocator =
 {
   .lock = LLL_LOCK_INITIALIZER
@@ -49,48 +56,97 @@ vgetrandom_alloc (unsigned int *num, unsigned int *size_per_each)
   return INTERNAL_SYSCALL_ERROR_P (r) ? MAP_FAILED : (void *) r;
 }
 
+static struct grnd_allocator_map *
+vgetrandom_new_map (unsigned int *idx, void * rnd_block, unsigned int num,
+		    unsigned int size_per_each)
+{
+  size_t new_nmapslen = (grnd_allocator.nmaps + 1)
+			* sizeof (struct grnd_allocator_map);
+  void *new_maps = realloc (grnd_allocator.maps, new_nmapslen);
+  if (new_maps == NULL)
+    return NULL;
+
+  void **new_states = malloc (num * sizeof (void *));
+  if (new_states == NULL)
+    return NULL;
+
+  *idx = grnd_allocator.nmaps;
+  grnd_allocator.maps = new_maps;
+
+  struct grnd_allocator_map *map = &grnd_allocator.maps[grnd_allocator.nmaps++];
+  map->p = rnd_block;
+  map->len = map->num = num;
+  map->size_per_each = size_per_each;
+  map->states = new_states;
+
+  return map;
+}
+
 static bool
 vgetrandom_get_state (struct tls_internal_t *ti)
 {
-  bool r = false;
+  struct grnd_allocator_map *map = NULL;
+  struct grnd_allocator_map *free_map = NULL;
+  unsigned int idx;
+  unsigned int free_idx;
 
   __libc_lock_lock (grnd_allocator.lock);
 
-  if (grnd_allocator.len == 0)
+  for (idx = 0; idx < grnd_allocator.nmaps; ++idx)
     {
-      /* Allocate the minumum size of an page.  */
-      unsigned int num = 1;
-      unsigned int size_per_each;
-      void *rnd_block = vgetrandom_alloc (&num, &size_per_each);
-      if (rnd_block == MAP_FAILED)
-	goto out;
-
-      size_t new_cap = grnd_allocator.cap + num;
-      void *new_states = __libc_reallocarray (grnd_allocator.states, new_cap,
-					      sizeof (*grnd_allocator.states));
-      if (new_states == NULL)
-       {
-	 __munmap (rnd_block, num * size_per_each);
-         goto out;
-       }
-
-      grnd_allocator.cap = new_cap;
-      grnd_allocator.states = new_states;
-
-      for (size_t i = 0; i < num; ++i)
-       {
-         grnd_allocator.states[i] = rnd_block;
-         rnd_block += size_per_each;
-       }
-      grnd_allocator.len = num;
+      if (grnd_allocator.maps[idx].len > 0)
+	{
+	  map = &grnd_allocator.maps[idx];
+	  goto out;
+	}
+      /* Also keep track of an available empty maps entry.  */
+      else if (grnd_allocator.maps[idx].p == 0ULL)
+	{
+	  free_map = &grnd_allocator.maps[idx];
+	  free_idx = idx;
+	}
     }
 
-  ti->getrandom_buf = grnd_allocator.states[--grnd_allocator.len];
-  r = true;
+  /* Allocate a new getrandom vDSO state vector and add it on the tracked
+     map list.  The 1 for num is to allocate the minumum size of an page.  */
+  unsigned int num = 1;
+  unsigned int size_per_each;
+  void *rnd_block = vgetrandom_alloc (&num, &size_per_each);
+  if (rnd_block == MAP_FAILED)
+    goto out;
+
+  /* Only extends the maps list if there is no empty entry available.  */
+  if (free_map == NULL)
+    map = vgetrandom_new_map (&idx, rnd_block, num, size_per_each);
+  else
+    {
+      map = free_map;
+      assert (map->num == num);
+      assert (map->size_per_each == size_per_each);
+      map->len = num;
+      idx = free_idx;
+    }
+
+  if (map != NULL)
+    {
+      for (size_t i = 0; i < num; ++i)
+	{
+	  map->states[i] = rnd_block;
+	  rnd_block += size_per_each;
+	}
+    }
+  else
+    __munmap (rnd_block, num * size_per_each);
 
 out:
+  if (map != NULL)
+    {
+      ti->getrandom_buf = map->states[--map->len];
+      ti->getrandom_idx = idx;
+    }
+
   __libc_lock_unlock (grnd_allocator.lock);
-  return r;
+  return map != NULL;
 }
 
 /* Return true if the syscall fallback should be issued in the case the vDSO
@@ -149,12 +205,22 @@ void
 __getrandom_vdso_release (void)
 {
 #ifdef __NR_vgetrandom_alloc
-  void *state = __glibc_tls_internal ()->getrandom_buf;
-  if (state == NULL)
+  struct tls_internal_t *ti = __glibc_tls_internal ();
+  if (ti->getrandom_buf == NULL)
     return;
 
   __libc_lock_lock (grnd_allocator.lock);
-  grnd_allocator.states[grnd_allocator.len++] = state;
+
+  struct grnd_allocator_map *map = &grnd_allocator.maps[ti->getrandom_idx];
+  map->states[map->len++] = ti->getrandom_buf;
+
+  if (map->len == map->num)
+    {
+      __munmap (map->p, map->num * map->size_per_each);
+      map->p = 0ULL;
+      map->len = 0;
+    }
+
   __libc_lock_unlock (grnd_allocator.lock);
 #endif
 }
@@ -164,5 +230,15 @@ __getrandom_fork_subprocess (void)
 {
 #ifdef __NR_vgetrandom_alloc
   grnd_allocator.lock = LLL_LOCK_INITIALIZER;
+#endif
+}
+
+void
+__libc_getrandom_free (void)
+{
+#ifdef __NR_vgetrandom_alloc
+  for (unsigned int i = 0; i < grnd_allocator.nmaps; i++)
+    free (grnd_allocator.maps[i].states);
+  free (grnd_allocator.maps);
 #endif
 }
