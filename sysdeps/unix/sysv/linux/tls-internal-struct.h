@@ -24,6 +24,7 @@ struct tls_internal_t
   char *strsignal_buf;
   char *strerror_l_buf;
   void *getrandom_buf;
+  unsigned int getrandom_idx;
 };
 
 #endif
