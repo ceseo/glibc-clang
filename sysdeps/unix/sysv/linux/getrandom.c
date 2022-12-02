@@ -208,6 +208,18 @@ __getrandom (void *buffer, size_t length, unsigned int flags)
 libc_hidden_def (__getrandom)
 weak_alias (__getrandom, getrandom)
 
+static inline void
+vgetrandom_dealloc (struct grnd_allocator_map *map)
+{
+  vgetrandom_alloc (
+    &(struct vgetrandom_alloc_args) { .flags = VGRA_DEALLOCATE,
+				      .states = map->p,
+				      .num = map->num,
+				      .size_per_each = map->spe });
+  map->p = 0ULL;
+  map->len = 0;
+}
+
 void
 __getrandom_vdso_release (void)
 {
@@ -222,15 +234,7 @@ __getrandom_vdso_release (void)
   map->states[map->len++] = ti->getrandom_buf;
 
   if (map->len == map->num)
-    {
-      vgetrandom_alloc (
-	&(struct vgetrandom_alloc_args) { .flags = VGRA_DEALLOCATE,
-					  .states = map->p,
-					  .num = map->num,
-					  .size_per_each = map->spe });
-      map->p = 0ULL;
-      map->len = 0;
-    }
+    vgetrandom_dealloc (map);
 
   __libc_lock_unlock (grnd_allocator.lock);
 #endif
@@ -240,4 +244,11 @@ void
 __getrandom_fork_subprocess (void)
 {
   grnd_allocator.lock = LLL_LOCK_INITIALIZER;
+
+  /* Also free any vgetrandom_alloc map that is not associated with current
+     thread.  */
+  unsigned int idx = __glibc_tls_internal ()->getrandom_idx;
+  for (size_t i = 0; i < grnd_allocator.nmaps; i++)
+    if (i != idx)
+      vgetrandom_dealloc (&grnd_allocator.maps[i]);
 }
