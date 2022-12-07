@@ -27,7 +27,7 @@
 #include <ldsodefs.h>
 #include <tls-internal.h>
 
-#ifdef __NR_vgetrandom_alloc
+#ifdef HAVE_GETRANDOM_VSYSCALL
 
 static struct
 {
@@ -171,12 +171,12 @@ __getrandom_internal (ssize_t *ret, void *buffer, size_t length,
     }
   return true;
 }
-#endif
+#endif /* HAVE_GETRANDOM_VSYSCALL */
 
 ssize_t
 __getrandom_nocancel (void *buffer, size_t length, unsigned int flags)
 {
-#ifdef __NR_vgetrandom_alloc
+#ifdef HAVE_GETRANDOM_VSYSCALL
   ssize_t r;
   if (__getrandom_internal (&r, buffer, length, flags))
     return r;
@@ -190,7 +190,7 @@ __getrandom_nocancel (void *buffer, size_t length, unsigned int flags)
 ssize_t
 __getrandom (void *buffer, size_t length, unsigned int flags)
 {
-#ifdef __NR_vgetrandom_alloc
+#ifdef HAVE_GETRANDOM_VSYSCALL
   ssize_t r;
   if (__getrandom_internal (&r, buffer, length, flags))
     return r;
@@ -201,7 +201,7 @@ __getrandom (void *buffer, size_t length, unsigned int flags)
 libc_hidden_def (__getrandom)
 weak_alias (__getrandom, getrandom)
 
-#ifdef __NR_vgetrandom_alloc
+#ifdef HAVE_GETRANDOM_VSYSCALL
 static inline void
 vgetrandom_dealloc (struct grnd_allocator_map *map)
 {
@@ -214,7 +214,7 @@ vgetrandom_dealloc (struct grnd_allocator_map *map)
 void
 __getrandom_vdso_release (void)
 {
-#ifdef __NR_vgetrandom_alloc
+#ifdef HAVE_GETRANDOM_VSYSCALL
   struct tls_internal_t *ti = __glibc_tls_internal ();
   if (ti->getrandom_buf == NULL)
     return;
@@ -234,7 +234,7 @@ __getrandom_vdso_release (void)
 void
 __getrandom_fork_subprocess (void)
 {
-#ifdef __NR_vgetrandom_alloc
+#ifdef HAVE_GETRANDOM_VSYSCALL
   grnd_allocator.lock = LLL_LOCK_INITIALIZER;
 
   /* Also free any vgetrandom_alloc map that is not associated with current
@@ -254,7 +254,7 @@ __getrandom_fork_subprocess (void)
 void
 __libc_getrandom_free (void)
 {
-#ifdef __NR_vgetrandom_alloc
+#ifdef HAVE_GETRANDOM_VSYSCALL
   for (unsigned int i = 0; i < grnd_allocator.nmaps; i++)
     free (grnd_allocator.maps[i].states);
   free (grnd_allocator.maps);

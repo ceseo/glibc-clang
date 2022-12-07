@@ -163,6 +163,7 @@
 # define HAVE_CLOCK_GETRES64_VSYSCALL	"__kernel_clock_getres"
 # define HAVE_CLOCK_GETTIME64_VSYSCALL	"__kernel_clock_gettime"
 # define HAVE_GETTIMEOFDAY_VSYSCALL	"__kernel_gettimeofday"
+# define HAVE_GETRANDOM_VSYSCALL	"__kernel_getrandom"
 
 # undef INTERNAL_SYSCALL_RAW
 # define INTERNAL_SYSCALL_RAW(name, nr, args...)		\

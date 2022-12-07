@@ -291,6 +291,7 @@
 #define __NR_timerfd_settime 86
 #define __NR_times 153
 #define __NR_tkill 130
+#define __NR_vgetrandom_alloc 451
 #define __NR_truncate 45
 #define __NR_umask 166
 #define __NR_umount2 39
