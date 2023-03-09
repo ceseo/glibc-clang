@@ -110,6 +110,95 @@ issignalingf_inline (float x)
   return 2 * (ix ^ 0x00400000) > 2 * 0x7fc00000UL;
 }
 
+#define BIT_WIDTH       32
+#define MANTISSA_WIDTH  23
+#define EXPONENT_WIDTH  8
+#define MANTISSA_MASK   0x007fffff
+#define EXPONENT_MASK   0x7f800000
+#define EXP_MANT_MASK   0x7fffffff
+#define QUIET_NAN_MASK  0x00400000
+#define SIGN_MASK       0x80000000
+
+static inline bool
+is_nan (uint32_t x)
+{
+  return (x & EXP_MANT_MASK) > EXPONENT_MASK;
+}
+
+static inline bool
+is_quiet_nan (uint32_t x)
+{
+   return (x & EXP_MANT_MASK) == (EXPONENT_MASK | QUIET_NAN_MASK);
+}
+
+static inline bool
+is_inf_or_nan (uint32_t x)
+{
+  return (x & EXPONENT_MASK) == EXPONENT_MASK;
+}
+
+static inline uint16_t
+get_unbiased_exponent (uint32_t x)
+{
+  return (x & EXPONENT_MASK) >> MANTISSA_WIDTH;
+}
+
+/* Return mantissa with the implicit bit set iff X is a normal number.  */
+static inline uint32_t
+get_explicit_mantissa (uint32_t x)
+{
+  uint32_t p1 = (get_unbiased_exponent (x) > 0 && !is_inf_or_nan (x)
+    ? (MANTISSA_MASK + 1) : 0);
+  uint32_t p2 = (x & MANTISSA_MASK);
+  return p1 | p2;
+}
+
+static inline uint32_t
+set_mantissa (uint32_t x, uint32_t m)
+{
+  m &= MANTISSA_MASK;
+  x &= ~(MANTISSA_MASK);
+  return x |= m;
+}
+
+static inline uint32_t
+get_mantissa (uint32_t x)
+{
+  return x & MANTISSA_MASK;
+}
+
+static inline uint32_t
+set_unbiased_exponent (uint32_t x, uint32_t e)
+{
+  e = (e << MANTISSA_WIDTH) & EXPONENT_MASK;
+  x &= ~(EXPONENT_MASK);
+  return x |= e;
+}
+
+/* Convert integer number X, unbiased exponent EP, and sign S to double:
+
+   result = X * 2^(EP+1 - exponent_bias)
+
+   NB: zero is not supported.  */
+static inline double
+make_float (uint32_t x, int ep, uint32_t s)
+{
+  int lz = __builtin_clz (x) - EXPONENT_WIDTH;
+  x <<= lz;
+  ep -= lz;
+
+  uint32_t r = 0;
+  if (__glibc_likely (ep >= 0))
+    {
+      r = set_mantissa (r, x);
+      r = set_unbiased_exponent (r, ep + 1);
+    }
+  else
+    r = set_mantissa (r, x >> -ep);
+
+  return asfloat (r | s);
+}
+
 #define NOINLINE __attribute__ ((noinline))
 
 attribute_hidden float __math_oflowf (uint32_t);
