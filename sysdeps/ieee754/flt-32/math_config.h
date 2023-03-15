@@ -125,6 +125,12 @@ is_nan (uint32_t x)
   return (x & EXP_MANT_MASK) > EXPONENT_MASK;
 }
 
+static inline bool
+is_inf (uint32_t x)
+{
+  return (x & EXP_MANT_MASK) == EXPONENT_MASK;
+}
+
 static inline uint32_t
 get_mantissa (uint32_t x)
 {
@@ -158,6 +164,7 @@ attribute_hidden float __math_uflowf (uint32_t);
 attribute_hidden float __math_may_uflowf (uint32_t);
 attribute_hidden float __math_divzerof (uint32_t);
 attribute_hidden float __math_invalidf (float);
+attribute_hidden float __math_edom (float x);
 
 /* Shared between expf, exp2f, exp10f, and powf.  */
 #define EXP2F_TABLE_BITS 5

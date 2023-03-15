@@ -121,6 +121,12 @@ is_nan (uint64_t x)
   return (x & EXP_MANT_MASK) > EXPONENT_MASK;
 }
 
+static inline bool
+is_inf (uint64_t x)
+{
+  return (x & EXP_MANT_MASK) == EXPONENT_MASK;
+}
+
 static inline uint64_t
 get_mantissa (uint64_t x)
 {
@@ -169,6 +175,9 @@ attribute_hidden double __math_divzero (uint32_t);
 attribute_hidden double __math_invalid (double);
 
 /* Error handling using output checking, only for errno setting.  */
+
+/* Check if the result generated a demain error.  */
+attribute_hidden double __math_edom (double x);
 
 /* Check if the result overflowed to infinity.  */
 attribute_hidden double __math_check_oflow (double);

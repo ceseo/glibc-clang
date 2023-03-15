@@ -17,6 +17,8 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <libm-alias-finite.h>
+#include <libm-alias-float.h>
+#include <math-svid-compat.h>
 #include <math.h>
 #include "math_config.h"
 
@@ -44,7 +46,7 @@
      }  */
 
 float
-__ieee754_fmodf (float x, float y)
+__fmodf (float x, float y)
 {
   uint32_t hx = asuint (x);
   uint32_t hy = asuint (y);
@@ -59,8 +61,10 @@ __ieee754_fmodf (float x, float y)
      - If x is an inifinity, a NaN is returned.
      - If y is zero, Nan is returned.
      - If x is +0/-0, and y is not zero, +0/-0 is returned.  */
-  if (__glibc_unlikely (hy == 0	|| hx >= EXPONENT_MASK || hy > EXPONENT_MASK))
+  if (__glibc_unlikely (is_nan (hx) || is_nan (hy)))
     return (x * y) / (x * y);
+  if (__glibc_unlikely (hy == 0 || is_inf (hx)))
+    return __math_edom ((x * y) / (x * y));
 
   if (__glibc_unlikely (hx <= hy))
     {
@@ -141,4 +145,11 @@ __ieee754_fmodf (float x, float y)
 
   return make_float (mx, ey, sx);
 }
+strong_alias (__fmodf, __ieee754_fmodf)
+#if LIBM_SVID_COMPAT
+versioned_symbol (libm, __fmodf, fmodf, GLIBC_2_38);
+libm_alias_float_other (__fmod, fmod)
+#else
+libm_alias_float (__fmod, fmod)
+#endif
 libm_alias_finite (__ieee754_fmodf, __fmodf)
