@@ -572,11 +572,11 @@ case $($LD --version) in
 		    [1.1[4-9]*|1.[2-9][0-9]*|1.1[0-9][0-9]*|[2-9].*|[1-9][0-9]*],
 		    LD=: critic_missing="$critic_missing GNU gold")
     ;;
-  "LLD"*)
+  *"LLD"*)
   # Accept LLD 13.0.0 or higher
     AC_CHECK_PROG_VER(LD, $LD, --version,
 		    [LLD.* \([0-9][0-9]*\.[0-9.]*\)],
-		    [1[3-9].*|[2-9][0-9].*],
+		    [1[3-9].*|[2-9][0-9]*],
 		    LD=: critic_missing="$critic_missing LLD")
     libc_cv_with_lld=yes
     ;;
