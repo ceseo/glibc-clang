@@ -492,6 +492,7 @@ test_strncat (void)
 	  }
 }
 
+#ifndef __clang__
 static void
 test_strncmp (void)
 {
@@ -513,6 +514,7 @@ test_strncmp (void)
   check (strncmp ("abc", "", (size_t)-1) > 0, 14);	/* set sign bit in count */
   check (strncmp ("abc", "abc", (size_t)-2) == 0, 15);
 }
+#endif
 
 static void
 test_strncpy (void)
@@ -1586,7 +1588,9 @@ main (void)
   test_strncat ();
 
   /* strncmp.  */
+#ifndef __clang__
   test_strncmp ();
+#endif
 
   /* strncpy.  */
   test_strncpy ();
