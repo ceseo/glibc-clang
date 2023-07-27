@@ -62,6 +62,7 @@ function (void)
     return 1;
 }
 
+#ifndef __clang__
 __attribute__ ((noinline)) __attribute_noclone__
 static int
 function_overflow (void)
@@ -71,6 +72,7 @@ function_overflow (void)
   else
     return 1;
 }
+#endif
 
 __attribute__ ((noinline, noclone))
 static int
@@ -88,9 +90,11 @@ do_test (void)
   int status = do_test_1 (TEST_NAME, LOOP, prepare, function);
   if (status != EXIT_SUCCESS)
     return status;
+#ifndef __clang__
   status = do_test_1 (TEST_NAME, LOOP, prepare, function_overflow);
   if (status != EXIT_SUCCESS)
     return status;
+#endif
   status = do_test_1 (TEST_NAME, LOOP, prepare, function_overflow2);
   if (status != EXIT_SUCCESS)
     return status;
