@@ -196,11 +196,16 @@ I am ready for my first lesson today.";
   {
     char buf[20];
     char buf2[512];
+    /* Disable clang warning for truncated snprintf, since it is intended
+       here.  */
+    DIAG_PUSH_NEEDS_COMMENT_CLANG;
+    DIAG_IGNORE_NEEDS_COMMENT_CLANG (18.0, "-Wfortify-source");
     printf ("snprintf (\"%%30s\", \"foo\") == %d, \"%.*s\"\n",
 	    snprintf (buf, sizeof (buf), "%30s", "foo"), (int) sizeof (buf),
 	    buf);
     printf ("snprintf (\"%%.999999u\", 10) == %d\n",
 	    snprintf (buf2, sizeof (buf2), "%.999999u", 10));
+    DIAG_POP_NEEDS_COMMENT_CLANG;
   }
 
   printf("%.8f\n", DBL_MAX);
